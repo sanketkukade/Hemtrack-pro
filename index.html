@@ -1,0 +1,630 @@
+<!-- Navigation Tab Bar -->
+<div class="nav">
+  <button class="tab on" onclick="showTab('entry',this)">
+    📋 Defect Entry
+  </button>
+  <button class="tab" onclick="showTab('ml',this)">
+    🤖 ML Prediction
+  </button>
+  <button class="tab" onclick="showTab('spc',this)">
+    📈 SPC Monitor
+  </button>
+  <button class="tab" onclick="showTab('dashboard',this)">
+    📊 Dashboard
+  </button>
+  <button class="tab" onclick="showTab('rootcause',this)">
+    🔍 Root Cause
+  </button>
+  <button class="tab" onclick="showTab('alerts',this)">
+    🚨 Alerts
+  </button>
+  <button class="tab" onclick="showTab('records',this)">
+    📁 Records
+  </button>
+</div>
+<!-- Defect Entry Form -->
+<div class="panel on" id="tab-entry">
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle">Log New Defect</div>
+ 
+      <!-- Date & Shift -->
+      <div class="g2">
+        <div class="fg">
+          <label>Date & Time</label>
+          <input type="datetime-local" id="f-dt">
+        </div>
+        <div class="fg">
+          <label>Shift</label>
+          <select id="f-shift">
+            <option>Shift A (6:30–15:00)</option>
+            <option>Shift B (15:00–23:30)</option>
+            <option>Shift C (23:30–6:30)</option>
+          </select>
+        </div>
+      </div>
+ 
+      <!-- Defect Type & Severity -->
+      <div class="g2">
+        <div class="fg">
+          <label>Defect Type</label>
+          <select id="f-dtype">
+            <option>Open Hem</option>
+            <option>Hem Crack</option>
+            <option>Wrinkle / Pucker</option>
+            <option>Roll-in Defect</option>
+            <option>Panel Mismatch</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Severity</label>
+          <select id="f-sev">
+            <option value="HIGH">🔴 HIGH</option>
+            <option value="MED" selected>🟡 MEDIUM</option>
+            <option value="LOW">🟢 LOW</option>
+          </select>
+        </div>
+      </div>
+ 
+      <!-- Photo Upload -->
+      <div class="fg">
+        <label>Photo Evidence</label>
+        <div class="img-drop" id="img-drop"
+          onclick="document.getElementById('img-input').click()"
+          ondragover="event.preventDefault()"
+          ondrop="handleDrop(event)">
+          📷 Click or drag photos here
+        </div>
+        <input type="file" id="img-input"
+          accept="image/*" multiple
+          onchange="handleFiles(this.files)">
+      </div>
+ 
+      <button class="btn btn-c" onclick="addDefect()">
+        ⚡ LOG DEFECT
+      </button>
+    </div>
+  </div>
+</div>
+<!-- SPC Control Chart Canvas -->
+<div class="card">
+  <div class="ctitle">
+    X-Bar Control Chart — OCC Rate (%)
+    <span id="spc-status-badge" class="spc-status spc-ok">
+      ● IN CONTROL
+    </span>
+  </div>
+  <div class="ch ch-tall">
+    <canvas id="spc-chart"></canvas>
+  </div>
+</div>
+ 
+<!-- Dashboard Charts -->
+<div class="g2">
+  <div class="card">
+    <div class="ctitle">Defects by Type</div>
+    <div class="ch"><canvas id="ch-type"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Daily Trend</div>
+    <div class="ch"><canvas id="ch-trend"></canvas></div>
+  </div>
+</div>
+
+:root {
+  /* Color Palette */
+  --bg:     #060a12;   /* Background — Deep Navy */
+  --s1:     #0c1220;   /* Surface 1 */
+  --card:   #0f1928;   /* Card Background */
+  --border: #1e3050;   /* Border Color */
+  --cyan:   #00e5ff;   /* Primary Accent */
+  --red:    #ff3d5a;   /* Danger / HIGH Severity */
+  --green:  #00ff88;   /* Success / LOW Severity */
+  --amber:  #ffaa00;   /* Warning / MEDIUM Severity */
+  --purple: #a855f7;   /* ML / AI Accent */
+  --text:   #d4e8ff;   /* Primary Text */
+  --muted:  #4a6fa5;   /* Muted Text / Labels */
+ 
+  /* Typography */
+  --font-h: 'Orbitron', monospace;       /* Headings */
+  --font-m: 'IBM Plex Mono', monospace;  /* Numbers / Code */
+  --font-b: 'Barlow', sans-serif;        /* Body Text */
+}
+/* 2-column grid — switches to 1 column on mobile */
+.g2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+ 
+/* 4-column grid for KPI cards */
+.g4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+ 
+/* Responsive breakpoints */
+@media (max-width: 900px) {
+  .g2, .g3, .g4 { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .g2, .g3, .g4 { grid-template-columns: 1fr; }
+}
+
+/* Card Component */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 18px;
+}
+ 
+/* KPI Card — colored top border */
+.kpi {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.kpi::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;  /* Colored accent line on top */
+}
+.kpi.c::after { background: linear-gradient(90deg, var(--cyan), #0066ff); }
+.kpi.r::after { background: linear-gradient(90deg, var(--red), #cc0033); }
+.kpi.g::after { background: linear-gradient(90deg, var(--green), #00aa55); }
+.kpi.a::after { background: linear-gradient(90deg, var(--amber), #ff7700); }
+ 
+/* KPI Value (large number) */
+.kpi-v {
+  font-family: var(--font-m);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+/* Pulsing alert border animation */
+@keyframes pulse-border {
+  0%, 100% { border-color: var(--red); }
+  50%       { border-color: transparent; }
+}
+ 
+#alert-banner {
+  display: none;
+  background: linear-gradient(90deg,
+    rgba(255,61,90,0.15),
+    rgba(255,61,90,0.05));
+  border-bottom: 2px solid var(--red);
+  animation: pulse-border 1s infinite;
+  padding: 10px 20px;
+  font-family: var(--font-m);
+  color: var(--red);
+}
+
+/* Severity Badge */
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-m);
+}
+/* HIGH Severity */
+.bh {
+  background: rgba(255,61,90,.12);
+  color: var(--red);
+  border: 1px solid var(--red);
+}
+/* MEDIUM Severity */
+.bm {
+  background: rgba(255,170,0,.12);
+  color: var(--amber);
+  border: 1px solid var(--amber);
+}
+/* LOW Severity */
+.bl {
+  background: rgba(0,255,136,.12);
+  color: var(--green);
+  border: 1px solid var(--green);
+}  
+// ============ DATA INITIALIZATION ============
+// Load data from localStorage (persists after browser close)
+let defects  = JSON.parse(localStorage.getItem('ht2_defects') || '[]');
+let whyReps  = JSON.parse(localStorage.getItem('ht2_whys')    || '[]');
+let alertLog = JSON.parse(localStorage.getItem('ht2_alerts')  || '[]');
+let alertCfg = JSON.parse(localStorage.getItem('ht2_alertcfg')
+                || '{"occ":5,"high":3,"consec":3}');
+ 
+// Save function — called after every defect entry
+function save() {
+  localStorage.setItem('ht2_defects', JSON.stringify(defects));
+}
+ 
+// Add new defect record
+function addDefect() {
+  const g = id => document.getElementById(id).value.trim();
+ 
+  const d = {
+    id:       Date.now(),          // Unique timestamp ID
+    datetime: g('f-dt'),
+    shift:    g('f-shift'),
+    op:       g('f-op') || 'Unknown',
+    mach:     g('f-mach'),
+    door:     g('f-door'),
+    dtype:    g('f-dtype'),        // Defect Type
+    sev:      g('f-sev'),          // Severity: HIGH / MED / LOW
+    rc:       g('f-rc'),           // Root Cause
+    press:    parseFloat(g('f-press')) || 0,  // Hemming Pressure
+    prod:     parseInt(g('f-prod'))    || 0,  // Production count
+    rem:      g('f-rem'),          // Remarks
+    imgs:     [...pendingImgs]     // Photo evidence (base64)
+  };
+ 
+  defects.push(d);      // Add to array
+  save();               // Persist to localStorage
+  checkAlerts(d);       // Trigger alert checks
+  updateAll();          // Refresh all UI components
+  showToast('✅ Defect logged!');
+}
+// ============ ML PREDICTION MODEL ============
+function runML() {
+  const gv = id => {
+    const v = parseFloat(document.getElementById(id).value);
+    return isNaN(v) ? null : v;
+  };
+ 
+  // Get 7 input parameters
+  const press = gv('ml-press');  // Hemming Pressure (bar)
+  const tool  = gv('ml-tool');   // Tool Age (cycles)
+  const thick = gv('ml-thick');  // Material Thickness (mm)
+  const temp  = gv('ml-temp');   // Ambient Temperature (°C)
+  const angle = gv('ml-angle');  // Pre-hem Angle (°)
+  const exp   = gv('ml-exp');    // Operator Experience (months)
+  const prev  = gv('ml-prev');   // Previous Shift Defects
+ 
+  let score = 0;
+  let factors = [];
+ 
+  // --- FEATURE 1: Pressure Deviation ---
+  // Target pressure = 180 bar
+  const pressDev   = Math.abs((press - 180) / 180) * 100;
+  const pressScore = Math.min(pressDev * 1.5, 30);  // Max 30 points
+  score += pressScore;
+  factors.push({ name: 'Pressure Deviation', score: pressScore, max: 30 });
+ 
+  // --- FEATURE 2: Tool Age ---
+  // Higher tool age = higher risk (max 50000 cycles)
+  const toolScore = Math.min((tool / 50000) * 35, 35);  // Max 35 points
+  score += toolScore;
+  factors.push({ name: 'Tool Age', score: toolScore, max: 35 });
+ 
+  // --- FEATURE 3: Material Thickness ---
+  // Target thickness = 0.7 mm
+  const thickDev   = Math.abs((thick - 0.7) / 0.7) * 100;
+  const thickScore = Math.min(thickDev * 0.8, 15);  // Max 15 points
+  score += thickScore;
+  factors.push({ name: 'Material Deviation', score: thickScore, max: 15 });
+ 
+  // --- FEATURE 4: Pre-hem Angle ---
+  // Target angle = 45°
+  const angleDev   = angle ? Math.abs((angle - 45) / 45) * 100 : 0;
+  const angleScore = Math.min(angleDev * 0.5, 10);  // Max 10 points
+  score += angleScore;
+  factors.push({ name: 'Pre-hem Angle', score: angleScore, max: 10 });
+ 
+  // --- FEATURE 5: Previous Defects ---
+  const prevScore = prev ? Math.min(prev * 2, 8) : 0;
+  score += prevScore;
+  factors.push({ name: 'Prev Defects', score: prevScore, max: 8 });
+ 
+  // Final risk score (capped at 100%)
+  score = Math.min(Math.round(score), 100);
+ 
+  // Risk classification
+  const riskLabel  = score >= 60 ? 'HIGH RISK'
+                   : score >= 30 ? 'MEDIUM RISK' : 'LOW RISK';
+  const riskAction = score >= 60
+    ? '⛔ STOP PRODUCTION — Inspect immediately!'
+    : score >= 30
+    ? '⚠️ CAUTION — Monitor closely'
+    : '✅ PROCEED — Process within range';
+// ============ SPC CALCULATIONS ============
+function renderSPC() {
+  // Group defects by day
+  const dayGroups = {};
+  defects.forEach(d => {
+    const day = d.datetime.slice(0, 10);
+    if (!dayGroups[day]) dayGroups[day] = { count: 0, prod: 0 };
+    dayGroups[day].count++;
+    dayGroups[day].prod += d.prod;
+  });
+ 
+  const days = Object.keys(dayGroups).sort();
+ 
+  // Calculate OCC rate per day
+  // Formula: OCC% = (Defects / Production) × 100
+  const occs = days.map(d =>
+    dayGroups[d].prod > 0
+      ? (dayGroups[d].count / dayGroups[d].prod * 100)
+      : dayGroups[d].count
+  );
+ 
+  // ---- SPC Statistics ----
+  // Mean (X-bar)
+  const mean = occs.reduce((s, v) => s + v, 0) / occs.length;
+ 
+  // Standard Deviation (σ)
+  const sigma = Math.sqrt(
+    occs.reduce((s, v) => s + (v - mean) ** 2, 0) / occs.length
+  );
+ 
+  // Control Limits (3-sigma rule)
+  const ucl = mean + 3 * sigma;  // Upper Control Limit
+  const lcl = Math.max(0, mean - 3 * sigma);  // Lower Control Limit
+ 
+  // Check Out-of-Control condition
+  const ooc = occs.some(v => v > ucl || v < lcl);
+ 
+  // Update status badge
+  const badge = document.getElementById('spc-status-badge');
+  badge.className = 'spc-status ' + (ooc ? 'spc-ooc' : 'spc-ok');
+  badge.textContent = ooc ? '● OUT OF CONTROL' : '● IN CONTROL';
+// ============ SMART ALERT SYSTEM ============
+function checkAlerts(d) {
+  const cfg = alertCfg;
+ 
+  // Calculate current OCC rate
+  const totalProd = defects.reduce((s, x) => s + x.prod, 0);
+  const occ = totalProd > 0 ? (defects.length / totalProd * 100) : 0;
+ 
+  // --- Alert 1: HIGH Severity Defect ---
+  if (d.sev === 'HIGH') {
+    addAlert('high',
+      '🔴 HIGH Severity: ' + d.dtype + ' on ' + d.mach,
+      'Operator: ' + d.op + ' · Root Cause: ' + d.rc
+    );
+  }
+ 
+  // --- Alert 2: OCC Rate Threshold Breach ---
+  if (occ > cfg.occ) {
+    addAlert('high',
+      '🚨 OCC Rate Exceeded Threshold!',
+      'Current: ' + occ.toFixed(2) + '% > Limit: ' + cfg.occ + '%'
+    );
+    // Show top banner alert
+    document.getElementById('alert-banner').style.display = 'block';
+  }
+ 
+  // --- Alert 3: Consecutive defects on same machine ---
+  const lastN = defects.slice(-cfg.consec);
+  if (lastN.length >= cfg.consec &&
+      lastN.every(x => x.mach === d.mach)) {
+    addAlert('warn',
+      '⚠️ Consecutive Defects: ' + d.mach,
+      cfg.consec + ' consecutive defects — inspect machine'
+    );
+  }
+ 
+  // --- Alert 4: HIGH severity count per shift exceeded ---
+  const shiftHigh = defects.filter(
+    x => x.shift === d.shift && x.sev === 'HIGH'
+  ).length;
+  if (shiftHigh >= cfg.high) {
+    addAlert('warn',
+      '⚠️ High Severity Limit: ' + d.shift,
+      shiftHigh + ' HIGH defects this shift'
+    );
+  }
+}
+// ============ CHART RENDERING ============
+ 
+// Base chart options (shared across all charts)
+const baseOpts = {
+  responsive: true,
+  maintainAspectRatio: false,
+  animation: { duration: 600 },
+  plugins: {
+    legend: {
+      labels: { color: '#4a6fa5', font: { family: 'IBM Plex Mono', size: 10 } }
+    }
+  },
+  scales: {
+    x: { ticks: { color: '#4a6fa5' }, grid: { color: 'rgba(30,48,80,.6)' } },
+    y: { ticks: { color: '#4a6fa5' }, grid: { color: 'rgba(30,48,80,.6)' } }
+  }
+};
+ 
+// Safe chart creation (replaces canvas to avoid reuse errors)
+function mkChart(id, cfg) {
+  const c = document.getElementById(id);
+  if (!c) return;
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+  // Replace canvas element to avoid "already in use" error
+  const parent = c.parentNode;
+  const newCanvas = document.createElement('canvas');
+  newCanvas.id = id;
+  parent.replaceChild(newCanvas, c);
+  charts[id] = new Chart(newCanvas, cfg);
+}
+ 
+// Render all dashboard charts
+function renderCharts() {
+  const tc = cnt(defects, 'dtype');
+ 
+  // Bar chart — Defects by Type
+  mkChart('ch-type', {
+    type: 'bar',
+    data: {
+      labels: Object.keys(tc),
+      datasets: [{ label: 'Count', data: Object.values(tc),
+        backgroundColor: CL, borderRadius: 5 }]
+    },
+    options: baseOpts
+  });
+ 
+  // Line chart — Daily Trend
+  const dc = {};
+  defects.forEach(d => {
+    const day = d.datetime.slice(0, 10);
+    dc[day] = (dc[day] || 0) + 1;
+  });
+  mkChart('ch-trend', {
+    type: 'line',
+    data: {
+      labels: Object.keys(dc).sort(),
+      datasets: [{ label: 'Defects',
+        data: Object.values(dc),
+        borderColor: '#00e5ff',
+        backgroundColor: 'rgba(0,229,255,0.08)',
+        fill: true, tension: 0.4 }]
+    },
+    options: baseOpts
+  });
+ 
+  // Doughnut chart — Severity breakdown
+  const sv = { HIGH: 0, MED: 0, LOW: 0 };
+  defects.forEach(d => sv[d.sev]++);
+  mkChart('ch-sev', {
+    type: 'doughnut',
+    data: {
+      labels: ['HIGH', 'MEDIUM', 'LOW'],
+      datasets: [{ data: [sv.HIGH, sv.MED, sv.LOW],
+        backgroundColor: ['rgba(255,61,90,.8)',
+                          'rgba(255,170,0,.8)',
+                          'rgba(0,255,136,.8)'] }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+}
+
+// ============ PHOTO EVIDENCE UPLOAD ============
+let pendingImgs = [];  // Temporary image storage before defect save
+ 
+// Handle file selection from input
+function handleFiles(files) {
+  [...files].forEach(f => {
+    const r = new FileReader();
+    r.onload = e => {
+      // Convert image to base64 string
+      pendingImgs.push(e.target.result);
+      renderPreviews();
+    };
+    r.readAsDataURL(f);  // Read as base64
+  });
+}
+ 
+// Handle drag & drop
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('img-drop').classList.remove('drag');
+  handleFiles(e.dataTransfer.files);
+}
+ 
+// Render image thumbnails
+function renderPreviews() {
+  document.getElementById('img-preview').innerHTML =
+    pendingImgs.map((src, i) => `
+      <div class="img-thumb">
+        <img src="${src}">
+        <button class="del-img" onclick="removeImg(${i})">✕</button>
+      </div>
+    `).join('');
+}
+ 
+// Remove specific image
+function removeImg(i) {
+  pendingImgs.splice(i, 1);
+  renderPreviews();
+}
+// ============ DATA EXPORT ============
+ 
+// Export to CSV (compatible with Microsoft Excel)
+function exportCSV() {
+  if (!defects.length) { showToast('No data!', true); return; }
+ 
+  const headers = ['ID','DateTime','Shift','Operator','Machine',
+                   'Door','DefectType','Severity','RootCause',
+                   'Pressure','Production','Remarks','Photos'];
+ 
+  const rows = defects.map(d =>
+    [d.id, d.datetime, d.shift, d.op, d.mach,
+     d.door, d.dtype, d.sev, d.rc,
+     d.press, d.prod, d.rem, d.imgs ? d.imgs.length : 0]
+    .map(v => '"' + v + '"').join(',')
+  );
+ 
+  const csv = [headers.join(','), ...rows].join('\n');
+  download('hemming_defects.csv', csv, 'text/csv');
+}
+ 
+// Export to JSON (complete data backup)
+function exportJSON() {
+  const data = JSON.stringify({ defects, whyReps, alertLog }, null, 2);
+  download('hemming_data.json', data, 'application/json');
+}
+ 
+// Download helper function
+function download(name, content, type) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type }));
+  a.download = name;
+  a.click();
+}
+
+// SPC X-Bar Control Chart
+mkChart('spc-chart', {
+  type: 'line',
+  data: {
+    labels: days,  // Date labels on X-axis
+    datasets: [
+      // Main OCC% line (points turn red if out-of-control)
+      {
+        label: 'OCC%',
+        data: occs,
+        borderColor: '#00e5ff',
+        backgroundColor: 'rgba(0,229,255,0.1)',
+        fill: true,
+        tension: 0.3,
+        pointBackgroundColor: occs.map(v => v > ucl ? '#ff3d5a' : '#00e5ff'),
+        pointRadius: 5
+      },
+      // UCL line (dashed red)
+      {
+        label: 'UCL',
+        data: days.map(() => ucl),
+        borderColor: 'rgba(255,61,90,.6)',
+        borderDash: [6, 4],
+        pointRadius: 0,
+        borderWidth: 1.5
+      },
+      // Mean line (dashed green)
+      {
+        label: 'Mean',
+        data: days.map(() => mean),
+        borderColor: 'rgba(0,255,136,.4)',
+        borderDash: [4, 4],
+        pointRadius: 0,
+        borderWidth: 1.5
+      },
+      // LCL line (dashed amber)
+      {
+        label: 'LCL',
+        data: days.map(() => lcl),
+        borderColor: 'rgba(255,170,0,.5)',
+        borderDash: [6, 4],
+        pointRadius: 0,
+        borderWidth: 1.5
+      }
+    ]
+  },
+  options: baseOpts
+});
+
+
