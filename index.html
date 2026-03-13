@@ -1,53 +1,467 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HemTrack Pro</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=IBM+Plex+Mono:wght@400;700&family=Barlow:wght@400;600;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HemmTrack Pro V2</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=IBM+Plex+Mono:wght@400;600&family=Barlow:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #060a12;
+  --s1: #0c1220;
+  --s2: #111e33;
+  --card: #0f1928;
+  --border: #1e3050;
+  --cyan: #00e5ff;
+  --red: #ff3d5a;
+  --green: #00ff88;
+  --amber: #ffaa00;
+  --purple: #a855f7;
+  --text: #d4e8ff;
+  --muted: #4a6fa5;
+  --font-h: 'Orbitron', monospace;
+  --font-m: 'IBM Plex Mono', monospace;
+  --font-b: 'Barlow', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font-b);min-height:100vh;
+  background-image:radial-gradient(ellipse 80% 40% at 50% 0%,rgba(0,229,255,0.06) 0%,transparent 60%)}
+
+/* HEADER */
+@keyframes blink-red {
+  0%,100%{opacity:1;box-shadow:0 0 20px #ff3d5a,0 0 40px #ff3d5a;}
+  50%{opacity:0.2;box-shadow:0 0 4px #ff3d5a;}
+}
+@keyframes blink-amber {
+  0%,100%{opacity:1;box-shadow:0 0 20px #ffaa00,0 0 40px #ffaa00;}
+  50%{opacity:0.2;box-shadow:0 0 4px #ffaa00;}
+}
+.blink-red-anim{animation:blink-red 0.8s infinite;}
+.blink-amber-anim{animation:blink-amber 1.2s infinite;}
+header{
+  background:linear-gradient(90deg,#060d1a,#0a1628);
+  border-bottom:1px solid var(--border);
+  padding:10px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;
+  gap:8px;
+  position:sticky;top:0;z-index:200;
+  box-shadow:0 2px 40px rgba(0,229,255,0.08);
+}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-icon{
+  width:48px;height:48px;
+  background:linear-gradient(135deg,var(--cyan),#0066ff);
+  border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:24px;box-shadow:0 0 24px rgba(0,229,255,0.4);
+  position:relative;
+}
+.brand-icon::after{
+  content:'V2';position:absolute;bottom:-4px;right:-4px;
+  background:var(--red);color:#fff;font-size:8px;font-family:var(--font-m);
+  padding:1px 4px;border-radius:3px;font-weight:700;
+}
+.brand h1{font-family:var(--font-h);font-size:16px;font-weight:900;color:var(--cyan);letter-spacing:2px}
+.brand p{font-family:var(--font-m);font-size:10px;color:var(--muted)}
+
+.hstats{display:flex;gap:12px;align-items:center}
+.hs{text-align:center;padding:6px 12px;background:rgba(0,229,255,0.06);
+  border:1px solid var(--border);border-radius:8px;min-width:70px}
+.hs-v{font-family:var(--font-m);font-size:20px;font-weight:700}
+.hs-l{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.hs.cyan .hs-v{color:var(--cyan)}
+.hs.red .hs-v{color:var(--red)}
+.hs.green .hs-v{color:var(--green)}
+.hs.amber .hs-v{color:var(--amber)}
+
+/* ALERT BANNER */
+#alert-banner{
+  display:none;
+  background:linear-gradient(90deg,rgba(255,61,90,0.15),rgba(255,61,90,0.05));
+  border-bottom:2px solid var(--red);
+  padding:10px 20px;
+  font-family:var(--font-m);font-size:13px;color:var(--red);
+  animation:pulse-border 1s infinite;
+}
+@keyframes pulse-border{0%,100%{border-color:var(--red)}50%{border-color:transparent}}
+#alert-banner .alert-close{float:right;cursor:pointer;font-size:16px;opacity:0.7}
+#alert-banner .alert-close:hover{opacity:1}
+
+/* TABS */
+.nav{display:flex;gap:2px;padding:12px 20px 0;border-bottom:1px solid var(--border);overflow-x:auto}
+.tab{
+  padding:10px 18px;background:transparent;border:none;
+  border-bottom:3px solid transparent;
+  color:var(--muted);font-family:var(--font-b);font-size:14px;font-weight:600;
+  cursor:pointer;transition:all .2s;white-space:nowrap;letter-spacing:.3px;
+}
+.tab:hover{color:var(--text)}
+.tab.on{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+/* MAIN */
+.main{padding:20px;max-width:1400px;margin:0 auto}
+.panel{display:none}
+.panel.on{display:block}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:18px}
+.ctitle{
+  font-family:var(--font-h);font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:2px;color:var(--cyan);
+  margin-bottom:16px;display:flex;align-items:center;gap:8px;
+}
+.ctitle .dot{width:8px;height:8px;background:var(--cyan);border-radius:50%;box-shadow:0 0 8px var(--cyan)}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:900px){.g2,.g3,.g4{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+/* KPI */
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;position:relative;overflow:hidden}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.c::after{background:linear-gradient(90deg,var(--cyan),#0066ff)}
+.kpi.r::after{background:linear-gradient(90deg,var(--red),#cc0033)}
+.kpi.g::after{background:linear-gradient(90deg,var(--green),#00aa55)}
+.kpi.a::after{background:linear-gradient(90deg,var(--amber),#ff7700)}
+.kpi.p::after{background:linear-gradient(90deg,var(--purple),#7700cc)}
+.kpi-ico{font-size:22px;margin-bottom:6px}
+.kpi-v{font-family:var(--font-m);font-size:28px;font-weight:700;line-height:1;margin-bottom:4px}
+.kpi.c .kpi-v{color:var(--cyan)}.kpi.r .kpi-v{color:var(--red)}
+.kpi.g .kpi-v{color:var(--green)}.kpi.a .kpi-v{color:var(--amber)}
+.kpi.p .kpi-v{color:var(--purple)}
+.kpi-l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+
+/* FORM */
+.fg{margin-bottom:12px}
+label{display:block;font-size:11px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
+input,select,textarea{
+  width:100%;background:var(--s1);border:1px solid var(--border);
+  border-radius:8px;padding:10px 12px;color:var(--text);
+  font-family:var(--font-b);font-size:14px;outline:none;transition:all .2s;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,229,255,0.1)}
+select option{background:var(--s1)}
+textarea{resize:vertical;min-height:70px}
+.btn{padding:10px 22px;border:none;border-radius:8px;font-family:var(--font-h);
+  font-size:11px;font-weight:700;letter-spacing:1.5px;cursor:pointer;transition:all .2s;text-transform:uppercase}
+.btn-c{background:linear-gradient(135deg,var(--cyan),#0066ff);color:#000;box-shadow:0 4px 20px rgba(0,229,255,0.25)}
+.btn-c:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(0,229,255,0.4)}
+.btn-r{background:linear-gradient(135deg,var(--red),#990022);color:#fff}
+.btn-g{background:linear-gradient(135deg,var(--green),#00aa55);color:#000}
+.btn-a{background:linear-gradient(135deg,var(--amber),#cc7700);color:#000}
+.btn-sm{padding:6px 12px;font-size:9px}
+.btn-full{width:100%}
+
+/* BADGE */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;font-family:var(--font-m)}
+.bh{background:rgba(255,61,90,.12);color:var(--red);border:1px solid var(--red)}
+.bm{background:rgba(255,170,0,.12);color:var(--amber);border:1px solid var(--amber)}
+.bl{background:rgba(0,255,136,.12);color:var(--green);border:1px solid var(--green)}
+.bp{background:rgba(168,85,247,.12);color:var(--purple);border:1px solid var(--purple)}
+
+/* CHART */
+.ch{position:relative;height:240px}
+.ch-tall{height:300px}
+
+/* ML PREDICTION */
+.ml-result{
+  background:linear-gradient(135deg,rgba(0,229,255,0.06),rgba(0,102,255,0.04));
+  border:1px solid rgba(0,229,255,0.2);
+  border-radius:12px;padding:20px;margin-top:14px;
+}
+.ml-score{
+  font-family:var(--font-m);font-size:48px;font-weight:700;
+  text-align:center;margin-bottom:4px;
+}
+.risk-bar-bg{height:12px;background:var(--s1);border-radius:6px;overflow:hidden;margin:10px 0}
+.risk-bar-fill{height:100%;border-radius:6px;transition:width 1s ease}
+.ml-factors{margin-top:14px}
+.ml-factor{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;
+}
+.ml-factor:last-child{border:none}
+.factor-bar{height:6px;border-radius:3px;margin-top:4px}
+
+/* SPC */
+.spc-status{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 14px;border-radius:20px;font-family:var(--font-m);font-size:12px;font-weight:700;
+}
+.spc-ok{background:rgba(0,255,136,.1);color:var(--green);border:1px solid var(--green)}
+.spc-warn{background:rgba(255,170,0,.1);color:var(--amber);border:1px solid var(--amber)}
+.spc-ooc{background:rgba(255,61,90,.1);color:var(--red);border:1px solid var(--red)}
+
+/* IMAGE UPLOAD */
+.img-drop{
+  border:2px dashed var(--border);border-radius:12px;padding:30px;
+  text-align:center;cursor:pointer;transition:all .2s;
+  background:var(--s1);
+}
+.img-drop:hover,.img-drop.drag{border-color:var(--cyan);background:rgba(0,229,255,0.03)}
+.img-drop p{color:var(--muted);font-size:13px;margin-top:8px}
+.img-preview{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.img-thumb{
+  position:relative;width:90px;height:90px;
+  border-radius:8px;overflow:hidden;border:1px solid var(--border);
+}
+.img-thumb img{width:100%;height:100%;object-fit:cover}
+.img-thumb .del-img{
+  position:absolute;top:2px;right:2px;
+  background:rgba(255,61,90,.8);color:#fff;border:none;
+  border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;
+}
+
+/* PARETO */
+.par-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.par-lbl{width:150px;font-size:12px;font-weight:600;flex-shrink:0}
+.par-bg{flex:1;height:26px;background:var(--s1);border-radius:5px;overflow:hidden}
+.par-fill{height:100%;border-radius:5px;display:flex;align-items:center;padding-left:8px;
+  font-family:var(--font-m);font-size:11px;color:#000;font-weight:700;transition:width .8s}
+.par-pct{width:40px;text-align:right;font-family:var(--font-m);font-size:12px;color:var(--muted)}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:10px 12px;background:var(--s1);color:var(--cyan);font-family:var(--font-m);
+  font-size:10px;text-transform:uppercase;letter-spacing:1px;text-align:left;border-bottom:1px solid var(--border)}
+td{padding:9px 12px;border-bottom:1px solid rgba(30,48,80,.5);vertical-align:middle}
+tr:hover td{background:rgba(0,229,255,.02)}
+
+/* ALERT ITEMS */
+.alert-item{
+  display:flex;align-items:flex-start;gap:12px;padding:12px;
+  border-radius:10px;margin-bottom:10px;border:1px solid;
+}
+.alert-item.high{background:rgba(255,61,90,.08);border-color:rgba(255,61,90,.3)}
+.alert-item.warn{background:rgba(255,170,0,.08);border-color:rgba(255,170,0,.3)}
+.alert-item.info{background:rgba(0,229,255,.06);border-color:rgba(0,229,255,.2)}
+.alert-ico{font-size:20px;flex-shrink:0}
+.alert-body h4{font-size:13px;font-weight:700;margin-bottom:2px}
+.alert-body p{font-size:12px;color:var(--muted)}
+.alert-time{font-family:var(--font-m);font-size:10px;color:var(--muted);margin-left:auto;flex-shrink:0}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:24px;right:24px;
+  background:var(--card);border:1px solid var(--green);border-radius:10px;
+  padding:12px 18px;font-size:13px;font-weight:600;color:var(--green);
+  transform:translateY(80px);opacity:0;transition:all .3s;z-index:999;
+  box-shadow:0 8px 30px rgba(0,255,136,.15);max-width:300px;
+}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.err{border-color:var(--red);color:var(--red);box-shadow:0 8px 30px rgba(255,61,90,.15)}
+
+/* FILTER BAR */
+.fbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.fbar select,.fbar input{width:auto;flex:1;min-width:130px}
+
+/* ACTION */
+.act-item{
+  display:flex;justify-content:space-between;align-items:center;
+  background:var(--s1);border-left:3px solid var(--cyan);
+  border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:8px;
+}
+.act-item.done{border-left-color:var(--green);opacity:.5}
+.act-item h5{font-size:13px;font-weight:700;margin-bottom:2px}
+.act-item p{font-size:11px;color:var(--muted)}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+<style>
+body.light-mode {
+  --bg:#f0f4f8 !important;
+  --s1:#e2e8f0 !important;
+  --s2:#edf2f7 !important;
+  --card:#ffffff !important;
+  --border:#cbd5e0 !important;
+  --text:#1a202c !important;
+  --muted:#4a5568 !important;
+}
+body.light-mode { background:#f0f4f8 !important; color:#1a202c !important; }
+body.light-mode header { background:linear-gradient(135deg,#1a365d 0%,#2b6cb0 100%) !important; }
+body.light-mode .card { background:#ffffff !important; border-color:#cbd5e0 !important; box-shadow:0 2px 12px rgba(0,0,0,0.08) !important; }
+body.light-mode .nav { background:#e2e8f0 !important; border-bottom:1px solid #cbd5e0 !important; }
+body.light-mode .tab { color:#4a5568 !important; background:transparent !important; }
+body.light-mode .tab.on { background:#ffffff !important; color:#1a365d !important; border-bottom:3px solid #00e5ff !important; }
+body.light-mode .panel { background:#f0f4f8 !important; }
+body.light-mode input, body.light-mode select, body.light-mode textarea { background:#ffffff !important; color:#1a202c !important; border:1px solid #cbd5e0 !important; }
+body.light-mode .kpi { background:#ffffff !important; border-color:#cbd5e0 !important; }
+body.light-mode .ctitle { color:#1a202c !important; }
+body.light-mode label { color:#4a5568 !important; }
+body.light-mode .rec-table th { background:#2b6cb0 !important; }
+body.light-mode .rec-table td { border-color:#e2e8f0 !important; color:#1a202c !important; }
+body.light-mode .rec-table tr:hover td { background:#ebf8ff !important; }
+</style>
+
 </head>
 <body>
 
-<!-- Navigation Tab Bar -->
-<div class="nav">
-  <button class="tab on" onclick="showTab('entry',this)">
-    📋 Defect Entry
-  </button>
-  <button class="tab" onclick="showTab('ml',this)">
-    🤖 ML Prediction
-  </button>
-  <button class="tab" onclick="showTab('spc',this)">
-    📈 SPC Monitor
-  </button>
-  <button class="tab" onclick="showTab('dashboard',this)">
-    📊 Dashboard
-  </button>
-  <button class="tab" onclick="showTab('rootcause',this)">
-    🔍 Root Cause
-  </button>
-  <button class="tab" onclick="showTab('alerts',this)">
-    🚨 Alerts
-  </button>
-  <button class="tab" onclick="showTab('records',this)">
-    📁 Records
-  </button>
+<!-- ALERT BANNER -->
+<div id="alert-banner">
+  🚨 <strong>ALERT:</strong> <span id="alert-msg">High severity defect threshold exceeded!</span>
+  <span class="alert-close" onclick="document.getElementById('alert-banner').style.display='none'">✕</span>
 </div>
-<!-- Defect Entry Form -->
+
+<header>
+  <div class="brand">
+    <div class="brand-icon">🔩</div>
+    <div>
+      <h1>HemmTrack Pro</h1>
+      <p>Rear Door Hemming · AI-Powered Defect Intelligence</p>
+    </div>
+  </div>
+  <button id="theme-toggle" onclick="toggleTheme()" style="
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.15);
+    border-radius:50px;
+    padding:8px 16px;
+    cursor:pointer;
+    font-size:18px;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-family:Consolas,monospace;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:1px;
+    transition:all 0.3s;
+  " title="Toggle Light/Dark Mode">
+    <span id="theme-icon">☀️</span>
+    <span id="theme-label">LIGHT</span>
+  </button>
+  <!-- LIGHT/DARK TOGGLE -->
+  
+  <div id="live-clock" style="
+    font-family:Consolas,monospace;
+    text-align:center;
+    background:linear-gradient(135deg,rgba(0,229,255,0.12),rgba(0,102,255,0.08));
+    border:1px solid rgba(0,229,255,0.35);
+    border-radius:14px;
+    padding:10px 22px;
+    min-width:140px;
+    box-shadow:0 0 18px rgba(0,229,255,0.15), inset 0 1px 0 rgba(255,255,255,0.05);
+    position:relative;
+    overflow:hidden;
+  ">
+    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#00e5ff,transparent)"></div>
+    <div id="live-date" style="
+      font-size:12px;
+      color:#00e5ff;
+      font-weight:700;
+      letter-spacing:2px;
+      text-transform:uppercase;
+      opacity:0.9;
+    "></div>
+    <div id="live-time" style="
+      font-size:22px;
+      color:#ffffff;
+      font-weight:900;
+      letter-spacing:3px;
+      margin-top:3px;
+      text-shadow:0 0 20px rgba(0,229,255,0.6), 0 0 40px rgba(0,229,255,0.3);
+    "></div>
+    <div style="
+      font-size:10px;
+      color:#4a6fa5;
+      margin-top:3px;
+      letter-spacing:1px;
+    ">● LIVE</div>
+  </div>
+
+  <div class="hstats">
+    <div class="hs cyan"><div class="hs-v" id="h-total">0</div><div class="hs-l">Defects</div></div>
+    <div class="hs red"><div class="hs-v" id="h-occ">0%</div><div class="hs-l">OCC Rate</div></div>
+    <div class="hs amber"><div class="hs-v" id="h-alerts">0</div><div class="hs-l">Alerts</div></div>
+    <div class="hs green"><div class="hs-v" id="h-today">0</div><div class="hs-l">Today</div></div>
+  </div>
+  <!-- LIVE PRODUCTION COUNTER -->
+  <div id="prod-counter-box" style="
+    font-family:Consolas,monospace;
+    text-align:center;
+    background:linear-gradient(135deg,rgba(0,255,136,0.10),rgba(0,180,100,0.06));
+    border:1px solid rgba(0,255,136,0.30);
+    border-radius:14px;
+    padding:10px 18px;
+    min-width:160px;
+    box-shadow:0 0 16px rgba(0,255,136,0.12);
+    position:relative;
+    overflow:hidden;
+  ">
+    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#00ff88,transparent)"></div>
+    <div style="font-size:11px;color:#00ff88;font-weight:700;letter-spacing:2px;text-transform:uppercase;">🏭 Production</div>
+    <div id="prod-count-val" style="
+      font-size:30px;
+      color:#ffffff;
+      font-weight:900;
+      letter-spacing:2px;
+      margin-top:2px;
+      text-shadow:0 0 20px rgba(0,255,136,0.6);
+    ">0</div>
+    <div id="prod-shift-name" style="font-size:10px;color:#4a6fa5;margin-top:2px;letter-spacing:1px;">THIS SHIFT</div>
+  </div>
+  <!-- BLINKING ALERT INDICATOR -->
+  <div id="blink-indicator" style="
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+  ">
+    <div id="blink-dot" style="
+      width:28px;
+      height:28px;
+      border-radius:50%;
+      background:#00ff88;
+      box-shadow:0 0 12px #00ff88;
+      transition:all 0.3s;
+    "></div>
+    <div id="blink-label" style="
+      font-family:Consolas,monospace;
+      font-size:10px;
+      font-weight:700;
+      color:#00ff88;
+      letter-spacing:1px;
+      text-transform:uppercase;
+    ">NO DEFECT</div>
+    <div id="blink-count" style="
+      font-family:Consolas,monospace;
+      font-size:9px;
+      color:#4a6fa5;
+    ">Last 1 hr: 0</div>
+  </div>
+</header>
+
+<div class="nav">
+  <button class="tab on" onclick="showTab('entry',this)">📋 Defect Entry</button>
+  <button class="tab" onclick="showTab('ml',this)">🤖 ML Prediction</button>
+  <button class="tab" onclick="showTab('spc',this)">📈 SPC Monitor</button>
+  <button class="tab" onclick="showTab('dashboard',this)">📊 Dashboard</button>
+  <button class="tab" onclick="showTab('rootcause',this)">🔍 Root Cause</button>
+  <button class="tab" onclick="showTab('alerts',this)">🚨 Alerts <span id="alert-badge" style="background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px">0</span></button>
+  <button class="tab" onclick="showTab('records',this)">📁 Records</button>
+    <button class="tab" onclick="showTab('webrep',this)">🌐 Web Report</button>
+</div>
+
+<div class="main">
+
+<!-- ===== TAB: ENTRY ===== -->
 <div class="panel on" id="tab-entry">
   <div class="g2">
     <div class="card">
-      <div class="ctitle">Log New Defect</div>
- 
-      <!-- Date & Shift -->
-      <div class="g2">
-        <div class="fg">
-          <label>Date & Time</label>
-          <input type="datetime-local" id="f-dt">
-        </div>
-        <div class="fg">
-          <label>Shift</label>
+      <div class="ctitle"><span class="dot"></span>Log New Defect</div>
+      <div class="g2" style="gap:10px">
+        <div class="fg"><label>Date & Time <span style="color:#ff3d5a">*</span></label><input type="datetime-local" id="f-dt"></div>
+        <div class="fg"><label>Shift <span style="color:#ff3d5a">*</span></label>
           <select id="f-shift">
             <option>Shift A (6:30–15:00)</option>
             <option>Shift B (15:00–23:30)</option>
@@ -55,589 +469,1438 @@
           </select>
         </div>
       </div>
- 
-      <!-- Defect Type & Severity -->
-      <div class="g2">
-        <div class="fg">
-          <label>Defect Type</label>
-          <select id="f-dtype">
-            <option>Open Hem</option>
-            <option>Hem Crack</option>
-            <option>Wrinkle / Pucker</option>
-            <option>Roll-in Defect</option>
-            <option>Panel Mismatch</option>
+      <div class="g2" style="gap:10px">
+        <div class="fg"><label>Inspector Ticket No <span style="color:#ff3d5a">*</span></label><input type="text" id="f-op" placeholder="TKT-1001"></div>
+        <div class="fg"><label>Station No <span style="color:#ff3d5a">*</span></label>
+          <select id="f-mach">
+            <option>ST-100</option>
+            <option>ST-120</option>
+            <option>ST-150</option>
+            <option>ST-200</option>
+            <option>ST-220</option>
           </select>
         </div>
-        <div class="fg">
-          <label>Severity</label>
+      </div>
+      <div class="g2" style="gap:10px">
+        <div class="fg"><label>Side <span style="color:#ff3d5a">*</span></label>
+          <select id="f-door">
+            <option>LH Front</option>
+            <option>LH Rear</option>
+            <option>RH Front</option>
+            <option>RH Rear</option>
+            <option>Bonnet</option>
+            <option>Tailgate</option>
+          </select>
+        </div>
+        <div class="fg"><label>Defect Type <span style="color:#ff3d5a">*</span></label>
+          <select id="f-dtype">
+            <option>Open Hem</option><option>Hem Crack</option>
+            <option>Wrinkle / Pucker</option><option>Roll-in Defect</option>
+            <option>Burr / Sharp Edge</option><option>Panel Mismatch</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="g2" style="gap:10px">
+        <div class="fg"><label>Severity</label>
           <select id="f-sev">
             <option value="HIGH">🔴 HIGH</option>
             <option value="MED" selected>🟡 MEDIUM</option>
             <option value="LOW">🟢 LOW</option>
           </select>
         </div>
+        <div class="fg"><label>Root Cause</label>
+          <select id="f-rc">
+            <option>Tooling Wear</option>
+            <option>Incorrect Setup</option>
+            <option>Material Issue</option>
+            <option>Operator Error</option>
+            <option>Machine Malfunction</option>
+            <option>Fixture Problem</option>
+            <option>Unknown</option>
+          </select>
+        </div>
       </div>
- 
-      <!-- Photo Upload -->
+      <div class="g2" style="gap:10px">
+        <div class="fg"><label>Hemming Pressure (bar) <span style="color:#ff3d5a">*</span></label><input type="number" id="f-press" placeholder="e.g. 180" min="0" max="400"></div>
+        <div class="fg"><label>Production Count (Shift) <span style="color:#ff3d5a">*</span></label><input type="number" id="f-prod" placeholder="e.g. 250" min="0"></div>
+      </div>
+      <div class="fg"><label>Remarks</label><textarea id="f-rem" placeholder="Observation details..."></textarea></div>
+
+      <!-- IMAGE UPLOAD -->
       <div class="fg">
         <label>Photo Evidence</label>
-        <div class="img-drop" id="img-drop"
-          onclick="document.getElementById('img-input').click()"
-          ondragover="event.preventDefault()"
+        <div class="img-drop" id="img-drop" onclick="document.getElementById('img-input').click()"
+          ondragover="event.preventDefault();this.classList.add('drag')"
+          ondragleave="this.classList.remove('drag')"
           ondrop="handleDrop(event)">
-          📷 Click or drag photos here
+          📷
+          <p>Click or drag photos here (JPG, PNG)</p>
         </div>
-        <input type="file" id="img-input"
-          accept="image/*" multiple
-          onchange="handleFiles(this.files)">
+        <input type="file" id="img-input" accept="image/*" multiple style="display:none" onchange="handleFiles(this.files)">
+        <div class="img-preview" id="img-preview"></div>
       </div>
- 
-      <button class="btn btn-c" onclick="addDefect()">
-        ⚡ LOG DEFECT
-      </button>
+
+      <button class="btn btn-c btn-full" onclick="addDefect()" style="margin-top:4px">⚡ LOG DEFECT</button>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted)"><span style="color:#ff3d5a">*</span> Mandatory fields — log होणार नाही</div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="ctitle"><span class="dot"></span>Today's Summary</div>
+        <div class="g2" style="gap:10px">
+          <div style="background:var(--s1);border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:26px;font-family:var(--font-m);color:var(--red);font-weight:700" id="qs-h">0</div>
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">High</div>
+          </div>
+          <div style="background:var(--s1);border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:26px;font-family:var(--font-m);color:var(--amber);font-weight:700" id="qs-m">0</div>
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Medium</div>
+          </div>
+          <div style="background:var(--s1);border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:26px;font-family:var(--font-m);color:var(--green);font-weight:700" id="qs-l">0</div>
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Low</div>
+          </div>
+          <div style="background:var(--s1);border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:26px;font-family:var(--font-m);color:var(--cyan);font-weight:700" id="qs-occ">0%</div>
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">OCC%</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ctitle"><span class="dot"></span>Recent Entries</div>
+        <div id="recent-list" style="font-size:13px;color:var(--muted)">No entries yet...</div>
+      </div>
+      <div class="card" style="background:linear-gradient(135deg,rgba(168,85,247,0.06),rgba(0,102,255,0.04));border-color:rgba(168,85,247,0.3)">
+        <div class="ctitle" style="color:var(--purple)"><span class="dot" style="background:var(--purple);box-shadow:0 0 8px var(--purple)"></span>AI Tip of the Day</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.7" id="ai-tip">Loading tip...</p>
+      </div>
     </div>
   </div>
 </div>
-<!-- SPC Control Chart Canvas -->
+
+<!-- ===== TAB: ML PREDICTION ===== -->
+<div class="panel" id="tab-ml">
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle"><span class="dot"></span>🤖 Defect Risk Predictor</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">
+        Enter current process parameters. The ML model analyzes historical patterns to predict defect risk before production.
+      </p>
+      <div class="g2" style="gap:10px">
+        <div class="fg"><label>Hemming Pressure (bar)</label><input type="number" id="ml-press" placeholder="Target: 180" oninput="runML()"></div>
+        <div class="fg"><label>Tool Age (cycles)</label><input type="number" id="ml-tool" placeholder="Max: 50000" oninput="runML()"></div>
+      </div>
+      <div class="g2" style="gap:10px">
+        <div class="fg"><label>Material Thickness (mm)</label><input type="number" id="ml-thick" placeholder="Target: 0.7" step="0.01" oninput="runML()"></div>
+        <div class="fg"><label>Ambient Temperature (°C)</label><input type="number" id="ml-temp" placeholder="e.g. 28" oninput="runML()"></div>
+      </div>
+      <div class="g2" style="gap:10px">
+        <div class="fg"><label>Pre-hem Angle (°)</label><input type="number" id="ml-angle" placeholder="Target: 45" oninput="runML()"></div>
+        <div class="fg"><label>Operator Experience (months)</label><input type="number" id="ml-exp" placeholder="e.g. 12" oninput="runML()"></div>
+      </div>
+      <div class="fg"><label>Previous Shift Defects</label><input type="number" id="ml-prev" placeholder="e.g. 3" oninput="runML()"></div>
+      <button class="btn btn-c btn-full" onclick="runML()">🔮 PREDICT DEFECT RISK</button>
+    </div>
+    <div>
+      <div class="card" id="ml-result-card">
+        <div class="ctitle"><span class="dot"></span>Prediction Result</div>
+        <div id="ml-output">
+          <p style="color:var(--muted);font-size:13px">Enter parameters and click Predict...</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ctitle"><span class="dot"></span>Model Info</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.9">
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+            <span>Algorithm</span><span style="color:var(--cyan);font-family:var(--font-m)">Weighted Scoring (Rule-based ML)</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+            <span>Training Data</span><span style="color:var(--cyan);font-family:var(--font-m)">Historical Defect Records</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+            <span>Key Features</span><span style="color:var(--cyan);font-family:var(--font-m)">7 Parameters</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0">
+            <span>Output</span><span style="color:var(--cyan);font-family:var(--font-m)">Risk Score 0–100%</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ctitle"><span class="dot"></span>Feature Importance</div>
+        <div id="feature-imp">
+          <div class="par-row"><div class="par-lbl">Tool Age</div><div class="par-bg"><div class="par-fill" style="width:85%;background:var(--red)">85%</div></div></div>
+          <div class="par-row"><div class="par-lbl">Hem Pressure</div><div class="par-bg"><div class="par-fill" style="width:72%;background:var(--amber)">72%</div></div></div>
+          <div class="par-row"><div class="par-lbl">Pre-hem Angle</div><div class="par-bg"><div class="par-fill" style="width:60%;background:var(--cyan)">60%</div></div></div>
+          <div class="par-row"><div class="par-lbl">Material Thick.</div><div class="par-bg"><div class="par-fill" style="width:55%;background:var(--purple)">55%</div></div></div>
+          <div class="par-row"><div class="par-lbl">Prev Shift Defects</div><div class="par-bg"><div class="par-fill" style="width:45%;background:var(--green)">45%</div></div></div>
+          <div class="par-row"><div class="par-lbl">Operator Exp.</div><div class="par-bg"><div class="par-fill" style="width:35%;background:#00aabb)">35%</div></div></div>
+          <div class="par-row"><div class="par-lbl">Temperature</div><div class="par-bg"><div class="par-fill" style="width:20%;background:#aabb00">20%</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB: SPC ===== -->
+<div class="panel" id="tab-spc">
+  <div class="g2" style="margin-bottom:16px">
+    <div class="kpi c"><div class="kpi-ico">📏</div><div class="kpi-v" id="spc-mean">—</div><div class="kpi-l">Process Mean (OCC%)</div></div>
+    <div class="kpi r"><div class="kpi-ico">📊</div><div class="kpi-v" id="spc-ucl">—</div><div class="kpi-l">UCL (Upper Control Limit)</div></div>
+    <div class="kpi g"><div class="kpi-ico">📉</div><div class="kpi-v" id="spc-lcl">—</div><div class="kpi-l">LCL (Lower Control Limit)</div></div>
+    <div class="kpi a"><div class="kpi-ico">⚡</div><div class="kpi-v" id="spc-sigma">—</div><div class="kpi-l">Process Sigma (σ)</div></div>
+  </div>
+  <div class="card">
+    <div class="ctitle" style="justify-content:space-between">
+      <span><span class="dot"></span>X-Bar Control Chart — OCC Rate (%)</span>
+      <span id="spc-status-badge" class="spc-status spc-ok">● IN CONTROL</span>
+    </div>
+    <div class="ch ch-tall"><canvas id="spc-chart"></canvas></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle"><span class="dot"></span>P-Chart — Defect Proportion</div>
+      <div class="ch"><canvas id="p-chart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ctitle"><span class="dot"></span>Control Chart Interpretation</div>
+      <div style="font-size:13px;line-height:1.9;color:var(--muted)">
+        <div style="padding:8px;background:rgba(0,255,136,.06);border-radius:8px;margin-bottom:8px;color:var(--green)">
+          ✅ <strong>IN CONTROL:</strong> Points within UCL & LCL, random variation
+        </div>
+        <div style="padding:8px;background:rgba(255,170,0,.06);border-radius:8px;margin-bottom:8px;color:var(--amber)">
+          ⚠️ <strong>WARNING:</strong> 2 of 3 points near control limits
+        </div>
+        <div style="padding:8px;background:rgba(255,61,90,.06);border-radius:8px;color:var(--red)">
+          🚨 <strong>OUT OF CONTROL:</strong> Point beyond UCL/LCL → Special cause present → Investigate immediately
+        </div>
+        <div style="margin-top:10px;padding:10px;background:var(--s1);border-radius:8px">
+          <strong style="color:var(--cyan)">Western Electric Rules Applied:</strong><br>
+          Rule 1: 1 point beyond 3σ<br>
+          Rule 2: 9 consecutive points same side<br>
+          Rule 3: 6 consecutive trending points
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB: DASHBOARD ===== -->
+<div class="panel" id="tab-dashboard">
+  <div class="g4" style="margin-bottom:16px">
+    <div class="kpi c"><div class="kpi-ico">📦</div><div class="kpi-v" id="kpi-total">0</div><div class="kpi-l">Total Defects</div></div>
+    <div class="kpi r"><div class="kpi-ico">⚠️</div><div class="kpi-v" id="kpi-occ">0%</div><div class="kpi-l">OCC Rate</div></div>
+    <div class="kpi a"><div class="kpi-ico">🔴</div><div class="kpi-v" id="kpi-high">0</div><div class="kpi-l">High Severity</div></div>
+    <div class="kpi g"><div class="kpi-ico">🏭</div><div class="kpi-v" id="kpi-prod">0</div><div class="kpi-l">Total Production</div></div>
+  </div>
+  <div class="g2">
+    <div class="card"><div class="ctitle"><span class="dot"></span>Defects by Type</div><div class="ch"><canvas id="ch-type"></canvas></div></div>
+    <div class="card"><div class="ctitle"><span class="dot"></span>Daily Trend</div><div class="ch"><canvas id="ch-trend"></canvas></div></div>
+  </div>
+  <div class="g2">
+    <div class="card"><div class="ctitle"><span class="dot"></span>Severity Distribution</div><div class="ch"><canvas id="ch-sev"></canvas></div></div>
+    <div class="card"><div class="ctitle"><span class="dot"></span>Machine-wise Defects</div><div class="ch"><canvas id="ch-mach"></canvas></div></div>
+  </div>
+  <div class="card"><div class="ctitle"><span class="dot"></span>Shift Comparison</div><div class="ch" style="height:160px"><canvas id="ch-shift"></canvas></div></div>
+</div>
+
+<!-- BEFORE VS AFTER CARD -->
+<div class="card" style="margin:0 0 16px;">
+  <div class="ctitle">📈 Before vs After Improvement Analysis</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+    <div style="background:rgba(255,61,90,0.08);border:1px solid rgba(255,61,90,0.3);border-radius:10px;padding:16px;text-align:center;">
+      <div style="font-size:12px;color:#ff3d5a;font-weight:700;letter-spacing:1px;margin-bottom:8px;">⚠ BEFORE IMPROVEMENT</div>
+      <div style="font-size:42px;font-weight:900;color:#ff3d5a;">8.2%</div>
+      <div style="font-size:11px;color:#4a6fa5;margin-top:4px;">OCC Rate (Baseline)</div>
+      <div style="font-size:11px;color:#4a6fa5;">Feb 2025 Data</div>
+    </div>
+    <div style="background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.3);border-radius:10px;padding:16px;text-align:center;">
+      <div style="font-size:12px;color:#00ff88;font-weight:700;letter-spacing:1px;margin-bottom:8px;">✅ AFTER IMPROVEMENT</div>
+      <div style="font-size:42px;font-weight:900;color:#00ff88;">1.4%</div>
+      <div style="font-size:11px;color:#4a6fa5;margin-top:4px;">OCC Rate (Current)</div>
+      <div style="font-size:11px;color:#4a6fa5;">Mar 2026 Data</div>
+    </div>
+  </div>
+
+  <!-- Visual bar comparison -->
+  <div style="margin-bottom:12px;">
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+      <span style="font-size:12px;color:#ff3d5a;font-weight:700;">Before: 8.2%</span>
+      <span style="font-size:12px;color:#4a6fa5;">Target: ≤ 2%</span>
+    </div>
+    <div style="background:rgba(255,255,255,0.06);border-radius:6px;height:22px;overflow:hidden;">
+      <div style="width:82%;height:100%;background:linear-gradient(90deg,#ff3d5a,#ff6b6b);border-radius:6px;display:flex;align-items:center;padding-left:8px;">
+        <span style="font-size:11px;color:#fff;font-weight:700;">8.2%</span>
+      </div>
+    </div>
+  </div>
+  <div style="margin-bottom:16px;">
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+      <span style="font-size:12px;color:#00ff88;font-weight:700;">After: 1.4%</span>
+      <span style="font-size:12px;color:#00ff88;">✓ Below Target</span>
+    </div>
+    <div style="background:rgba(255,255,255,0.06);border-radius:6px;height:22px;overflow:hidden;">
+      <div style="width:14%;height:100%;background:linear-gradient(90deg,#00ff88,#00cc6a);border-radius:6px;display:flex;align-items:center;padding-left:8px;">
+        <span style="font-size:11px;color:#000;font-weight:700;">1.4%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Improvement highlight -->
+  <div style="background:linear-gradient(135deg,rgba(0,229,255,0.08),rgba(0,255,136,0.06));border:1px solid rgba(0,229,255,0.2);border-radius:10px;padding:14px;text-align:center;">
+    <div style="font-size:13px;color:#4a6fa5;margin-bottom:6px;">Total Improvement Achieved</div>
+    <div style="font-size:36px;font-weight:900;color:#00e5ff;">83% ↓</div>
+    <div style="font-size:12px;color:#00ff88;margin-top:4px;">OCC Rate reduced from 8.2% → 1.4%</div>
+  </div>
+</div>
+
+<!-- ===== TAB: ROOT CAUSE ===== -->
+<div class="panel" id="tab-rootcause">
+  <div class="g2">
+    <div>
+      <div class="card">
+        <div class="ctitle"><span class="dot"></span>Pareto Analysis</div>
+        <div id="pareto"></div>
+      </div>
+      <div class="card">
+        <div class="ctitle"><span class="dot"></span>5-Why Analysis</div>
+        <div class="fg"><label>Problem Statement</label><input type="text" id="w-prob" placeholder="e.g. Open Hem on LH Rear Door"></div>
+        <div id="w-inputs"></div>
+        <button class="btn btn-a btn-sm" onclick="addWhy()" style="margin-bottom:12px">+ Add Why</button>
+        <div class="fg"><label>Root Cause Conclusion</label><textarea id="w-conc" placeholder="Final root cause..."></textarea></div>
+        <div class="fg"><label>Corrective Action</label><textarea id="w-act" placeholder="Action to prevent recurrence..."></textarea></div>
+        <div class="fg"><label>Responsible Person & Due Date</label>
+          <div class="g2" style="gap:10px">
+            <input type="text" id="w-owner" placeholder="e.g. QA Engineer">
+            <input type="date" id="w-due">
+          </div>
+        </div>
+        <button class="btn btn-g btn-full" onclick="save5Why()">💾 SAVE 5-WHY REPORT</button>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="ctitle"><span class="dot"></span>Action Plan</div>
+        <div id="act-list">
+          <div class="act-item">
+            <div><h5>Replace HM-01 Hemming Tool Insert</h5><p>Due: Next PM · Owner: Maintenance Team</p></div>
+            <button class="btn btn-g btn-sm" onclick="markDone(this)">✓</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <input type="text" id="new-act" placeholder="Add action item...">
+          <button class="btn btn-c btn-sm" onclick="addAction()">Add</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ctitle"><span class="dot"></span>Saved 5-Why Reports</div>
+        <div id="why-list" style="font-size:13px;color:var(--muted)">No reports yet...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB: ALERTS ===== -->
+<div class="panel" id="tab-alerts">
+  <div class="g2">
+    <div>
+      <div class="card">
+        <div class="ctitle"><span class="dot"></span>Alert Configuration</div>
+        <div class="fg"><label>OCC Rate Threshold (%)</label>
+          <input type="number" id="al-occ" value="5" min="0" max="100" oninput="saveAlertConfig()">
+          <p style="font-size:11px;color:var(--muted);margin-top:4px">Alert triggers when OCC rate exceeds this value</p>
+        </div>
+        <div class="fg"><label>Max High-Severity Defects per Shift</label>
+          <input type="number" id="al-high" value="3" min="0" oninput="saveAlertConfig()">
+        </div>
+        <div class="fg"><label>Consecutive Defect Alert (same machine)</label>
+          <input type="number" id="al-consec" value="3" min="1" oninput="saveAlertConfig()">
+        </div>
+        <div style="padding:12px;background:rgba(0,229,255,0.06);border-radius:8px;margin-top:8px">
+          <p style="font-size:12px;color:var(--cyan)">⚡ Alerts auto-check on every defect entry</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ctitle"><span class="dot"></span>Alert Summary</div>
+        <div class="g2" style="gap:10px">
+          <div style="background:rgba(255,61,90,.08);border:1px solid rgba(255,61,90,.2);border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:28px;font-family:var(--font-m);color:var(--red);font-weight:700" id="al-count-h">0</div>
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Critical</div>
+          </div>
+          <div style="background:rgba(255,170,0,.08);border:1px solid rgba(255,170,0,.2);border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:28px;font-family:var(--font-m);color:var(--amber);font-weight:700" id="al-count-w">0</div>
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Warning</div>
+          </div>
+        </div>
+        <button class="btn btn-r btn-sm" onclick="clearAlerts()" style="margin-top:12px">Clear All Alerts</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ctitle"><span class="dot"></span>Live Alert Feed</div>
+      <div id="alert-feed">
+        <div class="alert-item info">
+          <span class="alert-ico">ℹ️</span>
+          <div class="alert-body"><h4>System Ready</h4><p>Alert monitoring active. Log defects to trigger alerts.</p></div>
+          <span class="alert-time">Now</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB: RECORDS ===== -->
+<div class="panel" id="tab-records">
+  <div class="card">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+      <button class="btn btn-g btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+      <button class="btn btn-c btn-sm" onclick="exportJSON()">⬇ Export JSON</button>
+      <button class="btn btn-r btn-sm" onclick="clearAll()">🗑 Clear All</button>
+      <span style="margin-left:auto;font-family:var(--font-m);font-size:12px;color:var(--muted);align-self:center" id="rec-count">0 records</span>
+    </div>
+    <div class="fbar">
+      <select id="fi-sev" onchange="renderTable()"><option value="">All Severity</option><option>HIGH</option><option>MED</option><option>LOW</option></select>
+      <select id="fi-mach" onchange="renderTable()">
+        <option value="">All Machines</option>
+        <option>HM-01 (Station 1)</option><option>HM-02 (Station 2)</option>
+        <option>HM-03 (Station 3)</option><option>HM-04 (Station 4)</option>
+      </select>
+      <select id="fi-rc" onchange="renderTable()">
+        <option value="">All Root Causes</option>
+        <option>Tooling Wear</option><option>Incorrect Setup</option>
+        <option>Material Issue</option><option>Operator Error</option>
+        <option>Machine Malfunction</option><option>Fixture Problem</option>
+      </select>
+      <input type="date" id="fi-date" onchange="renderTable()">
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>DateTime</th><th>Shift</th><th>Inspector Ticket No</th>
+          <th>Station No</th><th>Door</th><th>Type</th><th>Severity</th>
+          <th>Root Cause</th><th>Pressure</th><th>Photos</th><th>Action</th>
+        </tr></thead>
+        <tbody id="tbl-body"></tbody>
+      </table>
+    </div>
+    <div id="no-rec" style="text-align:center;padding:40px;color:var(--muted);font-size:13px">No defects logged yet.</div>
+  </div>
+</div>
+
+</div>
+
+<!-- ===== TAB: WEB REPORT ===== -->
+<div class="panel" id="tab-webrep">
 <div class="card">
-  <div class="ctitle">
-    X-Bar Control Chart — OCC Rate (%)
-    <span id="spc-status-badge" class="spc-status spc-ok">
-      ● IN CONTROL
-    </span>
+
+  <div style="background:linear-gradient(135deg,#0a2a5e,#1a4a8e);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="font-size:36px;">🏭</div>
+      <div>
+        <div style="font-size:18px;font-weight:900;color:#fff;letter-spacing:1px;">Manufacturing Execution Insights</div>
+        <div style="font-size:12px;color:#90caf9;margin-top:2px;">HemmTrack Pro · Rear Door Hemming</div>
+      </div>
+    </div>
+    <div style="text-align:right;">
+      <div id="wr-date" style="font-size:13px;color:#00e5ff;font-weight:700;"></div>
+      <div id="wr-time" style="font-size:11px;color:#90caf9;margin-top:2px;"></div>
+    </div>
   </div>
-  <div class="ch ch-tall">
-    <canvas id="spc-chart"></canvas>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+    <button onclick="showWRReport('shift')" id="wr-btn-shift" style="padding:8px 18px;border-radius:8px;border:2px solid #00e5ff;background:rgba(0,229,255,0.15);color:#00e5ff;font-weight:700;cursor:pointer;font-size:13px;">📊 Shift Summary</button>
+    <button onclick="showWRReport('daily')" id="wr-btn-daily" style="padding:8px 18px;border-radius:8px;border:1px solid #4a6fa5;background:transparent;color:#90caf9;font-weight:700;cursor:pointer;font-size:13px;">📅 Daily Report</button>
+    <button onclick="showWRReport('machine')" id="wr-btn-machine" style="padding:8px 18px;border-radius:8px;border:1px solid #4a6fa5;background:transparent;color:#90caf9;font-weight:700;cursor:pointer;font-size:13px;">🏭 Machine Report</button>
+    <button onclick="showWRReport('defecttype')" id="wr-btn-defecttype" style="padding:8px 18px;border-radius:8px;border:1px solid #4a6fa5;background:transparent;color:#90caf9;font-weight:700;cursor:pointer;font-size:13px;">🔍 Defect Type</button>
   </div>
+
+  <div id="wr-content" style="min-height:300px;"></div>
+
 </div>
- 
-<!-- Dashboard Charts -->
-<div class="g2">
-  <div class="card">
-    <div class="ctitle">Defects by Type</div>
-    <div class="ch"><canvas id="ch-type"></canvas></div>
-  </div>
-  <div class="card">
-    <div class="ctitle">Daily Trend</div>
-    <div class="ch"><canvas id="ch-trend"></canvas></div>
-  </div>
 </div>
 
-:root {
-  /* Color Palette */
-  --bg:     #060a12;   /* Background — Deep Navy */
-  --s1:     #0c1220;   /* Surface 1 */
-  --card:   #0f1928;   /* Card Background */
-  --border: #1e3050;   /* Border Color */
-  --cyan:   #00e5ff;   /* Primary Accent */
-  --red:    #ff3d5a;   /* Danger / HIGH Severity */
-  --green:  #00ff88;   /* Success / LOW Severity */
-  --amber:  #ffaa00;   /* Warning / MEDIUM Severity */
-  --purple: #a855f7;   /* ML / AI Accent */
-  --text:   #d4e8ff;   /* Primary Text */
-  --muted:  #4a6fa5;   /* Muted Text / Labels */
- 
-  /* Typography */
-  --font-h: 'Orbitron', monospace;       /* Headings */
-  --font-m: 'IBM Plex Mono', monospace;  /* Numbers / Code */
-  --font-b: 'Barlow', sans-serif;        /* Body Text */
-}
-/* 2-column grid — switches to 1 column on mobile */
-.g2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
-}
- 
-/* 4-column grid for KPI cards */
-.g4 {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-}
- 
-/* Responsive breakpoints */
-@media (max-width: 900px) {
-  .g2, .g3, .g4 { grid-template-columns: 1fr 1fr; }
-}
-@media (max-width: 560px) {
-  .g2, .g3, .g4 { grid-template-columns: 1fr; }
+</div><!-- end main -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============ DATA ============
+// ============ SAMPLE DEMO DATA ============
+const sampleDefects = [
+  // ========= FEBRUARY 2026 =========
+  {id:1700000101,datetime:'2026-02-01T08:10',shift:'Shift A (6:30–15:00)',op:'TKT-1002',mach:'ST-120',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Pressure Deviation',press:162,prod:238,rem:'Feb start — pressure issue detected',imgs:[]},
+  {id:1700000102,datetime:'2026-02-02T16:30',shift:'Shift B (15:00–23:30)',op:'TKT-1004',mach:'ST-100',door:'RH Rear',dtype:'Hem Crack',sev:'MED',rc:'Material Defect',press:179,prod:232,rem:'Material batch change — crack observed',imgs:[]},
+  {id:1700000103,datetime:'2026-02-04T09:15',shift:'Shift A (6:30–15:00)',op:'TKT-1001',mach:'ST-150',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Tool Wear',press:161,prod:245,rem:'Tool age 48000 cycles — nearing limit',imgs:[]},
+  {id:1700000104,datetime:'2026-02-05T22:40',shift:'Shift C (23:30–6:30)',op:'TKT-1005',mach:'ST-120',door:'RH Rear',dtype:'Wrinkle / Pucker',sev:'LOW',rc:'Operator Error',press:181,prod:220,rem:'Night shift operator — minor wrinkle',imgs:[]},
+  {id:1700000105,datetime:'2026-02-07T10:00',shift:'Shift A (6:30–15:00)',op:'TKT-1003',mach:'ST-100',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Pressure Deviation',press:158,prod:250,rem:'Pressure sensor fault — replaced',imgs:[]},
+  {id:1700000106,datetime:'2026-02-08T14:20',shift:'Shift A (6:30–15:00)',op:'TKT-1001',mach:'ST-150',door:'RH Rear',dtype:'Roll-in Defect',sev:'MED',rc:'Die Misalignment',press:177,prod:242,rem:'Die realigned after inspection',imgs:[]},
+  {id:1700000107,datetime:'2026-02-10T08:50',shift:'Shift A (6:30–15:00)',op:'TKT-1002',mach:'ST-120',door:'LH Rear',dtype:'Open Hem',sev:'MED',rc:'Tool Wear',press:170,prod:248,rem:'Tool replaced — issue resolved',imgs:[]},
+  {id:1700000108,datetime:'2026-02-12T17:10',shift:'Shift B (15:00–23:30)',op:'TKT-1004',mach:'ST-100',door:'RH Rear',dtype:'Panel Mismatch',sev:'LOW',rc:'Material Defect',press:182,prod:235,rem:'Supplier informed about panel quality',imgs:[]},
+  {id:1700000109,datetime:'2026-02-14T09:30',shift:'Shift A (6:30–15:00)',op:'TKT-1003',mach:'ST-150',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Pressure Deviation',press:156,prod:252,rem:'Valentine day shift — pressure critical',imgs:[]},
+  {id:1700000110,datetime:'2026-02-15T23:50',shift:'Shift C (23:30–6:30)',op:'TKT-1005',mach:'ST-120',door:'RH Rear',dtype:'Hem Crack',sev:'MED',rc:'Material Defect',press:178,prod:228,rem:'Cold temperature effect on material',imgs:[]},
+  {id:1700000111,datetime:'2026-02-17T11:00',shift:'Shift A (6:30–15:00)',op:'TKT-1001',mach:'ST-100',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Tool Wear',press:163,prod:255,rem:'Tool replaced — production resumed',imgs:[]},
+  {id:1700000112,datetime:'2026-02-19T15:30',shift:'Shift B (15:00–23:30)',op:'TKT-1002',mach:'ST-150',door:'RH Rear',dtype:'Wrinkle / Pucker',sev:'LOW',rc:'Operator Error',press:180,prod:240,rem:'SOP refresher training given',imgs:[]},
+  {id:1700000113,datetime:'2026-02-21T08:20',shift:'Shift A (6:30–15:00)',op:'TKT-1003',mach:'ST-120',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Pressure Deviation',press:160,prod:246,rem:'Pressure regulator cleaned',imgs:[]},
+  {id:1700000114,datetime:'2026-02-24T10:45',shift:'Shift A (6:30–15:00)',op:'TKT-1004',mach:'ST-100',door:'RH Rear',dtype:'Roll-in Defect',sev:'MED',rc:'Die Misalignment',press:176,prod:238,rem:'Die wear observed — replaced',imgs:[]},
+  {id:1700000115,datetime:'2026-02-26T16:00',shift:'Shift B (15:00–23:30)',op:'TKT-1001',mach:'ST-150',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Pressure Deviation',press:157,prod:232,rem:'Month end — pressure check done',imgs:[]},
+  {id:1700000116,datetime:'2026-02-28T09:10',shift:'Shift A (6:30–15:00)',op:'TKT-1002',mach:'ST-120',door:'RH Rear',dtype:'Hem Crack',sev:'MED',rc:'Tool Wear',press:173,prod:250,rem:'Last day Feb — tool inspection done',imgs:[]},
+  // ========= MARCH 2026 =========
+  {id:1700000001,datetime:'2026-03-01T07:15',shift:'Shift A (6:30–15:00)',op:'TKT-1001',mach:'ST-100',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Pressure Deviation',press:165,prod:240,rem:'Pressure low — tool wear suspected',imgs:[]},
+  {id:1700000002,datetime:'2026-03-01T09:30',shift:'Shift A (6:30–15:00)',op:'TKT-1002',mach:'ST-120',door:'RH Rear',dtype:'Hem Crack',sev:'MED',rc:'Material Defect',press:182,prod:240,rem:'Material thickness variation observed',imgs:[]},
+  {id:1700000003,datetime:'2026-03-01T14:45',shift:'Shift A (6:30–15:00)',op:'TKT-1001',mach:'ST-100',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Tool Wear',press:160,prod:240,rem:'Tool age exceeded — replacement needed',imgs:[]},
+  {id:1700000004,datetime:'2026-03-02T08:00',shift:'Shift A (6:30–15:00)',op:'TKT-1003',mach:'ST-150',door:'RH Rear',dtype:'Wrinkle / Pucker',sev:'LOW',rc:'Operator Error',press:180,prod:255,rem:'Operator new — training required',imgs:[]},
+  {id:1700000005,datetime:'2026-03-02T16:20',shift:'Shift B (15:00–23:30)',op:'TKT-1004',mach:'ST-120',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Pressure Deviation',press:158,prod:230,rem:'Pressure drop — machine maintenance done',imgs:[]},
+  {id:1700000006,datetime:'2026-03-03T07:50',shift:'Shift A (6:30–15:00)',op:'TKT-1001',mach:'ST-100',door:'RH Rear',dtype:'Roll-in Defect',sev:'MED',rc:'Die Misalignment',press:178,prod:248,rem:'Die alignment corrected after detection',imgs:[]},
+  {id:1700000007,datetime:'2026-03-03T22:10',shift:'Shift C (23:30–6:30)',op:'TKT-1005',mach:'ST-150',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Pressure Deviation',press:163,prod:220,rem:'Night shift — pressure unstable',imgs:[]},
+  {id:1700000008,datetime:'2026-03-04T10:30',shift:'Shift A (6:30–15:00)',op:'TKT-1002',mach:'ST-120',door:'RH Rear',dtype:'Panel Mismatch',sev:'LOW',rc:'Material Defect',press:181,prod:260,rem:'Incoming material issue reported to supplier',imgs:[]},
+  {id:1700000009,datetime:'2026-03-05T08:15',shift:'Shift A (6:30–15:00)',op:'TKT-1003',mach:'ST-100',door:'LH Rear',dtype:'Open Hem',sev:'MED',rc:'Tool Wear',press:172,prod:245,rem:'Tool replaced — monitoring in progress',imgs:[]},
+  {id:1700000010,datetime:'2026-03-05T17:40',shift:'Shift B (15:00–23:30)',op:'TKT-1004',mach:'ST-150',door:'RH Rear',dtype:'Hem Crack',sev:'HIGH',rc:'Pressure Deviation',press:155,prod:235,rem:'Critical — production stopped for inspection',imgs:[]},
+  {id:1700000011,datetime:'2026-03-06T09:00',shift:'Shift A (6:30–15:00)',op:'TKT-1001',mach:'ST-120',door:'LH Rear',dtype:'Open Hem',sev:'MED',rc:'Operator Error',press:176,prod:250,rem:'SOP deviation observed',imgs:[]},
+  {id:1700000012,datetime:'2026-03-07T11:20',shift:'Shift A (6:30–15:00)',op:'TKT-1002',mach:'ST-100',door:'RH Rear',dtype:'Wrinkle / Pucker',sev:'LOW',rc:'Material Defect',press:183,prod:258,rem:'Minor wrinkle — within acceptable limit',imgs:[]},
+  {id:1700000013,datetime:'2026-03-08T07:30',shift:'Shift A (6:30–15:00)',op:'TKT-1003',mach:'ST-150',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Pressure Deviation',press:161,prod:242,rem:'Pressure sensor recalibrated',imgs:[]},
+  {id:1700000014,datetime:'2026-03-09T15:50',shift:'Shift B (15:00–23:30)',op:'TKT-1005',mach:'ST-120',door:'RH Rear',dtype:'Roll-in Defect',sev:'MED',rc:'Die Misalignment',press:179,prod:238,rem:'Die checked and re-aligned',imgs:[]},
+  {id:1700000015,datetime:'2026-03-10T08:45',shift:'Shift A (6:30–15:00)',op:'TKT-1001',mach:'ST-100',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Tool Wear',press:159,prod:244,rem:'Tool life completed — urgent replacement',imgs:[]}
+];
+
+// Always load fresh sample data
+localStorage.setItem('ht2_defects', JSON.stringify(sampleDefects));
+
+let defects = JSON.parse(localStorage.getItem('ht2_defects')||'[]');
+let whyReps = JSON.parse(localStorage.getItem('ht2_whys')||'[]');
+let alertLog = JSON.parse(localStorage.getItem('ht2_alerts')||'[]');
+let alertCfg = JSON.parse(localStorage.getItem('ht2_alertcfg')||'{"occ":5,"high":3,"consec":3}');
+let imgStore = {}; // temp img store per entry
+let whyN = 1;
+let charts = {};
+let pendingImgs = [];
+
+// ============ INIT ============
+document.getElementById('f-dt').value = new Date().toISOString().slice(0,16);
+document.getElementById('al-occ').value = alertCfg.occ;
+document.getElementById('al-high').value = alertCfg.high;
+document.getElementById('al-consec').value = alertCfg.consec;
+
+const TIPS = [
+  "📌 Tooling wear is the #1 cause of Open Hem — check tool life every 5000 cycles.",
+  "📌 Pareto Principle: Focus on top 2 root causes — they likely cause 80% of defects.",
+  "📌 SPC Control Charts help detect process drift BEFORE defects occur.",
+  "📌 5-Why technique works best in team — involve operator, QA, and maintenance.",
+  "📌 Pre-hem angle deviation >2° significantly increases Open Hem probability.",
+  "📌 Temperature changes affect blank springback — monitor ambient conditions.",
+];
+document.getElementById('ai-tip').textContent = TIPS[Math.floor(Math.random()*TIPS.length)];
+
+buildWhyInputs();
+
+// Load sample data
+if(!defects.length){
+  defects=[
+    {id:1,datetime:'2026-02-17T08:30',shift:'Shift A (6:30–15:00)',op:'TKT-1001',mach:'HM-01 (Station 1)',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Tooling Wear',press:165,prod:120,rem:'Corner radius worn',imgs:[]},
+    {id:2,datetime:'2026-02-17T10:15',shift:'Shift A (6:30–15:00)',op:'TKT-1002',mach:'HM-02 (Station 2)',door:'RH Rear',dtype:'Wrinkle / Pucker',sev:'MED',rc:'Material Issue',press:180,prod:0,rem:'Blank variation',imgs:[]},
+    {id:3,datetime:'2026-02-17T15:45',shift:'Shift B (15:00–23:30)',op:'TKT-1003',mach:'HM-01 (Station 1)',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Tooling Wear',press:158,prod:95,rem:'Recurring station 1',imgs:[]},
+    {id:4,datetime:'2026-02-18T09:00',shift:'Shift A (6:30–15:00)',op:'TKT-1001',mach:'HM-03 (Station 3)',door:'RH Rear',dtype:'Hem Crack',sev:'HIGH',rc:'Material Issue',press:182,prod:110,rem:'Crack at bend',imgs:[]},
+    {id:5,datetime:'2026-02-18T11:30',shift:'Shift A (6:30–15:00)',op:'TKT-1004',mach:'HM-02 (Station 2)',door:'LH Rear',dtype:'Panel Mismatch',sev:'LOW',rc:'Operator Error',press:180,prod:0,rem:'Loading position',imgs:[]},
+    {id:6,datetime:'2026-02-19T07:00',shift:'Shift A (6:30–15:00)',op:'TKT-1002',mach:'HM-01 (Station 1)',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Incorrect Setup',press:170,prod:80,rem:'Setup not followed',imgs:[]},
+    {id:7,datetime:'2026-02-20T16:30',shift:'Shift B (15:00–23:30)',op:'TKT-1003',mach:'HM-04 (Station 4)',door:'RH Rear',dtype:'Roll-in Defect',sev:'MED',rc:'Fixture Problem',press:178,prod:100,rem:'Fixture worn',imgs:[]},
+    {id:8,datetime:'2026-02-21T08:00',shift:'Shift A (6:30–15:00)',op:'TKT-1001',mach:'HM-01 (Station 1)',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Tooling Wear',press:160,prod:130,rem:'Tool life exceeded',imgs:[]},
+  ];
+  save();
 }
 
-/* Card Component */
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 20px;
-  margin-bottom: 18px;
-}
- 
-/* KPI Card — colored top border */
-.kpi {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
-  position: relative;
-  overflow: hidden;
-}
-.kpi::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;  /* Colored accent line on top */
-}
-.kpi.c::after { background: linear-gradient(90deg, var(--cyan), #0066ff); }
-.kpi.r::after { background: linear-gradient(90deg, var(--red), #cc0033); }
-.kpi.g::after { background: linear-gradient(90deg, var(--green), #00aa55); }
-.kpi.a::after { background: linear-gradient(90deg, var(--amber), #ff7700); }
- 
-/* KPI Value (large number) */
-.kpi-v {
-  font-family: var(--font-m);
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 1;
-  margin-bottom: 4px;
-}
-/* Pulsing alert border animation */
-@keyframes pulse-border {
-  0%, 100% { border-color: var(--red); }
-  50%       { border-color: transparent; }
-}
- 
-#alert-banner {
-  display: none;
-  background: linear-gradient(90deg,
-    rgba(255,61,90,0.15),
-    rgba(255,61,90,0.05));
-  border-bottom: 2px solid var(--red);
-  animation: pulse-border 1s infinite;
-  padding: 10px 20px;
-  font-family: var(--font-m);
-  color: var(--red);
-}
-
-/* Severity Badge */
-.badge {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 10px;
-  font-weight: 700;
-  font-family: var(--font-m);
-}
-/* HIGH Severity */
-.bh {
-  background: rgba(255,61,90,.12);
-  color: var(--red);
-  border: 1px solid var(--red);
-}
-/* MEDIUM Severity */
-.bm {
-  background: rgba(255,170,0,.12);
-  color: var(--amber);
-  border: 1px solid var(--amber);
-}
-/* LOW Severity */
-.bl {
-  background: rgba(0,255,136,.12);
-  color: var(--green);
-  border: 1px solid var(--green);
-}  
-// ============ DATA INITIALIZATION ============
-// Load data from localStorage (persists after browser close)
-let defects  = JSON.parse(localStorage.getItem('ht2_defects') || '[]');
-let whyReps  = JSON.parse(localStorage.getItem('ht2_whys')    || '[]');
-let alertLog = JSON.parse(localStorage.getItem('ht2_alerts')  || '[]');
-let alertCfg = JSON.parse(localStorage.getItem('ht2_alertcfg')
-                || '{"occ":5,"high":3,"consec":3}');
- 
-// Save function — called after every defect entry
-function save() {
-  localStorage.setItem('ht2_defects', JSON.stringify(defects));
-}
- 
-// Add new defect record
-function addDefect() {
-  const g = id => document.getElementById(id).value.trim();
- 
-  const d = {
-    id:       Date.now(),          // Unique timestamp ID
-    datetime: g('f-dt'),
-    shift:    g('f-shift'),
-    op:       g('f-op') || 'Unknown',
-    mach:     g('f-mach'),
-    door:     g('f-door'),
-    dtype:    g('f-dtype'),        // Defect Type
-    sev:      g('f-sev'),          // Severity: HIGH / MED / LOW
-    rc:       g('f-rc'),           // Root Cause
-    press:    parseFloat(g('f-press')) || 0,  // Hemming Pressure
-    prod:     parseInt(g('f-prod'))    || 0,  // Production count
-    rem:      g('f-rem'),          // Remarks
-    imgs:     [...pendingImgs]     // Photo evidence (base64)
-  };
- 
-  defects.push(d);      // Add to array
-  save();               // Persist to localStorage
-  checkAlerts(d);       // Trigger alert checks
-  updateAll();          // Refresh all UI components
-  showToast('✅ Defect logged!');
-}
-// ============ ML PREDICTION MODEL ============
-function runML() {
-  const gv = id => {
-    const v = parseFloat(document.getElementById(id).value);
-    return isNaN(v) ? null : v;
-  };
- 
-  // Get 7 input parameters
-  const press = gv('ml-press');  // Hemming Pressure (bar)
-  const tool  = gv('ml-tool');   // Tool Age (cycles)
-  const thick = gv('ml-thick');  // Material Thickness (mm)
-  const temp  = gv('ml-temp');   // Ambient Temperature (°C)
-  const angle = gv('ml-angle');  // Pre-hem Angle (°)
-  const exp   = gv('ml-exp');    // Operator Experience (months)
-  const prev  = gv('ml-prev');   // Previous Shift Defects
- 
-  let score = 0;
-  let factors = [];
- 
-  // --- FEATURE 1: Pressure Deviation ---
-  // Target pressure = 180 bar
-  const pressDev   = Math.abs((press - 180) / 180) * 100;
-  const pressScore = Math.min(pressDev * 1.5, 30);  // Max 30 points
-  score += pressScore;
-  factors.push({ name: 'Pressure Deviation', score: pressScore, max: 30 });
- 
-  // --- FEATURE 2: Tool Age ---
-  // Higher tool age = higher risk (max 50000 cycles)
-  const toolScore = Math.min((tool / 50000) * 35, 35);  // Max 35 points
-  score += toolScore;
-  factors.push({ name: 'Tool Age', score: toolScore, max: 35 });
- 
-  // --- FEATURE 3: Material Thickness ---
-  // Target thickness = 0.7 mm
-  const thickDev   = Math.abs((thick - 0.7) / 0.7) * 100;
-  const thickScore = Math.min(thickDev * 0.8, 15);  // Max 15 points
-  score += thickScore;
-  factors.push({ name: 'Material Deviation', score: thickScore, max: 15 });
- 
-  // --- FEATURE 4: Pre-hem Angle ---
-  // Target angle = 45°
-  const angleDev   = angle ? Math.abs((angle - 45) / 45) * 100 : 0;
-  const angleScore = Math.min(angleDev * 0.5, 10);  // Max 10 points
-  score += angleScore;
-  factors.push({ name: 'Pre-hem Angle', score: angleScore, max: 10 });
- 
-  // --- FEATURE 5: Previous Defects ---
-  const prevScore = prev ? Math.min(prev * 2, 8) : 0;
-  score += prevScore;
-  factors.push({ name: 'Prev Defects', score: prevScore, max: 8 });
- 
-  // Final risk score (capped at 100%)
-  score = Math.min(Math.round(score), 100);
- 
-  // Risk classification
-  const riskLabel  = score >= 60 ? 'HIGH RISK'
-                   : score >= 30 ? 'MEDIUM RISK' : 'LOW RISK';
-  const riskAction = score >= 60
-    ? '⛔ STOP PRODUCTION — Inspect immediately!'
-    : score >= 30
-    ? '⚠️ CAUTION — Monitor closely'
-    : '✅ PROCEED — Process within range';
-// ============ SPC CALCULATIONS ============
-function renderSPC() {
-  // Group defects by day
-  const dayGroups = {};
-  defects.forEach(d => {
-    const day = d.datetime.slice(0, 10);
-    if (!dayGroups[day]) dayGroups[day] = { count: 0, prod: 0 };
-    dayGroups[day].count++;
-    dayGroups[day].prod += d.prod;
-  });
- 
-  const days = Object.keys(dayGroups).sort();
- 
-  // Calculate OCC rate per day
-  // Formula: OCC% = (Defects / Production) × 100
-  const occs = days.map(d =>
-    dayGroups[d].prod > 0
-      ? (dayGroups[d].count / dayGroups[d].prod * 100)
-      : dayGroups[d].count
-  );
- 
-  // ---- SPC Statistics ----
-  // Mean (X-bar)
-  const mean = occs.reduce((s, v) => s + v, 0) / occs.length;
- 
-  // Standard Deviation (σ)
-  const sigma = Math.sqrt(
-    occs.reduce((s, v) => s + (v - mean) ** 2, 0) / occs.length
-  );
- 
-  // Control Limits (3-sigma rule)
-  const ucl = mean + 3 * sigma;  // Upper Control Limit
-  const lcl = Math.max(0, mean - 3 * sigma);  // Lower Control Limit
- 
-  // Check Out-of-Control condition
-  const ooc = occs.some(v => v > ucl || v < lcl);
- 
-  // Update status badge
-  const badge = document.getElementById('spc-status-badge');
-  badge.className = 'spc-status ' + (ooc ? 'spc-ooc' : 'spc-ok');
-  badge.textContent = ooc ? '● OUT OF CONTROL' : '● IN CONTROL';
-// ============ SMART ALERT SYSTEM ============
-function checkAlerts(d) {
-  const cfg = alertCfg;
- 
-  // Calculate current OCC rate
-  const totalProd = defects.reduce((s, x) => s + x.prod, 0);
-  const occ = totalProd > 0 ? (defects.length / totalProd * 100) : 0;
- 
-  // --- Alert 1: HIGH Severity Defect ---
-  if (d.sev === 'HIGH') {
-    addAlert('high',
-      '🔴 HIGH Severity: ' + d.dtype + ' on ' + d.mach,
-      'Operator: ' + d.op + ' · Root Cause: ' + d.rc
-    );
-  }
- 
-  // --- Alert 2: OCC Rate Threshold Breach ---
-  if (occ > cfg.occ) {
-    addAlert('high',
-      '🚨 OCC Rate Exceeded Threshold!',
-      'Current: ' + occ.toFixed(2) + '% > Limit: ' + cfg.occ + '%'
-    );
-    // Show top banner alert
-    document.getElementById('alert-banner').style.display = 'block';
-  }
- 
-  // --- Alert 3: Consecutive defects on same machine ---
-  const lastN = defects.slice(-cfg.consec);
-  if (lastN.length >= cfg.consec &&
-      lastN.every(x => x.mach === d.mach)) {
-    addAlert('warn',
-      '⚠️ Consecutive Defects: ' + d.mach,
-      cfg.consec + ' consecutive defects — inspect machine'
-    );
-  }
- 
-  // --- Alert 4: HIGH severity count per shift exceeded ---
-  const shiftHigh = defects.filter(
-    x => x.shift === d.shift && x.sev === 'HIGH'
-  ).length;
-  if (shiftHigh >= cfg.high) {
-    addAlert('warn',
-      '⚠️ High Severity Limit: ' + d.shift,
-      shiftHigh + ' HIGH defects this shift'
-    );
-  }
-}
-// ============ CHART RENDERING ============
- 
-// Base chart options (shared across all charts)
-const baseOpts = {
-  responsive: true,
-  maintainAspectRatio: false,
-  animation: { duration: 600 },
-  plugins: {
-    legend: {
-      labels: { color: '#4a6fa5', font: { family: 'IBM Plex Mono', size: 10 } }
-    }
-  },
-  scales: {
-    x: { ticks: { color: '#4a6fa5' }, grid: { color: 'rgba(30,48,80,.6)' } },
-    y: { ticks: { color: '#4a6fa5' }, grid: { color: 'rgba(30,48,80,.6)' } }
-  }
-};
- 
-// Safe chart creation (replaces canvas to avoid reuse errors)
-function mkChart(id, cfg) {
-  const c = document.getElementById(id);
-  if (!c) return;
-  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
-  // Replace canvas element to avoid "already in use" error
-  const parent = c.parentNode;
-  const newCanvas = document.createElement('canvas');
-  newCanvas.id = id;
-  parent.replaceChild(newCanvas, c);
-  charts[id] = new Chart(newCanvas, cfg);
-}
- 
-// Render all dashboard charts
-function renderCharts() {
-  const tc = cnt(defects, 'dtype');
- 
-  // Bar chart — Defects by Type
-  mkChart('ch-type', {
-    type: 'bar',
-    data: {
-      labels: Object.keys(tc),
-      datasets: [{ label: 'Count', data: Object.values(tc),
-        backgroundColor: CL, borderRadius: 5 }]
-    },
-    options: baseOpts
-  });
- 
-  // Line chart — Daily Trend
-  const dc = {};
-  defects.forEach(d => {
-    const day = d.datetime.slice(0, 10);
-    dc[day] = (dc[day] || 0) + 1;
-  });
-  mkChart('ch-trend', {
-    type: 'line',
-    data: {
-      labels: Object.keys(dc).sort(),
-      datasets: [{ label: 'Defects',
-        data: Object.values(dc),
-        borderColor: '#00e5ff',
-        backgroundColor: 'rgba(0,229,255,0.08)',
-        fill: true, tension: 0.4 }]
-    },
-    options: baseOpts
-  });
- 
-  // Doughnut chart — Severity breakdown
-  const sv = { HIGH: 0, MED: 0, LOW: 0 };
-  defects.forEach(d => sv[d.sev]++);
-  mkChart('ch-sev', {
-    type: 'doughnut',
-    data: {
-      labels: ['HIGH', 'MEDIUM', 'LOW'],
-      datasets: [{ data: [sv.HIGH, sv.MED, sv.LOW],
-        backgroundColor: ['rgba(255,61,90,.8)',
-                          'rgba(255,170,0,.8)',
-                          'rgba(0,255,136,.8)'] }]
-    },
-    options: { responsive: true, maintainAspectRatio: false }
-  });
-}
-
-// ============ PHOTO EVIDENCE UPLOAD ============
-let pendingImgs = [];  // Temporary image storage before defect save
- 
-// Handle file selection from input
-function handleFiles(files) {
-  [...files].forEach(f => {
-    const r = new FileReader();
-    r.onload = e => {
-      // Convert image to base64 string
+// ============ IMAGE HANDLING ============
+function handleFiles(files){
+  [...files].forEach(f=>{
+    const r=new FileReader();
+    r.onload=e=>{
       pendingImgs.push(e.target.result);
       renderPreviews();
     };
-    r.readAsDataURL(f);  // Read as base64
+    r.readAsDataURL(f);
   });
 }
- 
-// Handle drag & drop
-function handleDrop(e) {
+function handleDrop(e){
   e.preventDefault();
   document.getElementById('img-drop').classList.remove('drag');
   handleFiles(e.dataTransfer.files);
 }
- 
-// Render image thumbnails
-function renderPreviews() {
-  document.getElementById('img-preview').innerHTML =
-    pendingImgs.map((src, i) => `
-      <div class="img-thumb">
-        <img src="${src}">
-        <button class="del-img" onclick="removeImg(${i})">✕</button>
-      </div>
-    `).join('');
+function renderPreviews(){
+  document.getElementById('img-preview').innerHTML=pendingImgs.map((src,i)=>`
+    <div class="img-thumb">
+      <img src="${src}">
+      <button class="del-img" onclick="removeImg(${i})">✕</button>
+    </div>
+  `).join('');
 }
- 
-// Remove specific image
-function removeImg(i) {
-  pendingImgs.splice(i, 1);
+function removeImg(i){pendingImgs.splice(i,1);renderPreviews();}
+
+// ============ ADD DEFECT ============
+function addDefect(){
+  const g=id=>document.getElementById(id).value.trim();
+  if(!g('f-dt')){showToast('⚠️ Date & Time mandatory आहे!',true);return;}
+  if(!g('f-op')){showToast('⚠️ Inspector Ticket No mandatory आहे!',true);return;}
+  if(!g('f-press')){showToast('⚠️ Hemming Pressure mandatory आहे!',true);return;}
+  if(!g('f-prod')){showToast('⚠️ Production Count mandatory आहे!',true);return;}
+  const d={
+    id:Date.now(),
+    datetime:g('f-dt'),shift:g('f-shift'),op:g('f-op')||'Unknown',
+    mach:g('f-mach'),door:g('f-door'),dtype:g('f-dtype'),
+    sev:g('f-sev'),rc:g('f-rc'),
+    press:parseFloat(g('f-press'))||0,
+    prod:parseInt(g('f-prod'))||0,
+    rem:g('f-rem'),
+    imgs:[...pendingImgs]
+  };
+  defects.push(d);
+  pendingImgs=[];
   renderPreviews();
-}
-// ============ DATA EXPORT ============
- 
-// Export to CSV (compatible with Microsoft Excel)
-function exportCSV() {
-  if (!defects.length) { showToast('No data!', true); return; }
- 
-  const headers = ['ID','DateTime','Shift','Operator','Machine',
-                   'Door','DefectType','Severity','RootCause',
-                   'Pressure','Production','Remarks','Photos'];
- 
-  const rows = defects.map(d =>
-    [d.id, d.datetime, d.shift, d.op, d.mach,
-     d.door, d.dtype, d.sev, d.rc,
-     d.press, d.prod, d.rem, d.imgs ? d.imgs.length : 0]
-    .map(v => '"' + v + '"').join(',')
-  );
- 
-  const csv = [headers.join(','), ...rows].join('\n');
-  download('hemming_defects.csv', csv, 'text/csv');
-}
- 
-// Export to JSON (complete data backup)
-function exportJSON() {
-  const data = JSON.stringify({ defects, whyReps, alertLog }, null, 2);
-  download('hemming_data.json', data, 'application/json');
-}
- 
-// Download helper function
-function download(name, content, type) {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([content], { type }));
-  a.download = name;
-  a.click();
+  document.getElementById('f-rem').value='';
+  document.getElementById('f-op').value='';
+  document.getElementById('f-prod').value='';
+  document.getElementById('f-press').value='';
+  document.getElementById('f-dt').value=new Date().toISOString().slice(0,16);
+  save();
+  checkAlerts(d);
+  updateAll();
+  showToast('✅ Defect logged!');
 }
 
-// SPC X-Bar Control Chart
-mkChart('spc-chart', {
-  type: 'line',
-  data: {
-    labels: days,  // Date labels on X-axis
-    datasets: [
-      // Main OCC% line (points turn red if out-of-control)
-      {
-        label: 'OCC%',
-        data: occs,
-        borderColor: '#00e5ff',
-        backgroundColor: 'rgba(0,229,255,0.1)',
-        fill: true,
-        tension: 0.3,
-        pointBackgroundColor: occs.map(v => v > ucl ? '#ff3d5a' : '#00e5ff'),
-        pointRadius: 5
-      },
-      // UCL line (dashed red)
-      {
-        label: 'UCL',
-        data: days.map(() => ucl),
-        borderColor: 'rgba(255,61,90,.6)',
-        borderDash: [6, 4],
-        pointRadius: 0,
-        borderWidth: 1.5
-      },
-      // Mean line (dashed green)
-      {
-        label: 'Mean',
-        data: days.map(() => mean),
-        borderColor: 'rgba(0,255,136,.4)',
-        borderDash: [4, 4],
-        pointRadius: 0,
-        borderWidth: 1.5
-      },
-      // LCL line (dashed amber)
-      {
-        label: 'LCL',
-        data: days.map(() => lcl),
-        borderColor: 'rgba(255,170,0,.5)',
-        borderDash: [6, 4],
-        pointRadius: 0,
-        borderWidth: 1.5
-      }
-    ]
-  },
-  options: baseOpts
-});
+function save(){localStorage.setItem('ht2_defects',JSON.stringify(defects));}
+
+// ============ ALERTS ============
+function checkAlerts(d){
+  const cfg=alertCfg;
+  const totalProd=defects.reduce((s,x)=>s+x.prod,0);
+  const occ=totalProd>0?(defects.length/totalProd*100):0;
+
+  if(d.sev==='HIGH'){
+    addAlert('high',`🔴 HIGH Severity Defect: ${d.dtype} on ${d.mach}`,`Operator: ${d.op} · Root Cause: ${d.rc}`);
+  }
+  if(occ>cfg.occ){
+    addAlert('high',`🚨 OCC Rate Exceeded Threshold!`,`Current OCC: ${occ.toFixed(2)}% > Threshold: ${cfg.occ}%`);
+    document.getElementById('alert-banner').style.display='block';
+    document.getElementById('alert-msg').textContent=`OCC Rate ${occ.toFixed(2)}% exceeds threshold of ${cfg.occ}%! Immediate action required.`;
+  }
+  // Consecutive same machine
+  const lastN=defects.slice(-cfg.consec);
+  if(lastN.length>=cfg.consec&&lastN.every(x=>x.mach===d.mach)){
+    addAlert('warn',`⚠️ Consecutive Defects on ${d.mach}`,`${cfg.consec} consecutive defects detected — machine inspection required`);
+  }
+  // High count this shift
+  const shiftHigh=defects.filter(x=>x.shift===d.shift&&x.sev==='HIGH').length;
+  if(shiftHigh>=cfg.high){
+    addAlert('warn',`⚠️ High Severity Limit Reached (${d.shift})`,`${shiftHigh} HIGH severity defects this shift — supervisor alert`);
+  }
+}
+
+function addAlert(type,title,msg){
+  const now=new Date();
+  const timeStr=now.toLocaleTimeString();
+  alertLog.unshift({type,title,msg,time:timeStr,date:now.toISOString().slice(0,10)});
+  localStorage.setItem('ht2_alerts',JSON.stringify(alertLog));
+  renderAlerts();
+}
+
+function renderAlerts(){
+  const feed=document.getElementById('alert-feed');
+  const criticals=alertLog.filter(a=>a.type==='high').length;
+  const warnings=alertLog.filter(a=>a.type==='warn').length;
+  document.getElementById('al-count-h').textContent=criticals;
+  document.getElementById('al-count-w').textContent=warnings;
+  const total=alertLog.length;
+  document.getElementById('h-alerts').textContent=total;
+  document.getElementById('alert-badge').textContent=total;
+  if(!alertLog.length){
+    feed.innerHTML='<div class="alert-item info"><span class="alert-ico">✅</span><div class="alert-body"><h4>No Active Alerts</h4><p>System monitoring active.</p></div></div>';
+    return;
+  }
+  feed.innerHTML=alertLog.slice(0,10).map(a=>`
+    <div class="alert-item ${a.type==='high'?'high':'warn'}">
+      <span class="alert-ico">${a.type==='high'?'🔴':'⚠️'}</span>
+      <div class="alert-body"><h4>${a.title}</h4><p>${a.msg}</p></div>
+      <span class="alert-time">${a.time}</span>
+    </div>
+  `).join('');
+}
+
+function clearAlerts(){
+  alertLog=[];
+  localStorage.setItem('ht2_alerts','[]');
+  document.getElementById('alert-banner').style.display='none';
+  renderAlerts();
+  showToast('Alerts cleared.');
+}
+
+function saveAlertConfig(){
+  alertCfg={
+    occ:parseFloat(document.getElementById('al-occ').value)||5,
+    high:parseInt(document.getElementById('al-high').value)||3,
+    consec:parseInt(document.getElementById('al-consec').value)||3,
+  };
+  localStorage.setItem('ht2_alertcfg',JSON.stringify(alertCfg));
+}
+
+// ============ ML PREDICTION ============
+function runML(){
+  const gv=id=>{const v=parseFloat(document.getElementById(id).value);return isNaN(v)?null:v;};
+  const press=gv('ml-press');
+  const tool=gv('ml-tool');
+  const thick=gv('ml-thick');
+  const temp=gv('ml-temp');
+  const angle=gv('ml-angle');
+  const exp=gv('ml-exp');
+  const prev=gv('ml-prev');
+  if([press,tool,thick].some(v=>v===null)){
+    document.getElementById('ml-output').innerHTML='<p style="color:var(--muted);font-size:13px">Enter at least Pressure, Tool Age, and Thickness...</p>';
+    return;
+  }
+  // Weighted scoring model
+  let score=0;
+  let factors=[];
+  // Pressure (target 180 bar)
+  const pressDev=Math.abs((press-180)/180)*100;
+  const pressScore=Math.min(pressDev*1.5,30);
+  score+=pressScore;
+  factors.push({name:'Pressure Deviation',score:pressScore,max:30,color:pressScore>15?'#ff3d5a':pressScore>8?'#ffaa00':'#00ff88'});
+  // Tool age (max 50000)
+  const toolScore=tool?Math.min((tool/50000)*35,35):0;
+  score+=toolScore;
+  factors.push({name:'Tool Age',score:toolScore,max:35,color:toolScore>25?'#ff3d5a':toolScore>15?'#ffaa00':'#00ff88'});
+  // Thickness (target 0.7)
+  const thickDev=thick?Math.abs((thick-0.7)/0.7)*100:0;
+  const thickScore=Math.min(thickDev*0.8,15);
+  score+=thickScore;
+  factors.push({name:'Material Deviation',score:thickScore,max:15,color:thickScore>10?'#ff3d5a':thickScore>5?'#ffaa00':'#00ff88'});
+  // Angle (target 45)
+  const angleDev=angle?Math.abs((angle-45)/45)*100:0;
+  const angleScore=Math.min(angleDev*0.5,10);
+  score+=angleScore;
+  factors.push({name:'Pre-hem Angle',score:angleScore,max:10,color:angleScore>7?'#ff3d5a':angleScore>4?'#ffaa00':'#00ff88'});
+  // Previous defects
+  const prevScore=prev?Math.min(prev*2,8):0;
+  score+=prevScore;
+  factors.push({name:'Prev Defects',score:prevScore,max:8,color:prevScore>5?'#ff3d5a':'#00ff88'});
+  // Operator experience
+  const expScore=exp?Math.max(0,2-(exp/24)*2):2;
+  score+=expScore;
+  // Temperature
+  const tempDev=temp?Math.abs(temp-25)*0.1:0;
+  score+=Math.min(tempDev,2);
+  score=Math.min(Math.round(score),100);
+
+  const riskColor=score>=60?'#ff3d5a':score>=30?'#ffaa00':'#00ff88';
+  const riskLabel=score>=60?'HIGH RISK':score>=30?'MEDIUM RISK':'LOW RISK';
+  const riskLabel2=score>=60?'HIGH RISK':score>=30?'MEDIUM RISK':'LOW RISK';
+  const riskAction=score>=60?'⛔ STOP PRODUCTION — Inspect immediately!':score>=30?'⚠️ CAUTION — Monitor closely, check tooling':'✅ PROCEED — Process within acceptable range';
+
+  document.getElementById('ml-output').innerHTML=`
+    <div class="ml-result">
+      <div class="ml-score" style="color:${riskColor}">${score}%</div>
+      <div style="text-align:center;font-family:var(--font-m);font-size:14px;color:${riskColor};margin-bottom:4px">${riskLabel2}</div>
+      <div class="risk-bar-bg"><div class="risk-bar-fill" style="width:${score}%;background:${riskColor}"></div></div>
+      <div style="text-align:center;font-size:13px;margin-top:8px;color:var(--text)">${riskAction}</div>
+      <div class="ml-factors" style="margin-top:16px">
+        <div style="font-family:var(--font-m);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Risk Factor Breakdown</div>
+        ${factors.map(f=>`
+          <div class="ml-factor">
+            <div style="flex:1">
+              <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+                <span>${f.name}</span>
+                <span style="font-family:var(--font-m);color:${f.color}">${f.score.toFixed(1)}/${f.max}</span>
+              </div>
+              <div style="height:5px;background:var(--s1);border-radius:3px">
+                <div style="height:100%;width:${(f.score/f.max*100).toFixed(0)}%;background:${f.color};border-radius:3px;transition:width .8s"></div>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ============ SPC ============
+function renderSPC(){
+  const dayGroups={};
+  defects.forEach(d=>{
+    const day=d.datetime.slice(0,10);
+    if(!dayGroups[day])dayGroups[day]={count:0,prod:0};
+    dayGroups[day].count++;
+    dayGroups[day].prod+=d.prod;
+  });
+  const days=Object.keys(dayGroups).sort();
+  const occs=days.map(d=>dayGroups[d].prod>0?(dayGroups[d].count/dayGroups[d].prod*100):dayGroups[d].count);
+  if(occs.length<2){
+    // Pad with sample data to show chart structure
+    const padDays=[...days];
+    const padOccs=[...occs];
+    while(padDays.length<5){padDays.unshift('Sample');padOccs.unshift(0);}
+    document.getElementById('spc-mean').textContent='Needs 2+ days data';
+    document.getElementById('spc-ucl').textContent='—';
+    document.getElementById('spc-lcl').textContent='—';
+    document.getElementById('spc-sigma').textContent='—';
+    mkChart('spc-chart',{type:'line',data:{labels:padDays,datasets:[{label:'OCC%',data:padOccs,borderColor:'#00e5ff',backgroundColor:'rgba(0,229,255,0.1)',fill:true,tension:0.3,pointRadius:5}]},options:baseOpts});
+    mkChart('p-chart',{type:'bar',data:{labels:padDays,datasets:[{label:'Defects',data:padOccs,backgroundColor:'rgba(0,229,255,0.6)',borderRadius:5}]},options:{...baseOpts,plugins:{...baseOpts.plugins,legend:{display:false}}}});
+    return;
+  }
+  const mean=occs.reduce((s,v)=>s+v,0)/occs.length;
+  const sigma=Math.sqrt(occs.reduce((s,v)=>s+(v-mean)**2,0)/occs.length);
+  const ucl=mean+3*sigma;
+  const lcl=Math.max(0,mean-3*sigma);
+  document.getElementById('spc-mean').textContent=mean.toFixed(2)+'%';
+  document.getElementById('spc-ucl').textContent=ucl.toFixed(2)+'%';
+  document.getElementById('spc-lcl').textContent=lcl.toFixed(2)+'%';
+  document.getElementById('spc-sigma').textContent=sigma.toFixed(3);
+  const ooc=occs.some(v=>v>ucl||v<lcl);
+  const badge=document.getElementById('spc-status-badge');
+  badge.className='spc-status '+(ooc?'spc-ooc':'spc-ok');
+  badge.textContent=ooc?'● OUT OF CONTROL':'● IN CONTROL';
+  mkChart('spc-chart',{
+    type:'line',
+    data:{
+      labels:days,
+      datasets:[
+        {label:'OCC%',data:occs,borderColor:'#00e5ff',backgroundColor:'rgba(0,229,255,0.1)',fill:true,tension:.3,pointBackgroundColor:occs.map(v=>v>ucl?'#ff3d5a':'#00e5ff'),pointRadius:5},
+        {label:'UCL',data:days.map(()=>ucl),borderColor:'rgba(255,61,90,.6)',borderDash:[6,4],pointRadius:0,borderWidth:1.5},
+        {label:'Mean',data:days.map(()=>mean),borderColor:'rgba(0,255,136,.4)',borderDash:[4,4],pointRadius:0,borderWidth:1.5},
+        {label:'LCL',data:days.map(()=>lcl),borderColor:'rgba(255,170,0,.5)',borderDash:[6,4],pointRadius:0,borderWidth:1.5},
+      ]
+    },
+    options:{...baseOpts}
+  });
+  mkChart('p-chart',{
+    type:'bar',
+    data:{
+      labels:days,
+      datasets:[{
+        label:'Defect Count',data:days.map(d=>dayGroups[d].count),
+        backgroundColor:days.map(d=>dayGroups[d].count>mean+sigma?'rgba(255,61,90,.7)':'rgba(0,229,255,.6)'),
+        borderRadius:5
+      }]
+    },
+    options:{...baseOpts,plugins:{...baseOpts.plugins,legend:{display:false}}}
+  });
+}
+
+// ============ CHARTS ============
+const baseOpts={
+  responsive:true,maintainAspectRatio:false,
+  animation:{duration:600},
+  plugins:{legend:{labels:{color:'#4a6fa5',font:{family:'IBM Plex Mono',size:10}}}},
+  scales:{
+    x:{ticks:{color:'#4a6fa5'},grid:{color:'rgba(30,48,80,.6)'}},
+    y:{ticks:{color:'#4a6fa5'},grid:{color:'rgba(30,48,80,.6)'}}
+  }
+};
+function mkChart(id,cfg){
+  const c=document.getElementById(id);
+  if(!c)return;
+  // Destroy existing chart safely
+  if(charts[id]){
+    try{charts[id].destroy();}catch(e){}
+    delete charts[id];
+  }
+  // Replace canvas to avoid reuse error
+  const parent=c.parentNode;
+  const newCanvas=document.createElement('canvas');
+  newCanvas.id=id;
+  parent.replaceChild(newCanvas,c);
+  try{
+    charts[id]=new Chart(newCanvas,cfg);
+  }catch(e){console.warn('Chart error:',id,e);}
+}
+function cnt(arr,key){return arr.reduce((a,d)=>{a[d[key]]=(a[d[key]]||0)+1;return a;},{})}
+const CL=['rgba(0,229,255,.8)','rgba(255,61,90,.8)','rgba(0,255,136,.8)','rgba(255,170,0,.8)','rgba(168,85,247,.8)','rgba(0,200,180,.8)'];
+
+function renderCharts(){
+  const tc=cnt(defects,'dtype');
+  mkChart('ch-type',{type:'bar',data:{labels:Object.keys(tc),datasets:[{label:'Count',data:Object.values(tc),backgroundColor:CL,borderRadius:5}]},options:{...baseOpts,plugins:{...baseOpts.plugins,legend:{display:false}}}});
+  const dc={};defects.forEach(d=>{const day=d.datetime.slice(0,10);dc[day]=(dc[day]||0)+1;});
+  const sd=Object.keys(dc).sort();
+  mkChart('ch-trend',{type:'line',data:{labels:sd.length?sd:[new Date().toISOString().slice(0,10)],datasets:[{label:'Defects',data:sd.map(d=>dc[d]),borderColor:'#00e5ff',backgroundColor:'rgba(0,229,255,0.08)',fill:true,tension:.4,pointBackgroundColor:'#00e5ff',pointRadius:4}]},options:baseOpts});
+  const sv={HIGH:0,MED:0,LOW:0};defects.forEach(d=>sv[d.sev]++);
+  mkChart('ch-sev',{type:'doughnut',data:{labels:['HIGH','MEDIUM','LOW'],datasets:[{data:[sv.HIGH,sv.MED,sv.LOW],backgroundColor:['rgba(255,61,90,.8)','rgba(255,170,0,.8)','rgba(0,255,136,.8)'],borderWidth:2,borderColor:'#0f1928'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#4a6fa5',font:{family:'IBM Plex Mono',size:10}}}}}});
+  const mc=cnt(defects,'mach');
+  mkChart('ch-mach',{type:'bar',data:{labels:Object.keys(mc),datasets:[{label:'Defects',data:Object.values(mc),backgroundColor:'rgba(255,170,0,.7)',borderRadius:5}]},options:{...baseOpts,plugins:{...baseOpts.plugins,legend:{display:false}}}});
+  const sc=cnt(defects,'shift');
+  mkChart('ch-shift',{type:'bar',data:{labels:Object.keys(sc),datasets:[{label:'Defects',data:Object.values(sc),backgroundColor:'rgba(0,255,136,.6)',borderRadius:5}]},options:{...baseOpts,indexAxis:'y',plugins:{...baseOpts.plugins,legend:{display:false}}}});
+}
+
+// ============ PARETO ============
+function renderPareto(){
+  const rc=cnt(defects,'rc');
+  const total=defects.length||1;
+  const sorted=Object.entries(rc).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('pareto').innerHTML=sorted.length===0?'<p style="color:var(--muted);font-size:13px">Log defects to see Pareto.</p>':sorted.map(([c,n],i)=>`
+    <div class="par-row">
+      <div class="par-lbl">${c.length>18?c.slice(0,18)+'…':c}</div>
+      <div class="par-bg"><div class="par-fill" style="width:${(n/sorted[0][1]*100).toFixed(0)}%;background:${CL[i%CL.length]}">${n}</div></div>
+      <div class="par-pct">${(n/total*100).toFixed(0)}%</div>
+    </div>
+  `).join('');
+}
+
+// ============ 5-WHY ============
+function buildWhyInputs(){
+  document.getElementById('w-inputs').innerHTML=Array.from({length:whyN},(_,i)=>`
+    <div class="fg"><label>Why #${i+1}</label><input type="text" class="why-in" placeholder="Why did this happen?"></div>
+  `).join('');
+}
+function addWhy(){if(whyN<5){whyN++;buildWhyInputs();}}
+function save5Why(){
+  const p=document.getElementById('w-prob').value.trim();
+  const ws=[...document.querySelectorAll('.why-in')].map(i=>i.value.trim()).filter(Boolean);
+  const c=document.getElementById('w-conc').value.trim();
+  const a=document.getElementById('w-act').value.trim();
+  const o=document.getElementById('w-owner').value.trim();
+  const d=document.getElementById('w-due').value;
+  if(!p){showToast('Enter problem statement!',true);return;}
+  whyReps.push({id:Date.now(),problem:p,whys:ws,conclusion:c,action:a,owner:o,due:d,date:new Date().toISOString().slice(0,10)});
+  localStorage.setItem('ht2_whys',JSON.stringify(whyReps));
+  document.getElementById('w-prob').value='';document.getElementById('w-conc').value='';
+  document.getElementById('w-act').value='';document.getElementById('w-owner').value='';
+  whyN=1;buildWhyInputs();renderWhyList();
+  showToast('5-Why Report saved!');
+}
+function renderWhyList(){
+  const el=document.getElementById('why-list');
+  if(!whyReps.length){el.textContent='No reports yet...';return;}
+  el.innerHTML=whyReps.slice(-4).reverse().map(r=>`
+    <div style="background:var(--s1);border-radius:8px;padding:12px;margin-bottom:8px">
+      <div style="font-weight:700;font-size:13px;margin-bottom:3px">${r.problem}</div>
+      <div style="font-size:11px;color:var(--muted)">📅 ${r.date} · ${r.whys.length} whys · ${r.owner||'—'}</div>
+      ${r.conclusion?`<div style="font-size:12px;color:var(--green);margin-top:4px">✓ ${r.conclusion}</div>`:''}
+      ${r.action?`<div style="font-size:12px;color:var(--cyan);margin-top:2px">→ ${r.action}</div>`:''}
+    </div>
+  `).join('');
+}
+
+// ============ ACTION PLAN ============
+function markDone(btn){btn.closest('.act-item').classList.add('done');btn.remove();}
+function addAction(){
+  const t=document.getElementById('new-act').value.trim();if(!t)return;
+  const d=document.createElement('div');d.className='act-item';
+  d.innerHTML=`<div><h5>${t}</h5><p>Added today</p></div><button class="btn btn-g btn-sm" onclick="markDone(this)">✓</button>`;
+  document.getElementById('act-list').appendChild(d);
+  document.getElementById('new-act').value='';
+}
+
+// ============ TABLE ============
+function renderTable(){
+  const sv=document.getElementById('fi-sev').value;
+  const mc=document.getElementById('fi-mach').value;
+  const rc=document.getElementById('fi-rc').value;
+  const dt=document.getElementById('fi-date').value;
+  let f=defects.filter(d=>(!sv||d.sev===sv)&&(!mc||d.mach===mc)&&(!rc||d.rc===rc)&&(!dt||d.datetime.slice(0,10)===dt));
+  document.getElementById('rec-count').textContent=f.length+' records';
+  const tb=document.getElementById('tbl-body');
+  const nr=document.getElementById('no-rec');
+  if(!f.length){tb.innerHTML='';nr.style.display='block';return;}
+  nr.style.display='none';
+  tb.innerHTML=f.map((d,i)=>`
+    <tr>
+      <td style="color:var(--muted);font-family:var(--font-m)">${i+1}</td>
+      <td style="font-family:var(--font-m);font-size:11px">${d.datetime.replace('T',' ')}</td>
+      <td style="font-size:12px">${d.shift.split(' ')[1]}</td>
+      <td>${d.op}</td>
+      <td style="font-size:12px">${d.mach}</td>
+      <td>${d.door}</td>
+      <td style="font-weight:700">${d.dtype}</td>
+      <td><span class="badge ${d.sev==='HIGH'?'bh':d.sev==='MED'?'bm':'bl'}">${d.sev}</span></td>
+      <td style="font-size:12px">${d.rc}</td>
+      <td style="font-family:var(--font-m);font-size:12px">${d.press||'—'}</td>
+      <td>${d.imgs&&d.imgs.length?`<span style="color:var(--cyan);font-size:12px">📷 ${d.imgs.length}</span>`:'—'}</td>
+      <td><button class="btn btn-r btn-sm" onclick="delD(${d.id})">✕</button></td>
+    </tr>
+  `).join('');
+}
+
+function delD(id){if(!confirm('Delete?'))return;defects=defects.filter(d=>d.id!==id);save();updateAll();showToast('Deleted.');}
+
+// ============ UPDATE ALL ============
+function updateAll(){
+  try { updateBlinkIndicator(); } catch(e) {}
+  const today=new Date().toISOString().slice(0,10);
+  const td=defects.filter(d=>d.datetime.slice(0,10)===today);
+  const totalProd=defects.reduce((s,d)=>s+d.prod,0);
+  const occ=totalProd>0?((defects.length/totalProd)*100).toFixed(2):'0.00';
+  document.getElementById('h-total').textContent=defects.length;
+  document.getElementById('h-occ').textContent=occ+'%';
+  document.getElementById('h-today').textContent=td.length;
+  document.getElementById('kpi-total').textContent=defects.length;
+  document.getElementById('kpi-occ').textContent=occ+'%';
+  document.getElementById('kpi-high').textContent=defects.filter(d=>d.sev==='HIGH').length;
+  document.getElementById('kpi-prod').textContent=totalProd;
+  document.getElementById('qs-h').textContent=td.filter(d=>d.sev==='HIGH').length;
+  document.getElementById('qs-m').textContent=td.filter(d=>d.sev==='MED').length;
+  document.getElementById('qs-l').textContent=td.filter(d=>d.sev==='LOW').length;
+  const tp=td.reduce((s,d)=>s+d.prod,0);
+  document.getElementById('qs-occ').textContent=tp>0?((td.length/tp)*100).toFixed(1)+'%':'0%';
+  const rl=document.getElementById('recent-list');
+  if(!defects.length){rl.textContent='No entries yet...';}
+  else{rl.innerHTML=defects.slice(-4).reverse().map(d=>`
+    <div style="padding:8px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <span style="font-weight:700;font-size:13px">${d.dtype}</span>
+        <span style="color:var(--muted);font-size:11px;margin-left:8px">${d.mach}</span>
+        ${d.imgs&&d.imgs.length?`<span style="color:var(--cyan);font-size:11px;margin-left:4px">📷</span>`:''}
+      </div>
+      <span class="badge ${d.sev==='HIGH'?'bh':d.sev==='MED'?'bm':'bl'}">${d.sev}</span>
+    </div>
+  `).join('');}
+  renderCharts();renderPareto();renderTable();renderWhyList();renderAlerts();
+}
+
+// ============ EXPORT ============
+function exportCSV(){
+  if(!defects.length){showToast('No data!',true);return;}
+  const h=['ID','DateTime','Shift','Operator','Station No','Door','DefectType','Severity','RootCause','Pressure','Production','Remarks','Photos'];
+  const r=defects.map(d=>[d.id,d.datetime,d.shift,d.op,d.mach,d.door,d.dtype,d.sev,d.rc,d.press,d.prod,d.rem,d.imgs?d.imgs.length:0].map(v=>`"${v}"`).join(','));
+  dl('hemming_defects_v2.csv',[h.join(','),...r].join('\n'),'text/csv');
+}
+function exportJSON(){
+  if(!defects.length){showToast('No data!',true);return;}
+  dl('hemming_data_v2.json',JSON.stringify({defects,whyReps,alertLog},null,2),'application/json');
+}
+function dl(name,content,type){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type}));
+  a.download=name;a.click();
+  showToast('Exported: '+name);
+}
+function clearAll(){if(!confirm('Delete ALL records?'))return;defects=[];save();updateAll();showToast('Cleared.');}
+
+// ============ TABS ============
+function showTab(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  const panEl = document.getElementById('tab-'+id);
+  if(panEl) panEl.classList.add('on');
+  if(btn) btn.classList.add('on');
+  // Destroy existing charts so they re-render cleanly on visible canvas
+  Object.keys(charts).forEach(k=>{if(charts[k]){charts[k].destroy();delete charts[k];}});
+  if(id==='dashboard') setTimeout(()=>renderCharts(),120);
+  if(id==='spc')       setTimeout(()=>renderSPC(),120);
+  if(id==='ml'){
+    // Set default values so ML shows a sample prediction on open
+    setTimeout(()=>{
+      const defaults = {
+        'ml-press':'180','ml-tool':'25000','ml-thick':'0.70',
+        'ml-temp':'28','ml-angle':'45','ml-exp':'12','ml-prev':'2'
+      };
+      Object.entries(defaults).forEach(([id,val])=>{
+        const el=document.getElementById(id);
+        if(el && !el.value) el.value=val;
+      });
+      runML();
+    },120);
+  }
+}
+
+// ============ TOAST ============
+function showToast(msg,err){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast'+(err?' err':'');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ============ START ============
+updateAll();
+renderAlerts();
+
+// ============ LIVE CLOCK + SHIFT TIMER ============
+function updateClock() {
+  const now = new Date();
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  
+  const date = now.getDate();
+  const month = months[now.getMonth()];
+  const year = now.getFullYear();
+  
+  let h = now.getHours();
+  let m = now.getMinutes();
+  let s = now.getSeconds();
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const hDisp = h % 12 || 12;
+  
+  const pad = n => String(n).padStart(2,'0');
+  
+  document.getElementById('live-date').textContent = date + ' ' + month + ', ' + year;
+  document.getElementById('live-time').textContent = pad(hDisp) + ':' + pad(m) + ':' + pad(s) + ' ' + ampm;
+
+
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ============ BLINK ALERT INDICATOR ============
+function updateBlinkIndicator() {
+  const dot = document.getElementById('blink-dot');
+  const label = document.getElementById('blink-label');
+  const countEl = document.getElementById('blink-count');
+  if (!dot || !label || !countEl) return;
+
+  // Check defects in last 1 hour
+  const now = new Date();
+  const oneHourAgo = new Date(now - 60 * 60 * 1000);
+  const recentDefects = defects.filter(d => new Date(d.datetime) >= oneHourAgo);
+  const highCount = recentDefects.filter(d => d.sev === 'HIGH').length;
+
+  countEl.textContent = 'Last 1 hr: ' + recentDefects.length;
+
+  if (highCount > 0) {
+    // HIGH severity — Red blinking
+    dot.style.background = '#ff3d5a';
+    dot.style.boxShadow = '0 0 20px #ff3d5a';
+    dot.className = 'blink-red-anim';
+    label.style.color = '#ff3d5a';
+    label.textContent = '⚠ HIGH DEFECT';
+  } else if (recentDefects.length > 0) {
+    // Medium — Amber blinking
+    dot.style.background = '#ffaa00';
+    dot.style.boxShadow = '0 0 20px #ffaa00';
+    dot.className = 'blink-amber-anim';
+    label.style.color = '#ffaa00';
+    label.textContent = '● DEFECT LOG';
+  } else {
+    // No defects — Green steady
+    dot.style.background = '#00ff88';
+    dot.style.boxShadow = '0 0 12px #00ff88';
+    dot.className = '';
+    label.style.color = '#00ff88';
+    label.textContent = '✓ NO DEFECT';
+  }
+}
+
+
+// ============ LIVE PRODUCTION COUNTER ============
+function updateProdCounter() {
+  const el = document.getElementById('prod-count-val');
+  const shiftEl = document.getElementById('prod-shift-name');
+  if (!el || !shiftEl) return;
+
+  const now = new Date();
+  const h = now.getHours();
+  const m = now.getMinutes();
+  const totalMins = h * 60 + m;
+
+  // Detect current shift
+  let shiftLabel, shiftStartMins, shiftDurationMins;
+  if (totalMins >= 390 && totalMins < 900) {
+    shiftLabel = 'SHIFT A';
+    shiftStartMins = 390;
+    shiftDurationMins = 510; // 8.5 hrs
+  } else if (totalMins >= 900 && totalMins < 1410) {
+    shiftLabel = 'SHIFT B';
+    shiftStartMins = 900;
+    shiftDurationMins = 510;
+  } else {
+    shiftLabel = 'SHIFT C';
+    shiftStartMins = totalMins >= 1410 ? 1410 : 0;
+    shiftDurationMins = 420; // 7 hrs
+  }
+
+  // Calculate elapsed minutes in current shift
+  let elapsedMins;
+  if (shiftLabel === 'SHIFT C' && totalMins < 390) {
+    elapsedMins = totalMins; // after midnight
+  } else {
+    elapsedMins = totalMins - shiftStartMins;
+  }
+
+  // Avg production rate = 250 parts per 510 min = ~0.49 per min
+  const rate = 250 / 510;
+  const prod = Math.floor(elapsedMins * rate);
+
+  // Animate count
+  const current = parseInt(el.textContent) || 0;
+  if (prod !== current) {
+    el.style.color = '#00ff88';
+    el.style.textShadow = '0 0 30px rgba(0,255,136,0.9)';
+    setTimeout(() => {
+      el.style.color = '#ffffff';
+      el.style.textShadow = '0 0 20px rgba(0,255,136,0.6)';
+    }, 300);
+  }
+
+  el.textContent = prod;
+  shiftEl.textContent = shiftLabel + ' COUNT';
+}
+updateProdCounter();
+setInterval(updateProdCounter, 5000); // update every 5 sec
+
+
+// ============ LIGHT / DARK MODE TOGGLE ============
+let isLight = false;
+function toggleTheme() {
+  isLight = !isLight;
+  const body = document.body;
+  const icon = document.getElementById('theme-icon');
+  const label = document.getElementById('theme-label');
+  const btn = document.getElementById('theme-toggle');
+
+  if (isLight) {
+    body.classList.add('light-mode');
+    icon.textContent = '🌙';
+    label.textContent = 'Dark';
+    btn.style.background = 'rgba(0,0,0,0.06)';
+    btn.style.borderColor = 'rgba(0,0,0,0.15)';
+    btn.style.color = '#1a2744';
+  } else {
+    body.classList.remove('light-mode');
+    icon.textContent = '☀️';
+    label.textContent = 'Light';
+    btn.style.background = 'rgba(255,255,255,0.08)';
+    btn.style.borderColor = 'rgba(255,255,255,0.15)';
+    btn.style.color = '#d4e8ff';
+  }
+  // Re-render charts for new theme
+  setTimeout(() => { try { updateAll(); } catch(e) {} }, 100);
+}
+
+
+// ============ WEB REPORT TAB ============
+function initWebReport() {
+  // Update date time in header
+  const now = new Date();
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const dateEl = document.getElementById('wr-date');
+  const timeEl = document.getElementById('wr-time');
+  if (dateEl) dateEl.textContent = now.getDate() + ' ' + months[now.getMonth()] + ', ' + now.getFullYear();
+  if (timeEl) {
+    let h = now.getHours(), m = now.getMinutes();
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    const pad = n => String(n).padStart(2,'0');
+    timeEl.textContent = pad(h) + ':' + pad(m) + ' ' + ampm;
+  }
+  showWRReport('shift');
+}
+
+function setWRBtn(active) {
+  ['shift','daily','machine','defecttype'].forEach(id => {
+    const btn = document.getElementById('wr-btn-' + id);
+    if (!btn) return;
+    if (id === active) {
+      btn.style.border = '2px solid #00e5ff';
+      btn.style.background = 'rgba(0,229,255,0.15)';
+      btn.style.color = '#00e5ff';
+    } else {
+      btn.style.border = '1px solid #4a6fa5';
+      btn.style.background = 'transparent';
+      btn.style.color = '#90caf9';
+    }
+  });
+}
+
+function showWRReport(type) {
+  setWRBtn(type);
+  const el = document.getElementById('wr-content');
+  if (!el) return;
+
+  if (type === 'shift') el.innerHTML = buildShiftReport();
+  else if (type === 'daily') el.innerHTML = buildDailyReport();
+  else if (type === 'machine') el.innerHTML = buildMachineReport();
+  else if (type === 'defecttype') el.innerHTML = buildDefectTypeReport();
+}
+
+function tableStyle() {
+  return 'width:100%;border-collapse:collapse;font-size:13px;';
+}
+function thStyle(bg) {
+  return `background:${bg||'#1a3a6e'};color:#fff;padding:10px 12px;text-align:center;font-weight:700;letter-spacing:0.5px;border:1px solid #2a4a8e;`;
+}
+function tdStyle(align) {
+  return `padding:9px 12px;text-align:${align||'center'};border:1px solid #1e3050;color:var(--text);`;
+}
+function sectionTitle(title, icon) {
+  return `<div style="display:flex;align-items:center;gap:8px;margin:20px 0 10px;"><span style="font-size:18px;">${icon}</span><span style="font-size:15px;font-weight:800;color:#00e5ff;letter-spacing:1px;">${title}</span></div>`;
+}
+
+function buildShiftReport() {
+  const shifts = ['A','B','C'];
+  let html = sectionTitle('SHIFT WISE SUMMARY REPORT', '📊');
+  html += `<table style="${tableStyle()}">
+    <tr>
+      <th style="${thStyle()}">SHIFT</th>
+      <th style="${thStyle()}">TOTAL DEFECTS</th>
+      <th style="${thStyle()}">HIGH</th>
+      <th style="${thStyle()}">MEDIUM</th>
+      <th style="${thStyle()}">LOW</th>
+      <th style="${thStyle()}">OCC RATE %</th>
+      <th style="${thStyle()}">STATUS</th>
+    </tr>`;
+
+  let grandTotal = 0, grandHigh = 0, grandMed = 0, grandLow = 0;
+
+  shifts.forEach(sh => {
+    const sd = defects.filter(d => d.shift && d.shift.toUpperCase().includes(sh));
+    const total = sd.length;
+    const high = sd.filter(d => d.sev === 'HIGH').length;
+    const med = sd.filter(d => d.sev === 'MED').length;
+    const low = sd.filter(d => d.sev === 'LOW').length;
+    const prod = sd.reduce((s,d) => s + (parseInt(d.prod)||0), 0) || 250;
+    const occ = ((total/prod)*100).toFixed(2);
+    const status = parseFloat(occ) > 2 ? '<span style="color:#ff3d5a;font-weight:700;">⚠ HIGH</span>' : '<span style="color:#00ff88;font-weight:700;">✓ OK</span>';
+    grandTotal += total; grandHigh += high; grandMed += med; grandLow += low;
+    const rowBg = parseFloat(occ) > 2 ? 'rgba(255,61,90,0.06)' : 'transparent';
+    html += `<tr style="background:${rowBg}">
+      <td style="${tdStyle()};font-weight:800;color:#00e5ff;">SHIFT ${sh}</td>
+      <td style="${tdStyle()};font-size:16px;font-weight:800;">${total}</td>
+      <td style="${tdStyle()};color:#ff3d5a;font-weight:700;">${high}</td>
+      <td style="${tdStyle()};color:#ffaa00;font-weight:700;">${med}</td>
+      <td style="${tdStyle()};color:#00ff88;font-weight:700;">${low}</td>
+      <td style="${tdStyle()};font-weight:700;">${occ}%</td>
+      <td style="${tdStyle()}">${status}</td>
+    </tr>`;
+  });
+
+  html += `<tr style="background:rgba(0,229,255,0.08);">
+    <td style="${tdStyle()};font-weight:900;color:#fff;">TOTAL</td>
+    <td style="${tdStyle()};font-size:16px;font-weight:900;color:#fff;">${grandTotal}</td>
+    <td style="${tdStyle()};color:#ff3d5a;font-weight:800;">${grandHigh}</td>
+    <td style="${tdStyle()};color:#ffaa00;font-weight:800;">${grandMed}</td>
+    <td style="${tdStyle()};color:#00ff88;font-weight:800;">${grandLow}</td>
+    <td style="${tdStyle()}">—</td>
+    <td style="${tdStyle()}">—</td>
+  </tr>`;
+  html += '</table>';
+  return html;
+}
+
+function buildDailyReport() {
+  // Group by date
+  const byDate = {};
+  defects.forEach(d => {
+    const dt = d.datetime ? d.datetime.split('T')[0] : 'Unknown';
+    if (!byDate[dt]) byDate[dt] = [];
+    byDate[dt].push(d);
+  });
+
+  let html = sectionTitle('DATE WISE DAILY REPORT', '📅');
+  html += `<table style="${tableStyle()}">
+    <tr>
+      <th style="${thStyle()}">DATE</th>
+      <th style="${thStyle()}">DEFECTS</th>
+      <th style="${thStyle()}">HIGH</th>
+      <th style="${thStyle()}">MED</th>
+      <th style="${thStyle()}">LOW</th>
+      <th style="${thStyle()}">OCC %</th>
+    </tr>`;
+
+  const sortedDates = Object.keys(byDate).sort().reverse();
+  sortedDates.forEach(dt => {
+    const sd = byDate[dt];
+    const high = sd.filter(d => d.sev === 'HIGH').length;
+    const med = sd.filter(d => d.sev === 'MED').length;
+    const low = sd.filter(d => d.sev === 'LOW').length;
+    const prod = sd.reduce((s,d) => s + (parseInt(d.prod)||0), 0) || 250;
+    const occ = ((sd.length/prod)*100).toFixed(2);
+    const rowBg = parseFloat(occ) > 2 ? 'rgba(255,61,90,0.06)' : 'transparent';
+    html += `<tr style="background:${rowBg}">
+      <td style="${tdStyle()};color:#00e5ff;font-weight:700;">${dt}</td>
+      <td style="${tdStyle()};font-weight:800;">${sd.length}</td>
+      <td style="${tdStyle()};color:#ff3d5a;">${high}</td>
+      <td style="${tdStyle()};color:#ffaa00;">${med}</td>
+      <td style="${tdStyle()};color:#00ff88;">${low}</td>
+      <td style="${tdStyle()};font-weight:700;">${occ}%</td>
+    </tr>`;
+  });
+  html += '</table>';
+  return html;
+}
+
+function buildMachineReport() {
+  const machines = [...new Set(defects.map(d => d.machine))].filter(Boolean);
+  let html = sectionTitle('MACHINE WISE REPORT', '🏭');
+  html += `<table style="${tableStyle()}">
+    <tr>
+      <th style="${thStyle()}">MACHINE</th>
+      <th style="${thStyle()}">TOTAL DEFECTS</th>
+      <th style="${thStyle()}">HIGH</th>
+      <th style="${thStyle()}">MED</th>
+      <th style="${thStyle()}">LOW</th>
+      <th style="${thStyle()}">STATUS</th>
+    </tr>`;
+
+  machines.forEach(m => {
+    const sd = defects.filter(d => d.machine === m);
+    const high = sd.filter(d => d.sev === 'HIGH').length;
+    const med = sd.filter(d => d.sev === 'MED').length;
+    const low = sd.filter(d => d.sev === 'LOW').length;
+    const status = high > 3 ? '<span style="color:#ff3d5a;font-weight:700;">⚠ CRITICAL</span>' : high > 1 ? '<span style="color:#ffaa00;font-weight:700;">⚡ WATCH</span>' : '<span style="color:#00ff88;font-weight:700;">✓ NORMAL</span>';
+    html += `<tr>
+      <td style="${tdStyle()};color:#00e5ff;font-weight:700;">${m}</td>
+      <td style="${tdStyle()};font-weight:800;">${sd.length}</td>
+      <td style="${tdStyle()};color:#ff3d5a;">${high}</td>
+      <td style="${tdStyle()};color:#ffaa00;">${med}</td>
+      <td style="${tdStyle()};color:#00ff88;">${low}</td>
+      <td style="${tdStyle()}">${status}</td>
+    </tr>`;
+  });
+  html += '</table>';
+  return html;
+}
+
+function buildDefectTypeReport() {
+  const types = [...new Set(defects.map(d => d.type))].filter(Boolean);
+  let html = sectionTitle('DEFECT TYPE WISE REPORT', '🔍');
+  html += `<table style="${tableStyle()}">
+    <tr>
+      <th style="${thStyle()}">DEFECT TYPE</th>
+      <th style="${thStyle()}">COUNT</th>
+      <th style="${thStyle()}">% SHARE</th>
+      <th style="${thStyle()}">TREND</th>
+    </tr>`;
+
+  const total = defects.length || 1;
+  const sorted = types.map(t => ({t, count: defects.filter(d => d.type === t).length})).sort((a,b) => b.count - a.count);
+  sorted.forEach((item, i) => {
+    const pct = ((item.count/total)*100).toFixed(1);
+    const bar = '█'.repeat(Math.round(parseFloat(pct)/5)) || '▌';
+    const color = i === 0 ? '#ff3d5a' : i === 1 ? '#ffaa00' : '#00e5ff';
+    html += `<tr>
+      <td style="${tdStyle('left')};font-weight:700;">${item.t}</td>
+      <td style="${tdStyle()};font-size:16px;font-weight:800;">${item.count}</td>
+      <td style="${tdStyle()};font-weight:700;">${pct}%</td>
+      <td style="${tdStyle('left')};color:${color};letter-spacing:-1px;">${bar}</td>
+    </tr>`;
+  });
+  html += '</table>';
+  return html;
+}
+
+</script>
+<!-- FOOTER -->
+<div style="
+  background:linear-gradient(135deg,#060d1a,#0a1628);
+  border-top:1px solid rgba(0,229,255,0.15);
+  padding:16px 24px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:20px;
+">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div style="font-size:28px;">🎓</div>
+    <div>
+      <div style="font-size:13px;font-weight:800;color:#00e5ff;letter-spacing:1px;">Sanket Kukade</div>
+      <div style="font-size:11px;color:#4a6fa5;margin-top:2px;">M.Tech – Manufacturing Engineering</div>
+      <div style="font-size:11px;color:#4a6fa5;">D Y Patil International University, Pune</div>
+    </div>
+  </div>
+  <div style="text-align:center;">
+    <div style="font-size:11px;color:#4a6fa5;">Project</div>
+    <div style="font-size:12px;color:#90caf9;font-weight:700;">Reduction of Open Hem Defects</div>
+    <div style="font-size:11px;color:#4a6fa5;">Rear Door Hemming Process</div>
+  </div>
+  <div style="text-align:right;">
+    <div style="font-size:11px;color:#4a6fa5;">Powered by</div>
+    <div style="font-size:13px;font-weight:800;color:#00e5ff;">HemmTrack Pro V2</div>
+    <div style="font-size:10px;color:#4a6fa5;margin-top:2px;">HTML5 · CSS3 · JavaScript</div>
+  </div>
+</div>
+
 </body>
 </html>
-
