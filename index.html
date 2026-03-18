@@ -89,9 +89,18 @@ header{
 #alert-banner .alert-close:hover{opacity:1}
 
 /* TABS */
-.nav{display:flex;gap:2px;padding:12px 20px 0;border-bottom:1px solid var(--border);overflow-x:auto}
+.nav{display:flex;gap:2px;padding:12px 20px 0;border-bottom:1px solid var(--border);
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  white-space:nowrap;
+  flex-wrap:nowrap;
+}
+.nav::-webkit-scrollbar{display:none;}
 .tab{
-  padding:10px 18px;background:transparent;border:none;
+  padding:8px 12px;background:transparent;border:none;
+  white-space:nowrap;
+  flex-shrink:0;
   border-bottom:3px solid transparent;
   color:var(--muted);font-family:var(--font-b);font-size:14px;font-weight:600;
   cursor:pointer;transition:all .2s;white-space:nowrap;letter-spacing:.3px;
@@ -302,8 +311,14 @@ body.light-mode .rec-table td { border-color:#e2e8f0 !important; color:#1a202c !
 body.light-mode .rec-table tr:hover td { background:#ebf8ff !important; }
 </style>
 
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>emailjs.init('nSgtdaPYMKfsusNSE');</script>
 </head>
 <body>
+
+  </div>
+</div>
+
 
 <!-- ALERT BANNER -->
 <div id="alert-banner">
@@ -410,34 +425,45 @@ body.light-mode .rec-table tr:hover td { background:#ebf8ff !important; }
     <div id="prod-shift-name" style="font-size:10px;color:#4a6fa5;margin-top:2px;letter-spacing:1px;">THIS SHIFT</div>
   </div>
   <!-- BLINKING ALERT INDICATOR -->
-  <div id="blink-indicator" style="
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:6px;
+  <!-- OCC ALERT COUNTDOWN -->
+  <div id="occ-alert-box" style="
+    font-family:Consolas,monospace;
+    text-align:center;
+    background:linear-gradient(135deg,rgba(255,61,90,0.08),rgba(255,100,0,0.05));
+    border:1px solid rgba(255,61,90,0.3);
+    border-radius:14px;
+    padding:10px 16px;
+    min-width:170px;
+    position:relative;
+    overflow:hidden;
   ">
-    <div id="blink-dot" style="
-      width:28px;
-      height:28px;
-      border-radius:50%;
-      background:#00ff88;
-      box-shadow:0 0 12px #00ff88;
-      transition:all 0.3s;
-    "></div>
-    <div id="blink-label" style="
-      font-family:Consolas,monospace;
-      font-size:10px;
-      font-weight:700;
-      color:#00ff88;
-      letter-spacing:1px;
-      text-transform:uppercase;
-    ">NO DEFECT</div>
-    <div id="blink-count" style="
-      font-family:Consolas,monospace;
-      font-size:9px;
-      color:#4a6fa5;
-    ">Last 1 hr: 0</div>
+    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#ff3d5a,transparent);"></div>
+    
+    <!-- Normal state -->
+    <div id="occ-normal-state">
+      <div style="font-size:11px;color:#ff3d5a;font-weight:700;letter-spacing:1px;">🚨 OCC ALERT</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px;">
+        <div id="occ-countdown" style="font-size:30px;font-weight:900;color:#ffffff;">0</div>
+        <div style="font-size:11px;color:#4a6fa5;line-height:1.4;">HIGH<br>logged</div>
+      </div>
+      <div style="font-size:9px;color:#4a6fa5;margin-top:2px;">High Alert After 3</div>
+    </div>
+
+    <!-- Alert sent state -->
+    <div id="occ-sent-state" style="display:none;">
+      <div style="font-size:20px;">✅</div>
+      <div style="font-size:11px;font-weight:900;color:#00ff88;letter-spacing:1px;margin-top:2px;">ALERT SENT</div>
+      <div style="font-size:9px;color:#00ff88;margin-top:3px;">sanketkukade111</div>
+      <div style="font-size:9px;color:#4a6fa5;">@gmail.com</div>
+    </div>
+  </div>
+
+  <!-- Old blink dot (hidden - kept for JS compatibility) -->
+  <div id="blink-indicator" style="display:none;">
+    <div id="blink-dot"></div>
+    <div id="blink-label"></div>
+    <div id="blink-count"></div>
+    <div id="alert-sent-badge"></div>
   </div>
 </header>
 
@@ -450,6 +476,12 @@ body.light-mode .rec-table tr:hover td { background:#ebf8ff !important; }
   <button class="tab" onclick="showTab('alerts',this)">🚨 Alerts <span id="alert-badge" style="background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px">0</span></button>
   <button class="tab" onclick="showTab('records',this)">📁 Records</button>
     <button class="tab" onclick="showTab('webrep',this)">🌐 Web Report</button>
+    <button class="tab" onclick="showTab('handover',this)">🔄 Shift Handover</button>
+    <button class="tab" onclick="showTab('rejection',this)">🗑️ Rejection</button>
+    <button class="tab" onclick="showTab('pm',this)">🔧 Preventive Maint.</button>
+    <button class="tab" onclick="showTab('eightd',this)">📊 8D Report</button>
+    <button class="tab" onclick="showTab('inspector',this)">👤 Inspector Track</button>
+    <button class="tab" onclick="showTab('attendance',this)">📅 Attendance</button>
 </div>
 
 <div class="main">
@@ -460,7 +492,7 @@ body.light-mode .rec-table tr:hover td { background:#ebf8ff !important; }
     <div class="card">
       <div class="ctitle"><span class="dot"></span>Log New Defect</div>
       <div class="g2" style="gap:10px">
-        <div class="fg"><label>Date & Time <span style="color:#ff3d5a">*</span></label><input type="datetime-local" id="f-dt"></div>
+        <div class="fg"><label>Date <span style="color:#ff3d5a">*</span></label><input type="date" id="f-dt"></div>
         <div class="fg"><label>Shift <span style="color:#ff3d5a">*</span></label>
           <select id="f-shift">
             <option>Shift A (6:30–15:00)</option>
@@ -686,6 +718,21 @@ body.light-mode .rec-table tr:hover td { background:#ebf8ff !important; }
 
 <!-- ===== TAB: DASHBOARD ===== -->
 <div class="panel" id="tab-dashboard">
+  <!-- Dashboard Action Buttons -->
+  <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+    <button onclick="exportDashboardPDF()" style="
+      padding:9px 20px;border-radius:10px;border:none;
+      background:linear-gradient(135deg,#ff3d5a,#cc0000);
+      color:#fff;font-weight:900;cursor:pointer;font-size:13px;
+      display:flex;align-items:center;gap:8px;
+    ">📄 Export PDF</button>
+    <button onclick="sendDashboardEmail()" style="
+      padding:9px 20px;border-radius:10px;border:none;
+      background:linear-gradient(135deg,#00e5ff,#0066ff);
+      color:#000;font-weight:900;cursor:pointer;font-size:13px;
+      display:flex;align-items:center;gap:8px;
+    ">📧 Email Report</button>
+  </div>
   <div class="g4" style="margin-bottom:16px">
     <div class="kpi c"><div class="kpi-ico">📦</div><div class="kpi-v" id="kpi-total">0</div><div class="kpi-l">Total Defects</div></div>
     <div class="kpi r"><div class="kpi-ico">⚠️</div><div class="kpi-v" id="kpi-occ">0%</div><div class="kpi-l">OCC Rate</div></div>
@@ -701,6 +748,17 @@ body.light-mode .rec-table tr:hover td { background:#ebf8ff !important; }
     <div class="card"><div class="ctitle"><span class="dot"></span>Machine-wise Defects</div><div class="ch"><canvas id="ch-mach"></canvas></div></div>
   </div>
   <div class="card"><div class="ctitle"><span class="dot"></span>Shift Comparison</div><div class="ch" style="height:160px"><canvas id="ch-shift"></canvas></div></div>
+</div>
+
+<!-- MONTHLY OCC TREND CARD -->
+<div class="card" style="margin:0 0 16px;">
+  <div class="ctitle">📅 Monthly OCC Trend — Improvement Analysis</div>
+  
+  <!-- Month wise bars -->
+  <div id="monthly-trend-content" style="margin-top:12px;"></div>
+  
+  <!-- Summary -->
+  <div id="monthly-trend-summary" style="margin-top:16px;"></div>
 </div>
 
 <!-- BEFORE VS AFTER CARD -->
@@ -852,6 +910,7 @@ body.light-mode .rec-table tr:hover td { background:#ebf8ff !important; }
   <div class="card">
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
       <button class="btn btn-g btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+      <button class="btn btn-sm" onclick="resetToSample()" style="background:rgba(255,170,0,0.15);border:1px solid rgba(255,170,0,0.4);color:#ffaa00;">🔄 Reset Demo Data</button>
       <button class="btn btn-c btn-sm" onclick="exportJSON()">⬇ Export JSON</button>
       <button class="btn btn-r btn-sm" onclick="clearAll()">🗑 Clear All</button>
       <span style="margin-left:auto;font-family:var(--font-m);font-size:12px;color:var(--muted);align-self:center" id="rec-count">0 records</span>
@@ -917,51 +976,444 @@ body.light-mode .rec-table tr:hover td { background:#ebf8ff !important; }
 </div>
 </div>
 
+
+<!-- ===== TAB: SHIFT HANDOVER ===== -->
+<div class="panel" id="tab-handover">
+<div class="card">
+
+  <!-- Header -->
+  <div style="background:linear-gradient(135deg,#0a2a5e,#1a4a8e);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="font-size:36px;">🔄</div>
+      <div>
+        <div style="font-size:18px;font-weight:900;color:#fff;letter-spacing:1px;">SHIFT HANDOVER REPORT</div>
+        <div style="font-size:12px;color:#90caf9;margin-top:2px;">HemmTrack Pro · Rear Door Hemming</div>
+      </div>
+    </div>
+    <div style="text-align:right;">
+      <div id="ho-date" style="font-size:13px;color:#00e5ff;font-weight:700;"></div>
+      <div id="ho-shift" style="font-size:11px;color:#90caf9;margin-top:2px;"></div>
+    </div>
+  </div>
+
+  <!-- Shift Selector -->
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:center;">
+    <select id="ho-shift-select" style="padding:8px 14px;border-radius:8px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.3);color:#d4e8ff;font-size:13px;font-weight:700;">
+      <option value="A">Shift A (6:30–15:00)</option>
+      <option value="B">Shift B (15:00–23:30)</option>
+      <option value="C">Shift C (23:30–6:30)</option>
+    </select>
+    <button onclick="generateHandoverReport()" style="padding:8px 20px;border-radius:8px;border:none;background:linear-gradient(135deg,#00e5ff,#0066ff);color:#000;font-weight:900;cursor:pointer;font-size:13px;">⚡ Generate Report</button>
+    <button onclick="sendHandoverAlert()" style="padding:8px 20px;border-radius:8px;border:none;background:linear-gradient(135deg,#00ff88,#00aa55);color:#000;font-weight:900;cursor:pointer;font-size:13px;">📧 Send Report</button>
+  </div>
+
+  <!-- Report Content -->
+  <div id="ho-content" style="min-height:400px;">
+    <div style="text-align:center;color:#4a6fa5;padding:40px;">
+      <div style="font-size:48px;">🔄</div>
+      <div style="font-size:14px;margin-top:10px;">Shift select करा → Generate Report दाबा</div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+
+<!-- ===== TAB: REJECTION PARTS ===== -->
+<div class="panel" id="tab-rejection">
+<div class="card">
+  <div style="background:linear-gradient(135deg,#2a0a0a,#4a1010);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="font-size:36px;">🗑️</div>
+      <div>
+        <div style="font-size:18px;font-weight:900;color:#fff;">REJECTION PARTS TRACKER</div>
+        <div style="font-size:12px;color:#ff9090;margin-top:2px;">PPM + Rejection % Analysis</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input Section -->
+  <div style="background:rgba(255,61,90,0.05);border:1px solid rgba(255,61,90,0.2);border-radius:12px;padding:16px;margin-bottom:20px;">
+    <div style="font-size:13px;font-weight:800;color:#ff3d5a;margin-bottom:12px;">📝 Manual Entry</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div>
+        <label style="font-size:11px;color:#4a6fa5;display:block;margin-bottom:4px;">Total Production</label>
+        <input type="number" id="rej-prod" placeholder="e.g. 250" style="width:100%;padding:8px;border-radius:6px;background:rgba(255,255,255,0.06);border:1px solid #1e3050;color:#d4e8ff;font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:11px;color:#4a6fa5;display:block;margin-bottom:4px;">Rejected Parts</label>
+        <input type="number" id="rej-count" placeholder="e.g. 5" style="width:100%;padding:8px;border-radius:6px;background:rgba(255,255,255,0.06);border:1px solid #1e3050;color:#d4e8ff;font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:11px;color:#4a6fa5;display:block;margin-bottom:4px;">Shift</label>
+        <select id="rej-shift" style="width:100%;padding:8px;border-radius:6px;background:rgba(255,255,255,0.06);border:1px solid #1e3050;color:#d4e8ff;font-size:13px;">
+          <option>Shift A</option>
+          <option>Shift B</option>
+          <option>Shift C</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px;color:#4a6fa5;display:block;margin-bottom:4px;">Date</label>
+        <input type="date" id="rej-date" style="width:100%;padding:8px;border-radius:6px;background:rgba(255,255,255,0.06);border:1px solid #1e3050;color:#d4e8ff;font-size:13px;">
+      </div>
+    </div>
+    <button onclick="addRejection()" style="width:100%;padding:10px;border-radius:8px;border:none;background:linear-gradient(135deg,#ff3d5a,#cc0000);color:#fff;font-weight:900;cursor:pointer;font-size:14px;">⚡ ADD REJECTION ENTRY</button>
+  </div>
+
+  <!-- Results -->
+  <div id="rej-results"></div>
+
+</div>
+</div>
+
+<!-- ===== TAB: PREVENTIVE MAINTENANCE ===== -->
+<div class="panel" id="tab-pm">
+<div class="card">
+  <div style="background:linear-gradient(135deg,#0a2a0a,#1a4a1a);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="font-size:36px;">🔧</div>
+      <div>
+        <div style="font-size:18px;font-weight:900;color:#fff;">PREVENTIVE MAINTENANCE</div>
+        <div style="font-size:12px;color:#90ff90;margin-top:2px;">Tool Life + Schedule Tracker</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Tool -->
+  <div style="background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.2);border-radius:12px;padding:16px;margin-bottom:20px;">
+    <div style="font-size:13px;font-weight:800;color:#00ff88;margin-bottom:12px;">🔧 Add/Update Tool</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div>
+        <label style="font-size:11px;color:#4a6fa5;display:block;margin-bottom:4px;">Station No</label>
+        <select id="pm-station" style="width:100%;padding:8px;border-radius:6px;background:rgba(255,255,255,0.06);border:1px solid #1e3050;color:#d4e8ff;font-size:13px;">
+          <option>ST-100</option>
+          <option>ST-120</option>
+          <option>ST-150</option>
+          <option>ST-200</option>
+          <option>ST-220</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px;color:#4a6fa5;display:block;margin-bottom:4px;">Tool Name</label>
+        <input type="text" id="pm-tool" placeholder="e.g. Hemming Roller" style="width:100%;padding:8px;border-radius:6px;background:rgba(255,255,255,0.06);border:1px solid #1e3050;color:#d4e8ff;font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:11px;color:#4a6fa5;display:block;margin-bottom:4px;">Tool Life (Parts)</label>
+        <input type="number" id="pm-life" placeholder="e.g. 10000" style="width:100%;padding:8px;border-radius:6px;background:rgba(255,255,255,0.06);border:1px solid #1e3050;color:#d4e8ff;font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:11px;color:#4a6fa5;display:block;margin-bottom:4px;">Current Parts Done</label>
+        <input type="number" id="pm-current" placeholder="e.g. 7500" style="width:100%;padding:8px;border-radius:6px;background:rgba(255,255,255,0.06);border:1px solid #1e3050;color:#d4e8ff;font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:11px;color:#4a6fa5;display:block;margin-bottom:4px;">Last Maintenance Date</label>
+        <input type="date" id="pm-last-date" style="width:100%;padding:8px;border-radius:6px;background:rgba(255,255,255,0.06);border:1px solid #1e3050;color:#d4e8ff;font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:11px;color:#4a6fa5;display:block;margin-bottom:4px;">Next Maintenance (Days)</label>
+        <input type="number" id="pm-interval" placeholder="e.g. 30" style="width:100%;padding:8px;border-radius:6px;background:rgba(255,255,255,0.06);border:1px solid #1e3050;color:#d4e8ff;font-size:13px;">
+      </div>
+    </div>
+    <button onclick="addPMTool()" style="width:100%;padding:10px;border-radius:8px;border:none;background:linear-gradient(135deg,#00ff88,#00aa55);color:#000;font-weight:900;cursor:pointer;font-size:14px;">⚡ SAVE TOOL</button>
+  </div>
+
+  <!-- Tool Status Dashboard -->
+  <div id="pm-dashboard"></div>
+
+</div>
+</div>
+
+
+<!-- ===== TAB: 8D REPORT ===== -->
+<div class="panel" id="tab-eightd">
+<div class="card">
+
+  <!-- Header -->
+  <div style="background:linear-gradient(135deg,#1a0a3a,#3a1a6a);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="font-size:36px;">📊</div>
+      <div>
+        <div style="font-size:18px;font-weight:900;color:#fff;">8D PROBLEM SOLVING REPORT</div>
+        <div style="font-size:12px;color:#c090ff;margin-top:2px;">8 Disciplines — Systematic Problem Solving</div>
+      </div>
+    </div>
+    <div>
+      <button onclick="print8DReport()" style="padding:8px 16px;border-radius:8px;border:none;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;font-weight:700;cursor:pointer;font-size:12px;">🖨️ Print Report</button>
+    </div>
+  </div>
+
+  <!-- Select Defect -->
+  <div style="background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.3);border-radius:12px;padding:16px;margin-bottom:20px;">
+    <div style="font-size:13px;font-weight:800;color:#a855f7;margin-bottom:12px;">🔍 Defect Select करा</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <label style="font-size:11px;color:#4a6fa5;display:block;margin-bottom:4px;">Problem Statement</label>
+        <input type="text" id="8d-problem" placeholder="e.g. Open Hem on LH Rear Door" style="width:100%;padding:8px;border-radius:6px;background:rgba(255,255,255,0.06);border:1px solid #1e3050;color:#d4e8ff;font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:11px;color:#4a6fa5;display:block;margin-bottom:4px;">Station No</label>
+        <select id="8d-station" style="width:100%;padding:8px;border-radius:6px;background:rgba(255,255,255,0.06);border:1px solid #1e3050;color:#d4e8ff;font-size:13px;">
+          <option>ST-100</option><option>ST-120</option><option>ST-150</option><option>ST-200</option><option>ST-220</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px;color:#4a6fa5;display:block;margin-bottom:4px;">Team Lead</label>
+        <input type="text" id="8d-lead" placeholder="e.g. Sanket Kukade" style="width:100%;padding:8px;border-radius:6px;background:rgba(255,255,255,0.06);border:1px solid #1e3050;color:#d4e8ff;font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:11px;color:#4a6fa5;display:block;margin-bottom:4px;">Date</label>
+        <input type="date" id="8d-date" style="width:100%;padding:8px;border-radius:6px;background:rgba(255,255,255,0.06);border:1px solid #1e3050;color:#d4e8ff;font-size:13px;">
+      </div>
+    </div>
+    <button onclick="generate8DReport()" style="width:100%;padding:10px;border-radius:8px;border:none;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;font-weight:900;cursor:pointer;font-size:14px;margin-top:12px;">⚡ GENERATE 8D REPORT</button>
+  </div>
+
+  <!-- 8D Report Output -->
+  <div id="8d-output"></div>
+
+</div>
+</div>
+
+
+<!-- ===== TAB: INSPECTOR TRACKING ===== -->
+<div class="panel" id="tab-inspector">
+<div class="card">
+  <div style="background:linear-gradient(135deg,#0a1a3a,#1a2a5a);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="font-size:36px;">👤</div>
+      <div>
+        <div style="font-size:18px;font-weight:900;color:#fff;">INSPECTOR WISE TRACKING</div>
+        <div style="font-size:12px;color:#90caf9;margin-top:2px;">Shift Wise Performance Analysis</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="sendInspectorAlert()" style="padding:8px 16px;border-radius:8px;border:none;background:linear-gradient(135deg,#00e5ff,#0066ff);color:#000;font-weight:700;cursor:pointer;font-size:12px;">📱 Send Alert</button>
+      <button onclick="exportInspectorCSV()" style="padding:8px 16px;border-radius:8px;border:none;background:linear-gradient(135deg,#ffaa00,#ff6600);color:#000;font-weight:700;cursor:pointer;font-size:12px;">📊 Export Excel</button>
+    </div>
+  </div>
+
+  <!-- Shift Filter -->
+  <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+    <button onclick="showInspectorData('all')" id="ins-btn-all" style="padding:7px 16px;border-radius:8px;border:2px solid #00e5ff;background:rgba(0,229,255,0.15);color:#00e5ff;font-weight:700;cursor:pointer;font-size:12px;">All Shifts</button>
+    <button onclick="showInspectorData('A')" id="ins-btn-A" style="padding:7px 16px;border-radius:8px;border:1px solid #4a6fa5;background:transparent;color:#90caf9;font-weight:700;cursor:pointer;font-size:12px;">Shift A</button>
+    <button onclick="showInspectorData('B')" id="ins-btn-B" style="padding:7px 16px;border-radius:8px;border:1px solid #4a6fa5;background:transparent;color:#90caf9;font-weight:700;cursor:pointer;font-size:12px;">Shift B</button>
+    <button onclick="showInspectorData('C')" id="ins-btn-C" style="padding:7px 16px;border-radius:8px;border:1px solid #4a6fa5;background:transparent;color:#90caf9;font-weight:700;cursor:pointer;font-size:12px;">Shift C</button>
+  </div>
+
+  <div id="inspector-content"></div>
+</div>
+</div>
+
+<!-- ===== TAB: ATTENDANCE ===== -->
+<div class="panel" id="tab-attendance">
+<div class="card">
+  <div style="background:linear-gradient(135deg,#0a2a1a,#1a4a2a);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="font-size:36px;">📅</div>
+      <div>
+        <div style="font-size:18px;font-weight:900;color:#fff;">DAILY ATTENDANCE TRACKER</div>
+        <div style="font-size:12px;color:#90ff90;margin-top:2px;">30 Inspectors · Weekly Sheet</div>
+      </div>
+    </div>
+    <button onclick="sendAttendanceEmail()" style="padding:8px 16px;border-radius:8px;border:none;background:linear-gradient(135deg,#00ff88,#00aa55);color:#000;font-weight:700;cursor:pointer;font-size:12px;">📧 Send Sheet</button>
+  </div>
+
+  <!-- Date Range selector -->
+  <div style="background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.2);border-radius:12px;padding:14px;margin-bottom:16px;">
+    <div style="font-size:12px;font-weight:800;color:#00ff88;margin-bottom:10px;letter-spacing:1px;">📅 DATE RANGE SELECT करा</div>
+    <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <label style="font-size:10px;color:#4a6fa5;letter-spacing:1px;">FROM DATE</label>
+        <input type="date" id="att-from" style="
+          padding:9px 14px;border-radius:8px;
+          background:rgba(0,255,136,0.06);
+          border:1px solid rgba(0,255,136,0.3);
+          color:#d4e8ff;font-size:14px;cursor:pointer;
+        ">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <label style="font-size:10px;color:#4a6fa5;letter-spacing:1px;">TO DATE</label>
+        <input type="date" id="att-to" style="
+          padding:9px 14px;border-radius:8px;
+          background:rgba(0,255,136,0.06);
+          border:1px solid rgba(0,255,136,0.3);
+          color:#d4e8ff;font-size:14px;cursor:pointer;
+        ">
+      </div>
+      <button onclick="loadAttendanceRange()" style="padding:9px 18px;border-radius:8px;border:none;background:linear-gradient(135deg,#00ff88,#00aa55);color:#000;font-weight:900;cursor:pointer;font-size:13px;">📅 Load</button>
+      <button onclick="saveAttendance()" style="padding:9px 16px;border-radius:8px;border:none;background:linear-gradient(135deg,#00e5ff,#0066ff);color:#000;font-weight:700;cursor:pointer;font-size:12px;">💾 Save</button>
+      <button onclick="exportAttendanceCSV()" style="padding:9px 16px;border-radius:8px;border:none;background:linear-gradient(135deg,#ffaa00,#ff6600);color:#000;font-weight:700;cursor:pointer;font-size:12px;">📊 Export Excel</button>
+    </div>
+    <!-- Absent counter -->
+    <div id="att-summary" style="margin-top:10px;font-size:12px;color:#4a6fa5;"></div>
+  </div>
+  <!-- Hidden old input for compatibility -->
+  <input type="hidden" id="att-week-start">
+
+  <div id="attendance-content" style="overflow-x:auto;"></div>
+</div>
+</div>
+
+
 </div><!-- end main -->
 
 <div class="toast" id="toast"></div>
+
+<!-- HIGH DEFECT ALERT POPUP -->
+<div id="alert-popup" style="
+  display:none;
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,0.75);
+  z-index:9999;
+  align-items:center;
+  justify-content:center;
+">
+  <div style="
+    background:linear-gradient(135deg,#0f1928,#1a0a0a);
+    border:2px solid rgba(255,61,90,0.6);
+    border-radius:20px;
+    padding:28px;
+    max-width:360px;
+    width:90%;
+    text-align:center;
+    box-shadow:0 0 40px rgba(255,61,90,0.3);
+    position:relative;
+  ">
+    <!-- Blinking top border -->
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#ff3d5a,transparent);border-radius:20px 20px 0 0;"></div>
+    
+    <div style="font-size:48px;margin-bottom:8px;">🚨</div>
+    <div style="font-size:18px;font-weight:900;color:#ff3d5a;letter-spacing:2px;margin-bottom:4px;">HIGH DEFECT ALERT!</div>
+    <div style="font-size:12px;color:#4a6fa5;margin-bottom:16px;letter-spacing:1px;">IMMEDIATE ACTION REQUIRED</div>
+    
+    <div id="alert-popup-details" style="
+      background:rgba(255,61,90,0.08);
+      border:1px solid rgba(255,61,90,0.2);
+      border-radius:10px;
+      padding:12px;
+      margin-bottom:20px;
+      text-align:left;
+      font-size:12px;
+      color:#d4e8ff;
+      line-height:1.8;
+    "></div>
+    
+    <div style="display:flex;flex-direction:column;gap:10px;">
+
+      
+      <!-- Close Button -->
+      <button onclick="closeAlertPopup()" style="
+        background:rgba(255,255,255,0.06);
+        border:1px solid rgba(255,255,255,0.1);
+        color:#4a6fa5;
+        padding:10px;
+        border-radius:10px;
+        cursor:pointer;
+        font-size:13px;
+      ">✕ Close</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ============ DATA ============
 // ============ SAMPLE DEMO DATA ============
 const sampleDefects = [
-  // ========= FEBRUARY 2026 =========
-  {id:1700000101,datetime:'2026-02-01T08:10',shift:'Shift A (6:30–15:00)',op:'TKT-1002',mach:'ST-120',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Pressure Deviation',press:162,prod:238,rem:'Feb start — pressure issue detected',imgs:[]},
-  {id:1700000102,datetime:'2026-02-02T16:30',shift:'Shift B (15:00–23:30)',op:'TKT-1004',mach:'ST-100',door:'RH Rear',dtype:'Hem Crack',sev:'MED',rc:'Material Defect',press:179,prod:232,rem:'Material batch change — crack observed',imgs:[]},
-  {id:1700000103,datetime:'2026-02-04T09:15',shift:'Shift A (6:30–15:00)',op:'TKT-1001',mach:'ST-150',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Tool Wear',press:161,prod:245,rem:'Tool age 48000 cycles — nearing limit',imgs:[]},
-  {id:1700000104,datetime:'2026-02-05T22:40',shift:'Shift C (23:30–6:30)',op:'TKT-1005',mach:'ST-120',door:'RH Rear',dtype:'Wrinkle / Pucker',sev:'LOW',rc:'Operator Error',press:181,prod:220,rem:'Night shift operator — minor wrinkle',imgs:[]},
-  {id:1700000105,datetime:'2026-02-07T10:00',shift:'Shift A (6:30–15:00)',op:'TKT-1003',mach:'ST-100',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Pressure Deviation',press:158,prod:250,rem:'Pressure sensor fault — replaced',imgs:[]},
-  {id:1700000106,datetime:'2026-02-08T14:20',shift:'Shift A (6:30–15:00)',op:'TKT-1001',mach:'ST-150',door:'RH Rear',dtype:'Roll-in Defect',sev:'MED',rc:'Die Misalignment',press:177,prod:242,rem:'Die realigned after inspection',imgs:[]},
-  {id:1700000107,datetime:'2026-02-10T08:50',shift:'Shift A (6:30–15:00)',op:'TKT-1002',mach:'ST-120',door:'LH Rear',dtype:'Open Hem',sev:'MED',rc:'Tool Wear',press:170,prod:248,rem:'Tool replaced — issue resolved',imgs:[]},
-  {id:1700000108,datetime:'2026-02-12T17:10',shift:'Shift B (15:00–23:30)',op:'TKT-1004',mach:'ST-100',door:'RH Rear',dtype:'Panel Mismatch',sev:'LOW',rc:'Material Defect',press:182,prod:235,rem:'Supplier informed about panel quality',imgs:[]},
-  {id:1700000109,datetime:'2026-02-14T09:30',shift:'Shift A (6:30–15:00)',op:'TKT-1003',mach:'ST-150',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Pressure Deviation',press:156,prod:252,rem:'Valentine day shift — pressure critical',imgs:[]},
-  {id:1700000110,datetime:'2026-02-15T23:50',shift:'Shift C (23:30–6:30)',op:'TKT-1005',mach:'ST-120',door:'RH Rear',dtype:'Hem Crack',sev:'MED',rc:'Material Defect',press:178,prod:228,rem:'Cold temperature effect on material',imgs:[]},
-  {id:1700000111,datetime:'2026-02-17T11:00',shift:'Shift A (6:30–15:00)',op:'TKT-1001',mach:'ST-100',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Tool Wear',press:163,prod:255,rem:'Tool replaced — production resumed',imgs:[]},
-  {id:1700000112,datetime:'2026-02-19T15:30',shift:'Shift B (15:00–23:30)',op:'TKT-1002',mach:'ST-150',door:'RH Rear',dtype:'Wrinkle / Pucker',sev:'LOW',rc:'Operator Error',press:180,prod:240,rem:'SOP refresher training given',imgs:[]},
-  {id:1700000113,datetime:'2026-02-21T08:20',shift:'Shift A (6:30–15:00)',op:'TKT-1003',mach:'ST-120',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Pressure Deviation',press:160,prod:246,rem:'Pressure regulator cleaned',imgs:[]},
-  {id:1700000114,datetime:'2026-02-24T10:45',shift:'Shift A (6:30–15:00)',op:'TKT-1004',mach:'ST-100',door:'RH Rear',dtype:'Roll-in Defect',sev:'MED',rc:'Die Misalignment',press:176,prod:238,rem:'Die wear observed — replaced',imgs:[]},
-  {id:1700000115,datetime:'2026-02-26T16:00',shift:'Shift B (15:00–23:30)',op:'TKT-1001',mach:'ST-150',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Pressure Deviation',press:157,prod:232,rem:'Month end — pressure check done',imgs:[]},
-  {id:1700000116,datetime:'2026-02-28T09:10',shift:'Shift A (6:30–15:00)',op:'TKT-1002',mach:'ST-120',door:'RH Rear',dtype:'Hem Crack',sev:'MED',rc:'Tool Wear',press:173,prod:250,rem:'Last day Feb — tool inspection done',imgs:[]},
-  // ========= MARCH 2026 =========
-  {id:1700000001,datetime:'2026-03-01T07:15',shift:'Shift A (6:30–15:00)',op:'TKT-1001',mach:'ST-100',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Pressure Deviation',press:165,prod:240,rem:'Pressure low — tool wear suspected',imgs:[]},
-  {id:1700000002,datetime:'2026-03-01T09:30',shift:'Shift A (6:30–15:00)',op:'TKT-1002',mach:'ST-120',door:'RH Rear',dtype:'Hem Crack',sev:'MED',rc:'Material Defect',press:182,prod:240,rem:'Material thickness variation observed',imgs:[]},
-  {id:1700000003,datetime:'2026-03-01T14:45',shift:'Shift A (6:30–15:00)',op:'TKT-1001',mach:'ST-100',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Tool Wear',press:160,prod:240,rem:'Tool age exceeded — replacement needed',imgs:[]},
-  {id:1700000004,datetime:'2026-03-02T08:00',shift:'Shift A (6:30–15:00)',op:'TKT-1003',mach:'ST-150',door:'RH Rear',dtype:'Wrinkle / Pucker',sev:'LOW',rc:'Operator Error',press:180,prod:255,rem:'Operator new — training required',imgs:[]},
-  {id:1700000005,datetime:'2026-03-02T16:20',shift:'Shift B (15:00–23:30)',op:'TKT-1004',mach:'ST-120',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Pressure Deviation',press:158,prod:230,rem:'Pressure drop — machine maintenance done',imgs:[]},
-  {id:1700000006,datetime:'2026-03-03T07:50',shift:'Shift A (6:30–15:00)',op:'TKT-1001',mach:'ST-100',door:'RH Rear',dtype:'Roll-in Defect',sev:'MED',rc:'Die Misalignment',press:178,prod:248,rem:'Die alignment corrected after detection',imgs:[]},
-  {id:1700000007,datetime:'2026-03-03T22:10',shift:'Shift C (23:30–6:30)',op:'TKT-1005',mach:'ST-150',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Pressure Deviation',press:163,prod:220,rem:'Night shift — pressure unstable',imgs:[]},
-  {id:1700000008,datetime:'2026-03-04T10:30',shift:'Shift A (6:30–15:00)',op:'TKT-1002',mach:'ST-120',door:'RH Rear',dtype:'Panel Mismatch',sev:'LOW',rc:'Material Defect',press:181,prod:260,rem:'Incoming material issue reported to supplier',imgs:[]},
-  {id:1700000009,datetime:'2026-03-05T08:15',shift:'Shift A (6:30–15:00)',op:'TKT-1003',mach:'ST-100',door:'LH Rear',dtype:'Open Hem',sev:'MED',rc:'Tool Wear',press:172,prod:245,rem:'Tool replaced — monitoring in progress',imgs:[]},
-  {id:1700000010,datetime:'2026-03-05T17:40',shift:'Shift B (15:00–23:30)',op:'TKT-1004',mach:'ST-150',door:'RH Rear',dtype:'Hem Crack',sev:'HIGH',rc:'Pressure Deviation',press:155,prod:235,rem:'Critical — production stopped for inspection',imgs:[]},
-  {id:1700000011,datetime:'2026-03-06T09:00',shift:'Shift A (6:30–15:00)',op:'TKT-1001',mach:'ST-120',door:'LH Rear',dtype:'Open Hem',sev:'MED',rc:'Operator Error',press:176,prod:250,rem:'SOP deviation observed',imgs:[]},
-  {id:1700000012,datetime:'2026-03-07T11:20',shift:'Shift A (6:30–15:00)',op:'TKT-1002',mach:'ST-100',door:'RH Rear',dtype:'Wrinkle / Pucker',sev:'LOW',rc:'Material Defect',press:183,prod:258,rem:'Minor wrinkle — within acceptable limit',imgs:[]},
-  {id:1700000013,datetime:'2026-03-08T07:30',shift:'Shift A (6:30–15:00)',op:'TKT-1003',mach:'ST-150',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Pressure Deviation',press:161,prod:242,rem:'Pressure sensor recalibrated',imgs:[]},
-  {id:1700000014,datetime:'2026-03-09T15:50',shift:'Shift B (15:00–23:30)',op:'TKT-1005',mach:'ST-120',door:'RH Rear',dtype:'Roll-in Defect',sev:'MED',rc:'Die Misalignment',press:179,prod:238,rem:'Die checked and re-aligned',imgs:[]},
-  {id:1700000015,datetime:'2026-03-10T08:45',shift:'Shift A (6:30–15:00)',op:'TKT-1001',mach:'ST-100',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Tool Wear',press:159,prod:244,rem:'Tool life completed — urgent replacement',imgs:[]}
+  {id:1000,datetime:'2026-01-02T08:30:00',shift:'Shift A (6:30–15:00)',op:'1001',mach:'ST-120',door:'RH Rear',dtype:'Open Hem',sev:'MED',rc:'Material Defect',press:163,prod:226,rem:'',imgs:[]},
+  {id:1001,datetime:'2026-01-04T08:30:00',shift:'Shift A (6:30–15:00)',op:'1002',mach:'ST-220',door:'RH Front',dtype:'Panel Mismatch',sev:'MED',rc:'Pressure Deviation',press:157,prod:221,rem:'',imgs:[]},
+  {id:1002,datetime:'2026-01-06T08:30:00',shift:'Shift A (6:30–15:00)',op:'1003',mach:'ST-220',door:'LH Rear',dtype:'Hem Crack',sev:'HIGH',rc:'Operator Error',press:190,prod:232,rem:'',imgs:[]},
+  {id:1003,datetime:'2026-01-08T08:30:00',shift:'Shift A (6:30–15:00)',op:'1004',mach:'ST-120',door:'RH Front',dtype:'Panel Mismatch',sev:'MED',rc:'Die Misalignment',press:192,prod:237,rem:'',imgs:[]},
+  {id:1004,datetime:'2026-01-10T08:30:00',shift:'Shift A (6:30–15:00)',op:'1005',mach:'ST-200',door:'LH Front',dtype:'Open Hem',sev:'LOW',rc:'Tool Wear',press:172,prod:229,rem:'',imgs:[]},
+  {id:1005,datetime:'2026-01-12T08:30:00',shift:'Shift A (6:30–15:00)',op:'1006',mach:'ST-100',door:'RH Front',dtype:'Wrinkle/Pucker',sev:'HIGH',rc:'Pressure Deviation',press:161,prod:242,rem:'',imgs:[]},
+  {id:1006,datetime:'2026-01-14T08:30:00',shift:'Shift A (6:30–15:00)',op:'1007',mach:'ST-100',door:'RH Front',dtype:'Panel Mismatch',sev:'LOW',rc:'Material Defect',press:189,prod:227,rem:'',imgs:[]},
+  {id:1007,datetime:'2026-01-16T08:30:00',shift:'Shift A (6:30–15:00)',op:'1008',mach:'ST-220',door:'LH Front',dtype:'Roll-in Defect',sev:'LOW',rc:'Pressure Deviation',press:195,prod:259,rem:'',imgs:[]},
+  {id:1008,datetime:'2026-01-18T08:30:00',shift:'Shift A (6:30–15:00)',op:'1009',mach:'ST-120',door:'LH Rear',dtype:'Wrinkle/Pucker',sev:'LOW',rc:'Operator Error',press:157,prod:234,rem:'',imgs:[]},
+  {id:1009,datetime:'2026-01-20T08:30:00',shift:'Shift A (6:30–15:00)',op:'1010',mach:'ST-100',door:'RH Front',dtype:'Open Hem',sev:'MED',rc:'Tool Wear',press:172,prod:249,rem:'',imgs:[]},
+  {id:1010,datetime:'2026-02-02T08:30:00',shift:'Shift A (6:30–15:00)',op:'1001',mach:'ST-150',door:'LH Front',dtype:'Wrinkle/Pucker',sev:'MED',rc:'Tool Wear',press:168,prod:237,rem:'',imgs:[]},
+  {id:1011,datetime:'2026-02-04T08:30:00',shift:'Shift A (6:30–15:00)',op:'1002',mach:'ST-120',door:'Tailgate',dtype:'Open Hem',sev:'LOW',rc:'Operator Error',press:170,prod:230,rem:'',imgs:[]},
+  {id:1012,datetime:'2026-02-06T08:30:00',shift:'Shift A (6:30–15:00)',op:'1003',mach:'ST-120',door:'LH Front',dtype:'Wrinkle/Pucker',sev:'MED',rc:'Operator Error',press:158,prod:234,rem:'',imgs:[]},
+  {id:1013,datetime:'2026-02-08T08:30:00',shift:'Shift A (6:30–15:00)',op:'1004',mach:'ST-150',door:'LH Rear',dtype:'Wrinkle/Pucker',sev:'LOW',rc:'Die Misalignment',press:168,prod:256,rem:'',imgs:[]},
+  {id:1014,datetime:'2026-02-10T08:30:00',shift:'Shift A (6:30–15:00)',op:'1005',mach:'ST-200',door:'RH Front',dtype:'Wrinkle/Pucker',sev:'LOW',rc:'Tool Wear',press:184,prod:229,rem:'',imgs:[]},
+  {id:1015,datetime:'2026-02-12T08:30:00',shift:'Shift A (6:30–15:00)',op:'1006',mach:'ST-220',door:'LH Front',dtype:'Hem Crack',sev:'HIGH',rc:'Operator Error',press:192,prod:247,rem:'',imgs:[]},
+  {id:1016,datetime:'2026-02-14T08:30:00',shift:'Shift A (6:30–15:00)',op:'1007',mach:'ST-120',door:'RH Rear',dtype:'Roll-in Defect',sev:'LOW',rc:'Material Defect',press:187,prod:251,rem:'',imgs:[]},
+  {id:1017,datetime:'2026-02-16T08:30:00',shift:'Shift A (6:30–15:00)',op:'1008',mach:'ST-120',door:'RH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Pressure Deviation',press:182,prod:258,rem:'',imgs:[]},
+  {id:1018,datetime:'2026-02-18T08:30:00',shift:'Shift A (6:30–15:00)',op:'1009',mach:'ST-200',door:'Tailgate',dtype:'Roll-in Defect',sev:'HIGH',rc:'Operator Error',press:171,prod:255,rem:'',imgs:[]},
+  {id:1019,datetime:'2026-02-20T08:30:00',shift:'Shift A (6:30–15:00)',op:'1010',mach:'ST-220',door:'LH Front',dtype:'Open Hem',sev:'LOW',rc:'Pressure Deviation',press:176,prod:227,rem:'',imgs:[]},
+  {id:1020,datetime:'2026-03-01T08:30:00',shift:'Shift A (6:30–15:00)',op:'1001',mach:'ST-100',door:'LH Front',dtype:'Hem Crack',sev:'MED',rc:'Die Misalignment',press:187,prod:231,rem:'',imgs:[]},
+  {id:1021,datetime:'2026-03-02T08:30:00',shift:'Shift A (6:30–15:00)',op:'1002',mach:'ST-220',door:'Tailgate',dtype:'Open Hem',sev:'LOW',rc:'Material Defect',press:167,prod:229,rem:'',imgs:[]},
+  {id:1022,datetime:'2026-03-03T08:30:00',shift:'Shift A (6:30–15:00)',op:'1003',mach:'ST-220',door:'LH Rear',dtype:'Hem Crack',sev:'MED',rc:'Operator Error',press:193,prod:240,rem:'',imgs:[]},
+  {id:1023,datetime:'2026-03-04T08:30:00',shift:'Shift A (6:30–15:00)',op:'1004',mach:'ST-150',door:'RH Rear',dtype:'Open Hem',sev:'MED',rc:'Material Defect',press:158,prod:235,rem:'',imgs:[]},
+  {id:1024,datetime:'2026-03-05T08:30:00',shift:'Shift A (6:30–15:00)',op:'1005',mach:'ST-200',door:'LH Rear',dtype:'Open Hem',sev:'LOW',rc:'Pressure Deviation',press:189,prod:228,rem:'',imgs:[]},
+  {id:1025,datetime:'2026-03-06T08:30:00',shift:'Shift A (6:30–15:00)',op:'1006',mach:'ST-120',door:'LH Front',dtype:'Roll-in Defect',sev:'HIGH',rc:'Operator Error',press:188,prod:258,rem:'',imgs:[]},
+  {id:1026,datetime:'2026-03-07T08:30:00',shift:'Shift A (6:30–15:00)',op:'1007',mach:'ST-120',door:'LH Front',dtype:'Hem Crack',sev:'MED',rc:'Operator Error',press:180,prod:243,rem:'',imgs:[]},
+  {id:1027,datetime:'2026-03-08T08:30:00',shift:'Shift A (6:30–15:00)',op:'1008',mach:'ST-100',door:'RH Rear',dtype:'Panel Mismatch',sev:'MED',rc:'Die Misalignment',press:169,prod:224,rem:'',imgs:[]},
+  {id:1028,datetime:'2026-01-12T08:30:00',shift:'Shift B (15:00–23:30)',op:'1011',mach:'ST-120',door:'Tailgate',dtype:'Panel Mismatch',sev:'HIGH',rc:'Operator Error',press:169,prod:220,rem:'',imgs:[]},
+  {id:1029,datetime:'2026-01-14T08:30:00',shift:'Shift B (15:00–23:30)',op:'1012',mach:'ST-100',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Tool Wear',press:176,prod:224,rem:'',imgs:[]},
+  {id:1030,datetime:'2026-01-16T08:30:00',shift:'Shift B (15:00–23:30)',op:'1013',mach:'ST-120',door:'Tailgate',dtype:'Wrinkle/Pucker',sev:'MED',rc:'Die Misalignment',press:163,prod:256,rem:'',imgs:[]},
+  {id:1031,datetime:'2026-01-18T08:30:00',shift:'Shift B (15:00–23:30)',op:'1014',mach:'ST-200',door:'RH Rear',dtype:'Hem Crack',sev:'MED',rc:'Die Misalignment',press:161,prod:226,rem:'',imgs:[]},
+  {id:1032,datetime:'2026-01-20T08:30:00',shift:'Shift B (15:00–23:30)',op:'1015',mach:'ST-200',door:'RH Front',dtype:'Wrinkle/Pucker',sev:'MED',rc:'Die Misalignment',press:158,prod:226,rem:'',imgs:[]},
+  {id:1033,datetime:'2026-01-22T08:30:00',shift:'Shift B (15:00–23:30)',op:'1016',mach:'ST-120',door:'RH Rear',dtype:'Wrinkle/Pucker',sev:'HIGH',rc:'Pressure Deviation',press:167,prod:254,rem:'',imgs:[]},
+  {id:1034,datetime:'2026-01-24T08:30:00',shift:'Shift B (15:00–23:30)',op:'1017',mach:'ST-150',door:'RH Front',dtype:'Roll-in Defect',sev:'MED',rc:'Tool Wear',press:170,prod:224,rem:'',imgs:[]},
+  {id:1035,datetime:'2026-01-26T08:30:00',shift:'Shift B (15:00–23:30)',op:'1018',mach:'ST-100',door:'Tailgate',dtype:'Panel Mismatch',sev:'MED',rc:'Pressure Deviation',press:155,prod:225,rem:'',imgs:[]},
+  {id:1036,datetime:'2026-01-28T08:30:00',shift:'Shift B (15:00–23:30)',op:'1019',mach:'ST-200',door:'RH Front',dtype:'Hem Crack',sev:'LOW',rc:'Tool Wear',press:185,prod:233,rem:'',imgs:[]},
+  {id:1037,datetime:'2026-01-30T08:30:00',shift:'Shift B (15:00–23:30)',op:'1020',mach:'ST-200',door:'LH Rear',dtype:'Open Hem',sev:'LOW',rc:'Tool Wear',press:179,prod:236,rem:'',imgs:[]},
+  {id:1038,datetime:'2026-02-10T08:30:00',shift:'Shift B (15:00–23:30)',op:'1011',mach:'ST-200',door:'Tailgate',dtype:'Roll-in Defect',sev:'LOW',rc:'Material Defect',press:186,prod:229,rem:'',imgs:[]},
+  {id:1039,datetime:'2026-02-12T08:30:00',shift:'Shift B (15:00–23:30)',op:'1012',mach:'ST-220',door:'Tailgate',dtype:'Hem Crack',sev:'HIGH',rc:'Pressure Deviation',press:158,prod:240,rem:'',imgs:[]},
+  {id:1040,datetime:'2026-02-14T08:30:00',shift:'Shift B (15:00–23:30)',op:'1013',mach:'ST-220',door:'Tailgate',dtype:'Panel Mismatch',sev:'HIGH',rc:'Die Misalignment',press:165,prod:223,rem:'',imgs:[]},
+  {id:1041,datetime:'2026-02-16T08:30:00',shift:'Shift B (15:00–23:30)',op:'1014',mach:'ST-100',door:'Tailgate',dtype:'Open Hem',sev:'LOW',rc:'Tool Wear',press:159,prod:235,rem:'',imgs:[]},
+  {id:1042,datetime:'2026-02-18T08:30:00',shift:'Shift B (15:00–23:30)',op:'1015',mach:'ST-220',door:'Tailgate',dtype:'Panel Mismatch',sev:'MED',rc:'Tool Wear',press:157,prod:259,rem:'',imgs:[]},
+  {id:1043,datetime:'2026-02-20T08:30:00',shift:'Shift B (15:00–23:30)',op:'1016',mach:'ST-220',door:'LH Front',dtype:'Panel Mismatch',sev:'HIGH',rc:'Operator Error',press:171,prod:233,rem:'',imgs:[]},
+  {id:1044,datetime:'2026-02-22T08:30:00',shift:'Shift B (15:00–23:30)',op:'1017',mach:'ST-150',door:'RH Front',dtype:'Wrinkle/Pucker',sev:'MED',rc:'Tool Wear',press:163,prod:239,rem:'',imgs:[]},
+  {id:1045,datetime:'2026-02-24T08:30:00',shift:'Shift B (15:00–23:30)',op:'1018',mach:'ST-200',door:'Tailgate',dtype:'Open Hem',sev:'MED',rc:'Pressure Deviation',press:191,prod:226,rem:'',imgs:[]},
+  {id:1046,datetime:'2026-02-26T08:30:00',shift:'Shift B (15:00–23:30)',op:'1019',mach:'ST-150',door:'RH Rear',dtype:'Hem Crack',sev:'HIGH',rc:'Operator Error',press:177,prod:224,rem:'',imgs:[]},
+  {id:1047,datetime:'2026-02-28T08:30:00',shift:'Shift B (15:00–23:30)',op:'1020',mach:'ST-120',door:'RH Front',dtype:'Wrinkle/Pucker',sev:'LOW',rc:'Material Defect',press:189,prod:239,rem:'',imgs:[]},
+  {id:1048,datetime:'2026-03-03T08:30:00',shift:'Shift B (15:00–23:30)',op:'1011',mach:'ST-220',door:'LH Front',dtype:'Panel Mismatch',sev:'LOW',rc:'Pressure Deviation',press:161,prod:228,rem:'',imgs:[]},
+  {id:1049,datetime:'2026-03-04T08:30:00',shift:'Shift B (15:00–23:30)',op:'1012',mach:'ST-120',door:'LH Front',dtype:'Open Hem',sev:'MED',rc:'Operator Error',press:173,prod:258,rem:'',imgs:[]},
+  {id:1050,datetime:'2026-03-05T08:30:00',shift:'Shift B (15:00–23:30)',op:'1013',mach:'ST-150',door:'Tailgate',dtype:'Wrinkle/Pucker',sev:'MED',rc:'Tool Wear',press:186,prod:236,rem:'',imgs:[]},
+  {id:1051,datetime:'2026-03-06T08:30:00',shift:'Shift B (15:00–23:30)',op:'1014',mach:'ST-200',door:'LH Front',dtype:'Open Hem',sev:'LOW',rc:'Pressure Deviation',press:157,prod:220,rem:'',imgs:[]},
+  {id:1052,datetime:'2026-03-07T08:30:00',shift:'Shift B (15:00–23:30)',op:'1015',mach:'ST-120',door:'RH Front',dtype:'Hem Crack',sev:'MED',rc:'Material Defect',press:190,prod:247,rem:'',imgs:[]},
+  {id:1053,datetime:'2026-03-08T08:30:00',shift:'Shift B (15:00–23:30)',op:'1016',mach:'ST-120',door:'Tailgate',dtype:'Open Hem',sev:'MED',rc:'Pressure Deviation',press:157,prod:243,rem:'',imgs:[]},
+  {id:1054,datetime:'2026-03-09T08:30:00',shift:'Shift B (15:00–23:30)',op:'1017',mach:'ST-120',door:'LH Rear',dtype:'Hem Crack',sev:'MED',rc:'Die Misalignment',press:174,prod:243,rem:'',imgs:[]},
+  {id:1055,datetime:'2026-03-10T08:30:00',shift:'Shift B (15:00–23:30)',op:'1018',mach:'ST-120',door:'RH Rear',dtype:'Open Hem',sev:'LOW',rc:'Material Defect',press:161,prod:242,rem:'',imgs:[]},
+  {id:1056,datetime:'2026-01-08T08:30:00',shift:'Shift C (23:30–6:30)',op:'1021',mach:'ST-120',door:'RH Rear',dtype:'Roll-in Defect',sev:'MED',rc:'Operator Error',press:165,prod:231,rem:'',imgs:[]},
+  {id:1057,datetime:'2026-01-10T08:30:00',shift:'Shift C (23:30–6:30)',op:'1022',mach:'ST-150',door:'RH Front',dtype:'Open Hem',sev:'LOW',rc:'Tool Wear',press:170,prod:237,rem:'',imgs:[]},
+  {id:1058,datetime:'2026-01-12T08:30:00',shift:'Shift C (23:30–6:30)',op:'1023',mach:'ST-100',door:'RH Front',dtype:'Open Hem',sev:'HIGH',rc:'Die Misalignment',press:169,prod:232,rem:'',imgs:[]},
+  {id:1059,datetime:'2026-01-14T08:30:00',shift:'Shift C (23:30–6:30)',op:'1024',mach:'ST-150',door:'RH Rear',dtype:'Roll-in Defect',sev:'LOW',rc:'Material Defect',press:169,prod:221,rem:'',imgs:[]},
+  {id:1060,datetime:'2026-01-16T08:30:00',shift:'Shift C (23:30–6:30)',op:'1025',mach:'ST-150',door:'LH Rear',dtype:'Roll-in Defect',sev:'MED',rc:'Material Defect',press:172,prod:242,rem:'',imgs:[]},
+  {id:1061,datetime:'2026-01-18T08:30:00',shift:'Shift C (23:30–6:30)',op:'1026',mach:'ST-150',door:'LH Rear',dtype:'Roll-in Defect',sev:'MED',rc:'Operator Error',press:162,prod:236,rem:'',imgs:[]},
+  {id:1062,datetime:'2026-01-20T08:30:00',shift:'Shift C (23:30–6:30)',op:'1027',mach:'ST-100',door:'Tailgate',dtype:'Wrinkle/Pucker',sev:'HIGH',rc:'Pressure Deviation',press:182,prod:242,rem:'',imgs:[]},
+  {id:1063,datetime:'2026-01-22T08:30:00',shift:'Shift C (23:30–6:30)',op:'1028',mach:'ST-220',door:'Tailgate',dtype:'Wrinkle/Pucker',sev:'MED',rc:'Die Misalignment',press:162,prod:244,rem:'',imgs:[]},
+  {id:1064,datetime:'2026-01-24T08:30:00',shift:'Shift C (23:30–6:30)',op:'1029',mach:'ST-100',door:'RH Front',dtype:'Hem Crack',sev:'LOW',rc:'Material Defect',press:155,prod:253,rem:'',imgs:[]},
+  {id:1065,datetime:'2026-01-26T08:30:00',shift:'Shift C (23:30–6:30)',op:'1030',mach:'ST-150',door:'RH Front',dtype:'Panel Mismatch',sev:'LOW',rc:'Tool Wear',press:159,prod:241,rem:'',imgs:[]},
+  {id:1066,datetime:'2026-02-06T08:30:00',shift:'Shift C (23:30–6:30)',op:'1021',mach:'ST-220',door:'LH Front',dtype:'Open Hem',sev:'MED',rc:'Material Defect',press:181,prod:240,rem:'',imgs:[]},
+  {id:1067,datetime:'2026-02-08T08:30:00',shift:'Shift C (23:30–6:30)',op:'1022',mach:'ST-120',door:'RH Rear',dtype:'Wrinkle/Pucker',sev:'MED',rc:'Operator Error',press:181,prod:244,rem:'',imgs:[]},
+  {id:1068,datetime:'2026-02-10T08:30:00',shift:'Shift C (23:30–6:30)',op:'1023',mach:'ST-220',door:'LH Front',dtype:'Hem Crack',sev:'MED',rc:'Operator Error',press:180,prod:255,rem:'',imgs:[]},
+  {id:1069,datetime:'2026-02-12T08:30:00',shift:'Shift C (23:30–6:30)',op:'1024',mach:'ST-120',door:'RH Front',dtype:'Wrinkle/Pucker',sev:'LOW',rc:'Material Defect',press:192,prod:258,rem:'',imgs:[]},
+  {id:1070,datetime:'2026-02-14T08:30:00',shift:'Shift C (23:30–6:30)',op:'1025',mach:'ST-200',door:'RH Rear',dtype:'Roll-in Defect',sev:'MED',rc:'Die Misalignment',press:187,prod:250,rem:'',imgs:[]},
+  {id:1071,datetime:'2026-02-16T08:30:00',shift:'Shift C (23:30–6:30)',op:'1026',mach:'ST-150',door:'Tailgate',dtype:'Hem Crack',sev:'LOW',rc:'Pressure Deviation',press:195,prod:259,rem:'',imgs:[]},
+  {id:1072,datetime:'2026-02-18T08:30:00',shift:'Shift C (23:30–6:30)',op:'1027',mach:'ST-120',door:'RH Rear',dtype:'Hem Crack',sev:'HIGH',rc:'Material Defect',press:164,prod:221,rem:'',imgs:[]},
+  {id:1073,datetime:'2026-02-20T08:30:00',shift:'Shift C (23:30–6:30)',op:'1028',mach:'ST-100',door:'RH Front',dtype:'Roll-in Defect',sev:'HIGH',rc:'Operator Error',press:181,prod:260,rem:'',imgs:[]},
+  {id:1074,datetime:'2026-02-22T08:30:00',shift:'Shift C (23:30–6:30)',op:'1029',mach:'ST-200',door:'RH Rear',dtype:'Roll-in Defect',sev:'MED',rc:'Die Misalignment',press:164,prod:220,rem:'',imgs:[]},
+  {id:1075,datetime:'2026-02-24T08:30:00',shift:'Shift C (23:30–6:30)',op:'1030',mach:'ST-120',door:'RH Rear',dtype:'Open Hem',sev:'LOW',rc:'Die Misalignment',press:188,prod:249,rem:'',imgs:[]},
+  {id:1076,datetime:'2026-03-02T08:30:00',shift:'Shift C (23:30–6:30)',op:'1021',mach:'ST-200',door:'RH Rear',dtype:'Hem Crack',sev:'HIGH',rc:'Pressure Deviation',press:184,prod:253,rem:'',imgs:[]},
+  {id:1077,datetime:'2026-03-03T08:30:00',shift:'Shift C (23:30–6:30)',op:'1022',mach:'ST-200',door:'Tailgate',dtype:'Panel Mismatch',sev:'LOW',rc:'Material Defect',press:187,prod:247,rem:'',imgs:[]},
+  {id:1078,datetime:'2026-03-04T08:30:00',shift:'Shift C (23:30–6:30)',op:'1023',mach:'ST-120',door:'RH Front',dtype:'Panel Mismatch',sev:'LOW',rc:'Die Misalignment',press:183,prod:236,rem:'',imgs:[]},
+  {id:1079,datetime:'2026-03-05T08:30:00',shift:'Shift C (23:30–6:30)',op:'1024',mach:'ST-200',door:'RH Rear',dtype:'Wrinkle/Pucker',sev:'LOW',rc:'Operator Error',press:172,prod:248,rem:'',imgs:[]},
+  {id:1080,datetime:'2026-03-06T08:30:00',shift:'Shift C (23:30–6:30)',op:'1025',mach:'ST-150',door:'LH Front',dtype:'Wrinkle/Pucker',sev:'HIGH',rc:'Tool Wear',press:175,prod:254,rem:'',imgs:[]},
+  {id:1081,datetime:'2026-03-07T08:30:00',shift:'Shift C (23:30–6:30)',op:'1026',mach:'ST-200',door:'RH Rear',dtype:'Hem Crack',sev:'HIGH',rc:'Tool Wear',press:168,prod:224,rem:'',imgs:[]},
+  {id:1082,datetime:'2026-03-08T08:30:00',shift:'Shift C (23:30–6:30)',op:'1027',mach:'ST-200',door:'RH Front',dtype:'Wrinkle/Pucker',sev:'MED',rc:'Operator Error',press:158,prod:233,rem:'',imgs:[]},
+  {id:1083,datetime:'2026-03-09T08:30:00',shift:'Shift C (23:30–6:30)',op:'1028',mach:'ST-100',door:'Tailgate',dtype:'Roll-in Defect',sev:'LOW',rc:'Operator Error',press:179,prod:250,rem:'',imgs:[]}
 ];
 
-// Always load fresh sample data
-localStorage.setItem('ht2_defects', JSON.stringify(sampleDefects));
+// Smart load — sample data फक्त पहिल्यांदाच load होईल
+// जर आधीच data असेल तर तो ठेवतो
+const existingData = localStorage.getItem('ht2_defects');
+const isFirstLoad = !existingData || existingData === '[]';
+if (isFirstLoad) {
+  localStorage.setItem('ht2_defects', JSON.stringify(sampleDefects));
+  localStorage.setItem('ht2_initialized', 'true');
+}
 
 let defects = JSON.parse(localStorage.getItem('ht2_defects')||'[]');
 let whyReps = JSON.parse(localStorage.getItem('ht2_whys')||'[]');
@@ -973,7 +1425,7 @@ let charts = {};
 let pendingImgs = [];
 
 // ============ INIT ============
-document.getElementById('f-dt').value = new Date().toISOString().slice(0,16);
+document.getElementById('f-dt').value = new Date().toISOString().slice(0,10); // Fixed: yyyy-MM-dd format
 document.getElementById('al-occ').value = alertCfg.occ;
 document.getElementById('al-high').value = alertCfg.high;
 document.getElementById('al-consec').value = alertCfg.consec;
@@ -1040,7 +1492,7 @@ function addDefect(){
   if(!g('f-prod')){showToast('⚠️ Production Count mandatory आहे!',true);return;}
   const d={
     id:Date.now(),
-    datetime:g('f-dt'),shift:g('f-shift'),op:g('f-op')||'Unknown',
+    datetime:g('f-dt')+' '+new Date().toTimeString().slice(0,8),shift:g('f-shift'),op:g('f-op')||'Unknown',
     mach:g('f-mach'),door:g('f-door'),dtype:g('f-dtype'),
     sev:g('f-sev'),rc:g('f-rc'),
     press:parseFloat(g('f-press'))||0,
@@ -1051,11 +1503,22 @@ function addDefect(){
   defects.push(d);
   pendingImgs=[];
   renderPreviews();
+  
+  // Alert — 3 HIGH defects झाल्यावर mail जाईल
+  if (d.sev === 'HIGH') {
+    sessionHighCount++;
+    console.log('Session HIGH count:', sessionHighCount);
+    updateOCCCountdown(sessionHighCount);
+    if (sessionHighCount % 3 === 0) {
+      console.log('Triggering alert at count:', sessionHighCount);
+      showAlertPopup(d, sessionHighCount);
+    }
+  }
   document.getElementById('f-rem').value='';
   document.getElementById('f-op').value='';
   document.getElementById('f-prod').value='';
   document.getElementById('f-press').value='';
-  document.getElementById('f-dt').value=new Date().toISOString().slice(0,16);
+  document.getElementById('f-dt').value=new Date().toISOString().slice(0,10);
   save();
   checkAlerts(d);
   updateAll();
@@ -1417,6 +1880,7 @@ function delD(id){if(!confirm('Delete?'))return;defects=defects.filter(d=>d.id!=
 // ============ UPDATE ALL ============
 function updateAll(){
   try { updateBlinkIndicator(); } catch(e) {}
+  try { updateMonthlyTrend(); } catch(e) {}
   const today=new Date().toISOString().slice(0,10);
   const td=defects.filter(d=>d.datetime.slice(0,10)===today);
   const totalProd=defects.reduce((s,d)=>s+d.prod,0);
@@ -1867,6 +2331,2057 @@ function buildDefectTypeReport() {
   });
   html += '</table>';
   return html;
+}
+
+
+// ============ RESET TO SAMPLE DATA ============
+function resetToSample() {
+  if (confirm('Sample data परत आणायचा आहे का? तुमचे सगळे entries delete होतील!')) {
+    localStorage.setItem('ht2_defects', JSON.stringify(sampleDefects));
+    defects = JSON.parse(localStorage.getItem('ht2_defects'));
+    updateAll();
+    showToast('✅ Sample data reset झाला!');
+  }
+}
+
+
+// ============ AUTOMATIC EMAIL ALERT — EmailJS ============
+const EMAILJS_SERVICE  = 'service_fjacfqq';
+const EMAILJS_TEMPLATE = 'template_7cumtm8';
+const ALERT_WHATSAPP   = '917378356368';
+
+function showAlertPopup(d, highCount) {
+  highCount = highCount || sessionHighCount || 3;
+  const dt = d.datetime ? new Date(d.datetime).toLocaleString('en-IN') : new Date().toLocaleString('en-IN');
+
+  // ---- AUTOMATIC EMAIL via EmailJS ----
+  // Fix 1: Exact time from defect entry
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  let hh = now.getHours(), mm = now.getMinutes(), ss = now.getSeconds();
+  const ampm = hh >= 12 ? 'PM' : 'AM';
+  hh = hh % 12 || 12;
+  const exactTime = pad(hh)+':'+pad(mm)+':'+pad(ss)+' '+ampm;
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const exactDate = now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear()+', '+exactTime;
+
+  const templateParams = {
+    date      : exactDate,
+    model     : 'Altroz / Nexon',
+    shift     : d.shift || '-',
+    station   : d.mach || '-',
+    occ       : String(highCount).padStart(2,'0'),
+    inspector : d.op || '-',
+    defect    : d.dtype || d.type || 'Open Hem',
+    side      : d.door || '-',
+    pressure  : d.press || '-',
+    root_cause: d.rc || d.cause || '-',
+    to_email  : 'sanketkukade111@gmail.com',
+    name      : 'HemmTrack Pro',
+    email     : 'sanketkukade111@gmail.com',
+  };
+  
+  console.log('Sending email with params:', templateParams);
+
+  // Email 1 → Gmail
+  emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, templateParams)
+    .then(() => {
+      showToast('📧 Email + SMS Alert sent!');
+      console.log('Email sent successfully!');
+    })
+    .catch(err => {
+      showToast('⚠ Email send failed — check internet!');
+      console.error('EmailJS error:', err);
+    });
+
+  // Telegram Alert — Automatic!
+  const telegramToken = '8626407803:AAHaOOIK_UILf5kTpYrBPt9yVHSs8y713TE';
+  const telegramChatId = '823556812';
+  const telegramMsg = encodeURIComponent(
+    '🚨 Alarm Escalation 🚨\n' +
+    '🛑 200 Demerit 🛑\n\n' +
+    '📅 Date: ' + exactDate + '\n' +
+    'Issue: Hemming Open\n' +
+    'Model: Altroz / Nexon\n' +
+    '🏭 Station: ' + (d.mach||'-') + '\n' +
+    'Shift: ' + (d.shift||'-') + '\n' +
+    'OCC: ' + String(highCount).padStart(2,'0') + '\n' +
+    'Inspector ID: ' + (d.op||'-') + '\n' +
+    'Reported At: Slat Buy-Off\n\n' +
+    '⚡ Immediate action required!\n' +
+    '— HemmTrack Pro V2'
+  );
+  
+  // Telegram via XMLHttpRequest with no-cors mode
+  const tgUrl = 'https://api.telegram.org/bot' + telegramToken + 
+    '/sendMessage?chat_id=' + telegramChatId + 
+    '&text=' + telegramMsg;
+  
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', tgUrl, true);
+  xhr.onload = function() {
+    try {
+      const data = JSON.parse(xhr.responseText);
+      if (data.ok) {
+        showToast('📧 Email + 📱 Telegram Alert sent!');
+        console.log('Telegram sent!');
+      }
+    } catch(e) {
+      console.log('Telegram response:', xhr.responseText);
+    }
+  };
+  xhr.onerror = function() {
+    // Try Image beacon as fallback
+    const img = new Image();
+    img.src = tgUrl;
+    console.log('Telegram via beacon');
+  };
+  xhr.send();
+
+  // ---- SHOW POPUP with WhatsApp option ----
+  const popup = document.getElementById('alert-popup');
+  const details = document.getElementById('alert-popup-details');
+
+  details.innerHTML = `
+    <b style="color:#ff3d5a;">⚠ OCC ${highCount} — HIGH DEFECT ALERT!</b><br>
+    📅 Time: ${dt}<br>
+    🏭 Station: ${d.mach || '-'}<br>
+    🚪 Side: ${d.door || '-'}<br>
+    🔍 Defect: ${d.dtype || '-'}<br>
+    🔧 Root Cause: ${d.rc || '-'}<br>
+    💨 Pressure: ${d.press || '-'} Bar<br>
+    👤 Inspector: ${d.op || '-'}<br><br>
+    <span style="color:#00ff88;font-weight:700;">📧 Email alert automatically sent!</span>
+  `;
+
+  // WhatsApp link
+  const waMsg = encodeURIComponent(
+    `🚨 *Alarm Escalation — HemmTrack Pro*
+
+` +
+    `🛑 200 Demerit
+
+` +
+    `📅 Date: ${dt}
+` +
+    `Issue: Hemming Open
+` +
+    `🏭 Station: ${d.machine || '-'}
+` +
+    `🚪 Side: ${d.door || '-'}
+` +
+    `Shift: ${d.shift || '-'}
+` +
+    `OCC: ${defects.filter(x=>x.sev==='HIGH').length}
+` +
+    `Inspector ID: ${d.op || '-'}
+` +
+    `Reported At: Slat Buy-Off
+
+` +
+    `⚡ Immediate action required!
+— HemmTrack Pro V2`
+  );
+  document.getElementById('wa-link').href = `https://wa.me/${ALERT_WHATSAPP}?text=${waMsg}`;
+
+  popup.style.display = 'flex';
+}
+
+function closeAlertPopup() {
+  document.getElementById('alert-popup').style.display = 'none';
+}
+
+
+// ============ OCC ALERT COUNTDOWN ============
+let sessionHighCount = 0;
+
+function updateOCCCountdown(count) {
+  const normalState = document.getElementById('occ-normal-state');
+  const sentState = document.getElementById('occ-sent-state');
+  const countdown = document.getElementById('occ-countdown');
+  const box = document.getElementById('occ-alert-box');
+  if (!countdown) return;
+
+  const currentCount = count % 3 === 0 ? 3 : count % 3;
+
+  if (count % 3 === 0) {
+    // OCC 3 — Alert triggered!
+    countdown.textContent = '3';
+    countdown.style.color = '#ff3d5a';
+    countdown.style.textShadow = '0 0 20px rgba(255,61,90,0.8)';
+    if (box) box.style.borderColor = 'rgba(255,61,90,0.7)';
+
+    setTimeout(() => {
+      if (normalState) normalState.style.display = 'none';
+      if (sentState) sentState.style.display = 'block';
+      if (box) {
+        box.style.borderColor = 'rgba(0,255,136,0.5)';
+        box.style.background = 'linear-gradient(135deg,rgba(0,255,136,0.08),rgba(0,200,100,0.05))';
+      }
+    }, 600);
+
+    setTimeout(() => {
+      if (normalState) normalState.style.display = 'block';
+      if (sentState) sentState.style.display = 'none';
+      if (box) {
+        box.style.borderColor = 'rgba(255,61,90,0.3)';
+        box.style.background = 'linear-gradient(135deg,rgba(255,61,90,0.08),rgba(255,100,0,0.05))';
+      }
+      countdown.textContent = '0';
+      countdown.style.color = '#ffffff';
+      countdown.style.textShadow = 'none';
+    }, 8000);
+
+  } else {
+    // OCC 1 or 2 — count-up
+    if (normalState) normalState.style.display = 'block';
+    if (sentState) sentState.style.display = 'none';
+    countdown.textContent = currentCount;
+
+    if (currentCount === 1) {
+      countdown.style.color = '#ffffff';
+      countdown.style.textShadow = '0 0 10px rgba(255,255,255,0.3)';
+      if (box) box.style.borderColor = 'rgba(255,61,90,0.3)';
+    } else if (currentCount === 2) {
+      countdown.style.color = '#ffaa00';
+      countdown.style.textShadow = '0 0 20px rgba(255,170,0,0.7)';
+      if (box) box.style.borderColor = 'rgba(255,170,0,0.6)';
+    }
+  }
+}
+
+
+// ============ SHIFT HANDOVER REPORT ============
+function generateHandoverReport() {
+  const shift = document.getElementById('ho-shift-select').value;
+  const el = document.getElementById('ho-content');
+  const now = new Date();
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dateStr = now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+
+  // Update header
+  document.getElementById('ho-date').textContent = dateStr;
+  document.getElementById('ho-shift').textContent = 'SHIFT ' + shift + ' HANDOVER';
+
+  // Filter defects for selected shift
+  const shiftDefects = defects.filter(d => d.shift && d.shift.toUpperCase().includes('SHIFT ' + shift));
+  const total = shiftDefects.length;
+  const high = shiftDefects.filter(d => d.sev === 'HIGH').length;
+  const med = shiftDefects.filter(d => d.sev === 'MED').length;
+  const low = shiftDefects.filter(d => d.sev === 'LOW').length;
+  const prod = shiftDefects.reduce((s,d) => s + (parseInt(d.prod)||0), 0) || 250;
+  const occ = ((total/prod)*100).toFixed(2);
+  const occStatus = parseFloat(occ) <= 2 ? '✅ NORMAL' : '⚠ HIGH';
+  const occColor = parseFloat(occ) <= 2 ? '#00ff88' : '#ff3d5a';
+
+  // Station wise
+  const stations = {};
+  shiftDefects.forEach(d => {
+    const s = d.mach || 'Unknown';
+    stations[s] = (stations[s] || 0) + 1;
+  });
+
+  // Inspector wise
+  const inspectors = {};
+  shiftDefects.forEach(d => {
+    const i = d.op || 'Unknown';
+    inspectors[i] = (inspectors[i] || 0) + 1;
+  });
+
+  // Root cause wise
+  const rootCauses = {};
+  shiftDefects.forEach(d => {
+    const r = d.rc || 'Unknown';
+    rootCauses[r] = (rootCauses[r] || 0) + 1;
+  });
+  const topRC = Object.entries(rootCauses).sort((a,b) => b[1]-a[1])[0];
+
+  // HIGH station wise
+  const highStations = {};
+  shiftDefects.filter(d => d.sev === 'HIGH').forEach(d => {
+    const s = d.mach || 'Unknown';
+    highStations[s] = (highStations[s] || 0) + 1;
+  });
+
+  const thS = `background:#1a3a6e;color:#fff;padding:10px 12px;text-align:center;font-weight:700;border:1px solid #2a4a8e;font-size:12px;`;
+  const tdS = `padding:9px 12px;text-align:center;border:1px solid #1e3050;color:var(--text);font-size:12px;`;
+
+  let html = '';
+
+  // ===== KPI SUMMARY =====
+  html += `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
+    <div style="background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.3);border-radius:10px;padding:14px;text-align:center;">
+      <div style="font-size:11px;color:#4a6fa5;letter-spacing:1px;">TOTAL DEFECTS</div>
+      <div style="font-size:32px;font-weight:900;color:#00e5ff;">${total}</div>
+    </div>
+    <div style="background:rgba(255,61,90,0.08);border:1px solid rgba(255,61,90,0.3);border-radius:10px;padding:14px;text-align:center;">
+      <div style="font-size:11px;color:#4a6fa5;letter-spacing:1px;">HIGH SEVERITY</div>
+      <div style="font-size:32px;font-weight:900;color:#ff3d5a;">${high}</div>
+    </div>
+    <div style="background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.3);border-radius:10px;padding:14px;text-align:center;">
+      <div style="font-size:11px;color:#4a6fa5;letter-spacing:1px;">OCC RATE</div>
+      <div style="font-size:32px;font-weight:900;color:${occColor};">${occ}%</div>
+    </div>
+    <div style="background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.3);border-radius:10px;padding:14px;text-align:center;">
+      <div style="font-size:11px;color:#4a6fa5;letter-spacing:1px;">STATUS</div>
+      <div style="font-size:16px;font-weight:900;color:${occColor};margin-top:8px;">${occStatus}</div>
+    </div>
+  </div>`;
+
+  // ===== HIGH SEVERITY + STATION WISE =====
+  html += `<div style="font-size:14px;font-weight:800;color:#ff3d5a;margin:16px 0 8px;">🚨 HIGH Severity — Station Wise</div>`;
+  if (Object.keys(highStations).length > 0) {
+    html += `<table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+      <tr><th style="${thS}">Station No</th><th style="${thS}">HIGH Count</th><th style="${thS}">Action</th></tr>`;
+    Object.entries(highStations).sort((a,b)=>b[1]-a[1]).forEach(([s,cnt]) => {
+      html += `<tr>
+        <td style="${tdS};color:#00e5ff;font-weight:700;">${s}</td>
+        <td style="${tdS};color:#ff3d5a;font-weight:800;font-size:16px;">${cnt}</td>
+        <td style="${tdS};color:#ffaa00;">⚡ Immediate Check</td>
+      </tr>`;
+    });
+    html += `</table>`;
+  } else {
+    html += `<div style="color:#00ff88;padding:10px;margin-bottom:16px;">✅ No HIGH severity defects this shift!</div>`;
+  }
+
+  // ===== INSPECTOR WISE =====
+  html += `<div style="font-size:14px;font-weight:800;color:#00e5ff;margin:16px 0 8px;">👤 Inspector Wise Defect Count</div>`;
+  html += `<table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+    <tr><th style="${thS}">Inspector ID</th><th style="${thS}">Defects</th><th style="${thS}">HIGH</th></tr>`;
+  Object.entries(inspectors).sort((a,b)=>b[1]-a[1]).forEach(([ins,cnt]) => {
+    const insHigh = shiftDefects.filter(d => d.op === ins && d.sev === 'HIGH').length;
+    html += `<tr>
+      <td style="${tdS};color:#00e5ff;font-weight:700;">${ins}</td>
+      <td style="${tdS};font-weight:800;">${cnt}</td>
+      <td style="${tdS};color:#ff3d5a;">${insHigh}</td>
+    </tr>`;
+  });
+  html += `</table>`;
+
+  // ===== TOP ROOT CAUSE =====
+  html += `<div style="font-size:14px;font-weight:800;color:#ffaa00;margin:16px 0 8px;">🔧 Top Root Cause</div>`;
+  html += `<table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+    <tr><th style="${thS}">Root Cause</th><th style="${thS}">Count</th><th style="${thS}">% Share</th></tr>`;
+  Object.entries(rootCauses).sort((a,b)=>b[1]-a[1]).forEach(([rc,cnt]) => {
+    const pct = total > 0 ? ((cnt/total)*100).toFixed(1) : '0';
+    html += `<tr>
+      <td style="${tdS};color:#ffaa00;font-weight:700;">${rc}</td>
+      <td style="${tdS};font-weight:800;">${cnt}</td>
+      <td style="${tdS}">${pct}%</td>
+    </tr>`;
+  });
+  html += `</table>`;
+
+  // ===== PENDING CORRECTIVE ACTIONS =====
+  html += `<div style="font-size:14px;font-weight:800;color:#00ff88;margin:16px 0 8px;">✅ Pending Corrective Actions</div>`;
+  html += `<div style="background:rgba(255,255,255,0.03);border:1px solid #1e3050;border-radius:10px;padding:14px;margin-bottom:16px;">`;
+  if (high > 0) {
+    html += `<div style="padding:8px 0;border-bottom:1px solid #1e3050;color:#ff3d5a;">⚠ ${high} HIGH severity defects — Immediate root cause analysis required</div>`;
+  }
+  if (topRC) {
+    html += `<div style="padding:8px 0;border-bottom:1px solid #1e3050;color:#ffaa00;">🔧 Top issue: ${topRC[0]} (${topRC[1]} times) — Review & CAPA needed</div>`;
+  }
+  if (parseFloat(occ) > 2) {
+    html += `<div style="padding:8px 0;color:#ff3d5a;">📊 OCC Rate ${occ}% exceeds target 2% — SPC review required</div>`;
+  }
+  if (high === 0 && parseFloat(occ) <= 2) {
+    html += `<div style="color:#00ff88;">✅ No pending critical actions — Shift closed normally</div>`;
+  }
+  html += `</div>`;
+
+  // Store report data for sending
+  window.lastHandoverReport = {shift, dateStr, total, high, med, low, occ, occStatus, topRC, stations, highStations, inspectors};
+
+  el.innerHTML = html;
+}
+
+function sendHandoverAlert() {
+  const r = window.lastHandoverReport;
+  if (!r) { showToast('⚠ पहिले Report Generate करा!'); return; }
+
+  const telegramToken = '8626407803:AAHaOOIK_UILf5kTpYrBPt9yVHSs8y713TE';
+  const telegramChatId = '823556812';
+
+  const topRCText = r.topRC ? r.topRC[0] + ' (' + r.topRC[1] + ')' : 'N/A';
+  const highStText = Object.entries(r.highStations||{}).map(([s,c])=>s+':'+c).join(', ') || 'None';
+  
+  const msg = encodeURIComponent(
+    '🔄 SHIFT ' + r.shift + ' HANDOVER REPORT\n' +
+    '📅 ' + r.dateStr + '\n\n' +
+    '📊 SUMMARY\n' +
+    'Total Defects: ' + r.total + '\n' +
+    'HIGH Severity: ' + r.high + '\n' +
+    'OCC Rate: ' + r.occ + '% ' + r.occStatus + '\n\n' +
+    '🚨 HIGH Station Wise:\n' + highStText + '\n\n' +
+    '🔧 Top Root Cause: ' + topRCText + '\n\n' +
+    '⚡ Action Required: ' + (r.high > 0 ? 'YES — ' + r.high + ' HIGH defects' : 'NO') + '\n' +
+    '— HemmTrack Pro V2'
+  );
+
+  // Send Telegram
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', 'https://api.telegram.org/bot' + telegramToken + '/sendMessage?chat_id=' + telegramChatId + '&text=' + msg, true);
+  xhr.onload = function() {
+    showToast('📱 Handover Report Telegram ला sent!');
+  };
+  xhr.send();
+
+  showToast('📧 Handover Report sending...');
+}
+
+
+// ============ MONTHLY OCC TREND ============
+function updateMonthlyTrend() {
+  const el = document.getElementById('monthly-trend-content');
+  const sumEl = document.getElementById('monthly-trend-summary');
+  if (!el) return;
+
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  
+  // Group defects by month
+  const monthData = {};
+  defects.forEach(d => {
+    if (!d.datetime) return;
+    const dt = new Date(d.datetime);
+    if (isNaN(dt)) return;
+    const key = dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0');
+    const label = months[dt.getMonth()] + ' ' + dt.getFullYear();
+    if (!monthData[key]) monthData[key] = { label, defects: 0, prod: 0, high: 0 };
+    monthData[key].defects++;
+    monthData[key].prod += parseInt(d.prod) || 250;
+    if (d.sev === 'HIGH') monthData[key].high++;
+  });
+
+  // Sort by date
+  const sorted = Object.entries(monthData).sort((a,b) => a[0].localeCompare(b[0]));
+
+  if (sorted.length === 0) {
+    el.innerHTML = '<div style="color:#4a6fa5;text-align:center;padding:20px;">Data नाही</div>';
+    return;
+  }
+
+  // Max OCC for bar scaling
+  const occs = sorted.map(([,d]) => d.prod > 0 ? (d.defects/d.prod)*100 : 0);
+  const maxOcc = Math.max(...occs, 2);
+
+  let html = '<div style="overflow-x:auto;">';
+  html += '<div style="display:flex;gap:12px;align-items:flex-end;min-width:fit-content;padding:10px 0;">';
+
+  sorted.forEach(([key, data], i) => {
+    const occ = data.prod > 0 ? ((data.defects/data.prod)*100).toFixed(2) : '0.00';
+    const pct = parseFloat(occ);
+    const barHeight = Math.max((pct / maxOcc) * 160, 4);
+    
+    // Color based on OCC
+    let color, glow;
+    if (pct > 5) { color = '#ff3d5a'; glow = 'rgba(255,61,90,0.4)'; }
+    else if (pct > 2) { color = '#ffaa00'; glow = 'rgba(255,170,0,0.4)'; }
+    else { color = '#00ff88'; glow = 'rgba(0,255,136,0.4)'; }
+
+    html += `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;min-width:70px;">
+      <!-- OCC value -->
+      <div style="font-size:11px;font-weight:800;color:${color};">${occ}%</div>
+      <!-- Bar -->
+      <div style="width:50px;height:${barHeight}px;background:linear-gradient(180deg,${color},${color}88);
+        border-radius:6px 6px 0 0;
+        box-shadow:0 0 12px ${glow};
+        position:relative;
+        transition:all 0.3s;">
+        <!-- Target line at 2% -->
+      </div>
+      <!-- Month label -->
+      <div style="font-size:10px;color:#4a6fa5;font-weight:700;text-align:center;">${data.label}</div>
+      <!-- Defects count -->
+      <div style="font-size:10px;color:#4a6fa5;">${data.defects} def</div>
+      <!-- HIGH count -->
+      ${data.high > 0 ? `<div style="font-size:10px;color:#ff3d5a;">🔴 ${data.high} HIGH</div>` : '<div style="font-size:10px;color:#00ff88;">✓ OK</div>'}
+    </div>`;
+  });
+
+  html += '</div>';
+  
+  // Target line legend
+  html += `<div style="display:flex;align-items:center;gap:16px;margin-top:8px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:6px;">
+      <div style="width:20px;height:3px;background:#00ff88;border-radius:2px;"></div>
+      <span style="font-size:11px;color:#4a6fa5;">≤2% Normal</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <div style="width:20px;height:3px;background:#ffaa00;border-radius:2px;"></div>
+      <span style="font-size:11px;color:#4a6fa5;">2-5% Warning</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <div style="width:20px;height:3px;background:#ff3d5a;border-radius:2px;"></div>
+      <span style="font-size:11px;color:#4a6fa5;">>5% Critical</span>
+    </div>
+  </div>`;
+  html += '</div>';
+
+  el.innerHTML = html;
+
+  // Summary - best month, worst month, trend
+  const firstOcc = parseFloat(occs[0]);
+  const lastOcc = parseFloat(occs[occs.length-1]);
+  const improvement = firstOcc > 0 ? (((firstOcc-lastOcc)/firstOcc)*100).toFixed(1) : 0;
+  const bestIdx = occs.indexOf(Math.min(...occs));
+  const worstIdx = occs.indexOf(Math.max(...occs));
+  const trend = lastOcc < firstOcc ? '📉 Improving' : lastOcc > firstOcc ? '📈 Worsening' : '➡ Stable';
+  const trendColor = lastOcc <= firstOcc ? '#00ff88' : '#ff3d5a';
+
+  sumEl.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+      <div style="background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.2);border-radius:10px;padding:12px;text-align:center;">
+        <div style="font-size:10px;color:#4a6fa5;margin-bottom:4px;">BEST MONTH</div>
+        <div style="font-size:14px;font-weight:800;color:#00ff88;">${sorted[bestIdx][1].label}</div>
+        <div style="font-size:12px;color:#00ff88;">${occs[bestIdx].toFixed(2)}% OCC</div>
+      </div>
+      <div style="background:rgba(255,61,90,0.08);border:1px solid rgba(255,61,90,0.2);border-radius:10px;padding:12px;text-align:center;">
+        <div style="font-size:10px;color:#4a6fa5;margin-bottom:4px;">WORST MONTH</div>
+        <div style="font-size:14px;font-weight:800;color:#ff3d5a;">${sorted[worstIdx][1].label}</div>
+        <div style="font-size:12px;color:#ff3d5a;">${occs[worstIdx].toFixed(2)}% OCC</div>
+      </div>
+      <div style="background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);border-radius:10px;padding:12px;text-align:center;">
+        <div style="font-size:10px;color:#4a6fa5;margin-bottom:4px;">TREND</div>
+        <div style="font-size:14px;font-weight:800;color:${trendColor};">${trend}</div>
+        <div style="font-size:12px;color:${trendColor};">${improvement}% improved</div>
+      </div>
+    </div>`;
+}
+
+
+// ============ REJECTION PARTS TRACKER ============
+let rejections = JSON.parse(localStorage.getItem('ht2_rejections') || '[]');
+
+// Set today's date
+window.addEventListener('load', function() {
+  const rd = document.getElementById('rej-date');
+  const pmd = document.getElementById('pm-last-date');
+  if (rd) rd.value = new Date().toISOString().slice(0,10);
+  if (pmd) pmd.value = new Date().toISOString().slice(0,10);
+  renderRejections();
+  renderPMDashboard();
+});
+
+function addRejection() {
+  const prod = parseInt(document.getElementById('rej-prod').value) || 0;
+  const count = parseInt(document.getElementById('rej-count').value) || 0;
+  const shift = document.getElementById('rej-shift').value;
+  const date = document.getElementById('rej-date').value;
+
+  if (!prod || !count || !date) {
+    showToast('⚠ सगळे fields भरा!'); return;
+  }
+
+  const ppm = Math.round((count / prod) * 1000000);
+  const rejPct = ((count / prod) * 100).toFixed(3);
+
+  const entry = { id: Date.now(), date, shift, prod, count, ppm, rejPct };
+  rejections.push(entry);
+  localStorage.setItem('ht2_rejections', JSON.stringify(rejections));
+
+  // Clear inputs
+  document.getElementById('rej-prod').value = '';
+  document.getElementById('rej-count').value = '';
+
+  renderRejections();
+  showToast('✅ Rejection entry added!');
+
+  // Alert if PPM high
+  if (ppm > 5000) {
+    showToast('🚨 HIGH PPM Alert! ' + ppm + ' PPM!');
+  }
+}
+
+function renderRejections() {
+  const el = document.getElementById('rej-results');
+  if (!el) return;
+  if (rejections.length === 0) {
+    el.innerHTML = '<div style="text-align:center;color:#4a6fa5;padding:20px;">अजून कोणतीही entry नाही</div>';
+    return;
+  }
+
+  const totalProd = rejections.reduce((s,r) => s + r.prod, 0);
+  const totalRej = rejections.reduce((s,r) => s + r.count, 0);
+  const avgPPM = totalProd > 0 ? Math.round((totalRej/totalProd)*1000000) : 0;
+  const avgRejPct = totalProd > 0 ? ((totalRej/totalProd)*100).toFixed(3) : '0';
+  const ppmColor = avgPPM > 5000 ? '#ff3d5a' : avgPPM > 2000 ? '#ffaa00' : '#00ff88';
+  const ppmStatus = avgPPM > 5000 ? '🔴 HIGH' : avgPPM > 2000 ? '🟡 WARNING' : '🟢 OK';
+
+  let html = '';
+
+  // KPI Cards
+  html += `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;">
+    <div style="background:rgba(255,61,90,0.08);border:1px solid rgba(255,61,90,0.3);border-radius:10px;padding:14px;text-align:center;">
+      <div style="font-size:10px;color:#4a6fa5;letter-spacing:1px;">TOTAL REJECTED</div>
+      <div style="font-size:28px;font-weight:900;color:#ff3d5a;">${totalRej}</div>
+      <div style="font-size:10px;color:#4a6fa5;">parts</div>
+    </div>
+    <div style="background:rgba(255,170,0,0.08);border:1px solid rgba(255,170,0,0.3);border-radius:10px;padding:14px;text-align:center;">
+      <div style="font-size:10px;color:#4a6fa5;letter-spacing:1px;">PPM</div>
+      <div style="font-size:28px;font-weight:900;color:${ppmColor};">${avgPPM.toLocaleString()}</div>
+      <div style="font-size:10px;color:${ppmColor};">${ppmStatus}</div>
+    </div>
+    <div style="background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.3);border-radius:10px;padding:14px;text-align:center;">
+      <div style="font-size:10px;color:#4a6fa5;letter-spacing:1px;">REJECTION %</div>
+      <div style="font-size:28px;font-weight:900;color:#00e5ff;">${avgRejPct}%</div>
+      <div style="font-size:10px;color:#4a6fa5;">overall</div>
+    </div>
+  </div>`;
+
+  // History Table
+  html += `<div style="font-size:13px;font-weight:800;color:#00e5ff;margin-bottom:10px;">📋 Rejection History</div>`;
+  html += `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;">
+    <tr>
+      <th style="background:#1a3a6e;color:#fff;padding:8px;border:1px solid #2a4a8e;">Date</th>
+      <th style="background:#1a3a6e;color:#fff;padding:8px;border:1px solid #2a4a8e;">Shift</th>
+      <th style="background:#1a3a6e;color:#fff;padding:8px;border:1px solid #2a4a8e;">Production</th>
+      <th style="background:#1a3a6e;color:#fff;padding:8px;border:1px solid #2a4a8e;">Rejected</th>
+      <th style="background:#1a3a6e;color:#fff;padding:8px;border:1px solid #2a4a8e;">PPM</th>
+      <th style="background:#1a3a6e;color:#fff;padding:8px;border:1px solid #2a4a8e;">Rej %</th>
+    </tr>`;
+
+  [...rejections].reverse().forEach(r => {
+    const ppmC = r.ppm > 5000 ? '#ff3d5a' : r.ppm > 2000 ? '#ffaa00' : '#00ff88';
+    html += `<tr>
+      <td style="padding:8px;border:1px solid #1e3050;color:#90caf9;">${r.date}</td>
+      <td style="padding:8px;border:1px solid #1e3050;text-align:center;">${r.shift}</td>
+      <td style="padding:8px;border:1px solid #1e3050;text-align:center;">${r.prod}</td>
+      <td style="padding:8px;border:1px solid #1e3050;text-align:center;color:#ff3d5a;font-weight:700;">${r.count}</td>
+      <td style="padding:8px;border:1px solid #1e3050;text-align:center;color:${ppmC};font-weight:700;">${r.ppm.toLocaleString()}</td>
+      <td style="padding:8px;border:1px solid #1e3050;text-align:center;">${r.rejPct}%</td>
+    </tr>`;
+  });
+  html += '</table></div>';
+
+  el.innerHTML = html;
+}
+
+// ============ PREVENTIVE MAINTENANCE ============
+let pmTools = JSON.parse(localStorage.getItem('ht2_pm_tools') || '[]');
+
+function addPMTool() {
+  const station = document.getElementById('pm-station').value;
+  const tool = document.getElementById('pm-tool').value;
+  const life = parseInt(document.getElementById('pm-life').value) || 0;
+  const current = parseInt(document.getElementById('pm-current').value) || 0;
+  const lastDate = document.getElementById('pm-last-date').value;
+  const interval = parseInt(document.getElementById('pm-interval').value) || 30;
+
+  if (!tool || !life || !lastDate) {
+    showToast('⚠ सगळे fields भरा!'); return;
+  }
+
+  // Check if tool already exists for this station
+  const existIdx = pmTools.findIndex(t => t.station === station && t.tool === tool);
+  const entry = { id: Date.now(), station, tool, life, current, lastDate, interval };
+
+  if (existIdx >= 0) {
+    pmTools[existIdx] = entry;
+    showToast('✅ Tool updated!');
+  } else {
+    pmTools.push(entry);
+    showToast('✅ Tool added!');
+  }
+
+  localStorage.setItem('ht2_pm_tools', JSON.stringify(pmTools));
+
+  // Clear inputs
+  document.getElementById('pm-tool').value = '';
+  document.getElementById('pm-life').value = '';
+  document.getElementById('pm-current').value = '';
+  document.getElementById('pm-interval').value = '';
+
+  renderPMDashboard();
+}
+
+function renderPMDashboard() {
+  const el = document.getElementById('pm-dashboard');
+  if (!el) return;
+
+  if (pmTools.length === 0) {
+    el.innerHTML = '<div style="text-align:center;color:#4a6fa5;padding:20px;">अजून कोणतेही Tool add केले नाही</div>';
+    return;
+  }
+
+  const now = new Date();
+  let html = `<div style="font-size:13px;font-weight:800;color:#00ff88;margin-bottom:12px;">🔧 Tool Status Dashboard</div>`;
+
+  pmTools.forEach(t => {
+    const remaining = t.life - t.current;
+    const usedPct = Math.min((t.current / t.life) * 100, 100);
+    const remainPct = 100 - usedPct;
+
+    // Tool life status
+    let lifeColor, lifeStatus, lifeBg;
+    if (usedPct >= 90) { lifeColor = '#ff3d5a'; lifeStatus = '🔴 REPLACE NOW'; lifeBg = 'rgba(255,61,90,0.1)'; }
+    else if (usedPct >= 75) { lifeColor = '#ffaa00'; lifeStatus = '🟡 WARNING'; lifeBg = 'rgba(255,170,0,0.08)'; }
+    else { lifeColor = '#00ff88'; lifeStatus = '🟢 OK'; lifeBg = 'rgba(0,255,136,0.06)'; }
+
+    // Days since last maintenance
+    const lastDt = new Date(t.lastDate);
+    const daysSince = Math.floor((now - lastDt) / (1000*60*60*24));
+    const nextDue = t.interval - daysSince;
+    let dateColor, dateStatus;
+    if (nextDue <= 0) { dateColor = '#ff3d5a'; dateStatus = '🔴 OVERDUE'; }
+    else if (nextDue <= 7) { dateColor = '#ffaa00'; dateStatus = '🟡 DUE SOON'; }
+    else { dateColor = '#00ff88'; dateStatus = '🟢 OK'; }
+
+    html += `<div style="background:${lifeBg};border:1px solid ${lifeColor}44;border-radius:12px;padding:14px;margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px;">
+        <div>
+          <span style="font-size:14px;font-weight:800;color:#00e5ff;">${t.station}</span>
+          <span style="font-size:13px;color:#d4e8ff;margin-left:8px;">${t.tool}</span>
+        </div>
+        <span style="font-size:12px;font-weight:700;color:${lifeColor};">${lifeStatus}</span>
+      </div>
+
+      <!-- Tool Life Progress Bar -->
+      <div style="margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#4a6fa5;margin-bottom:4px;">
+          <span>Tool Life Used: ${t.current.toLocaleString()} / ${t.life.toLocaleString()} parts</span>
+          <span style="color:${lifeColor};">${usedPct.toFixed(1)}%</span>
+        </div>
+        <div style="background:rgba(255,255,255,0.06);border-radius:4px;height:10px;overflow:hidden;">
+          <div style="width:${usedPct}%;height:100%;background:linear-gradient(90deg,#00ff88,${lifeColor});border-radius:4px;transition:width 0.5s;"></div>
+        </div>
+        <div style="font-size:10px;color:#4a6fa5;margin-top:3px;">Remaining: ${remaining.toLocaleString()} parts</div>
+      </div>
+
+      <!-- Time based -->
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <div style="font-size:11px;color:#4a6fa5;">
+          Last Maintenance: <span style="color:#90caf9;">${t.lastDate}</span>
+          <span style="margin-left:8px;color:#4a6fa5;">(${daysSince} days ago)</span>
+        </div>
+        <div style="font-size:12px;font-weight:700;color:${dateColor};">
+          ${nextDue > 0 ? 'Next due in ' + nextDue + ' days' : 'Overdue by ' + Math.abs(nextDue) + ' days'} ${dateStatus}
+        </div>
+      </div>
+    </div>`;
+
+    // Send Telegram alert if critical
+    if (usedPct >= 90 || nextDue <= 0) {
+      // Auto alert on dashboard load
+    }
+  });
+
+  // Critical tools alert
+  const critical = pmTools.filter(t => {
+    const usedPct = (t.current/t.life)*100;
+    const daysSince = Math.floor((now - new Date(t.lastDate))/(1000*60*60*24));
+    return usedPct >= 90 || (t.interval - daysSince) <= 0;
+  });
+
+  if (critical.length > 0) {
+    html += `<div style="background:rgba(255,61,90,0.1);border:2px solid rgba(255,61,90,0.4);border-radius:10px;padding:14px;margin-top:8px;">
+      <div style="font-size:13px;font-weight:800;color:#ff3d5a;margin-bottom:8px;">🚨 ${critical.length} Tool(s) Need Immediate Attention!</div>
+      ${critical.map(t => `<div style="font-size:12px;color:#ffaa00;padding:4px 0;">⚠ ${t.station} — ${t.tool}</div>`).join('')}
+      <button onclick="sendPMAlert()" style="margin-top:10px;padding:8px 16px;border-radius:8px;border:none;background:linear-gradient(135deg,#ff3d5a,#cc0000);color:#fff;font-weight:700;cursor:pointer;font-size:12px;">📱 Send Maintenance Alert</button>
+    </div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+function sendPMAlert() {
+  const now = new Date();
+  const critical = pmTools.filter(t => {
+    const usedPct = (t.current/t.life)*100;
+    const daysSince = Math.floor((now - new Date(t.lastDate))/(1000*60*60*24));
+    return usedPct >= 90 || (t.interval - daysSince) <= 0;
+  });
+
+  if (critical.length === 0) { showToast('✅ No critical tools!'); return; }
+
+  const telegramToken = '8626407803:AAHaOOIK_UILf5kTpYrBPt9yVHSs8y713TE';
+  const telegramChatId = '823556812';
+
+  const msg = encodeURIComponent(
+    '🔧 PREVENTIVE MAINTENANCE ALERT\n\n' +
+    '⚠ ' + critical.length + ' Tool(s) need attention!\n\n' +
+    critical.map(t => {
+      const usedPct = ((t.current/t.life)*100).toFixed(1);
+      const daysSince = Math.floor((now - new Date(t.lastDate))/(1000*60*60*24));
+      const nextDue = t.interval - daysSince;
+      return '🔴 ' + t.station + ' — ' + t.tool + '\n' +
+             'Life Used: ' + usedPct + '%\n' +
+             'Days: ' + (nextDue <= 0 ? 'OVERDUE by ' + Math.abs(nextDue) + ' days' : 'Due in ' + nextDue + ' days');
+    }).join('\n\n') +
+    '\n\n— HemmTrack Pro V2'
+  );
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', 'https://api.telegram.org/bot' + telegramToken + '/sendMessage?chat_id=' + telegramChatId + '&text=' + msg, true);
+  xhr.onload = function() { showToast('📱 PM Alert sent to Telegram!'); };
+  xhr.send();
+}
+
+
+// ============ 8D REPORT GENERATOR ============
+window.addEventListener('load', function() {
+  const d8 = document.getElementById('8d-date');
+  if (d8) d8.value = new Date().toISOString().slice(0,10);
+});
+
+function generate8DReport() {
+  const problem = document.getElementById('8d-problem').value || 'Open Hem Defect';
+  const station = document.getElementById('8d-station').value;
+  const lead = document.getElementById('8d-lead').value || 'Quality Team';
+  const date = document.getElementById('8d-date').value || new Date().toISOString().slice(0,10);
+  const el = document.getElementById('8d-output');
+
+  // Analyze defects for this station
+  const stDefects = defects.filter(d => d.mach === station);
+  const highCount = stDefects.filter(d => d.sev === 'HIGH').length;
+  const rootCauses = {};
+  stDefects.forEach(d => { const r = d.rc || 'Unknown'; rootCauses[r] = (rootCauses[r]||0)+1; });
+  const topRC = Object.entries(rootCauses).sort((a,b)=>b[1]-a[1])[0];
+  const topRCText = topRC ? topRC[0] : 'Pressure Deviation';
+
+  const disciplines = [
+    {
+      num: 'D1', title: 'Team Formation', icon: '👥', color: '#00e5ff',
+      content: `<b>Team Lead:</b> ${lead}<br>
+      <b>Team Members:</b> Quality Inspector, Process Engineer, Maintenance<br>
+      <b>Champion:</b> Shop Floor Manager<br>
+      <b>Date Opened:</b> ${date}`
+    },
+    {
+      num: 'D2', title: 'Problem Description', icon: '🔍', color: '#a855f7',
+      content: `<b>Problem:</b> ${problem}<br>
+      <b>Station:</b> ${station}<br>
+      <b>Total Defects:</b> ${stDefects.length}<br>
+      <b>HIGH Severity:</b> ${highCount}<br>
+      <b>When:</b> ${date}<br>
+      <b>Impact:</b> Quality rejection, rework required`
+    },
+    {
+      num: 'D3', title: 'Interim Containment Action', icon: '🛡️', color: '#ffaa00',
+      content: `<b>Immediate Actions:</b><br>
+      1. 100% inspection at ${station}<br>
+      2. Segregate suspect parts<br>
+      3. Manual check on each door before next station<br>
+      4. Inform next station operator<br>
+      <b>Effectiveness:</b> Prevents defect from reaching customer`
+    },
+    {
+      num: 'D4', title: 'Root Cause Analysis', icon: '🔧', color: '#ff3d5a',
+      content: `<b>Primary Root Cause:</b> ${topRCText}<br><br>
+      <b>5-Why Analysis:</b><br>
+      Why 1: Open Hem defect observed → Hemming not complete<br>
+      Why 2: Hemming not complete → Insufficient pressure<br>
+      Why 3: Insufficient pressure → ${topRCText}<br>
+      Why 4: ${topRCText} → Maintenance schedule missed<br>
+      Why 5: Schedule missed → No tracking system<br><br>
+      <b>Escape Point:</b> Final inspection`
+    },
+    {
+      num: 'D5', title: 'Permanent Corrective Action', icon: '✅', color: '#00ff88',
+      content: `<b>Actions to address root cause:</b><br>
+      1. Set Hemming Pressure target: 180 Bar ± 5 Bar<br>
+      2. Implement pressure monitoring every 2 hours<br>
+      3. Tool life tracking — replace at 10,000 parts<br>
+      4. Update Work Instruction (WI) for ${station}<br>
+      5. Operator training on pressure setting<br>
+      <b>Responsible:</b> ${lead}<br>
+      <b>Target Date:</b> ${new Date(new Date(date).getTime() + 7*24*60*60*1000).toISOString().slice(0,10)}`
+    },
+    {
+      num: 'D6', title: 'Verify Corrective Actions', icon: '📈', color: '#00e5ff',
+      content: `<b>Verification Methods:</b><br>
+      1. Monitor OCC Rate for next 30 days<br>
+      2. SPC Control Chart — X-Bar within UCL/LCL<br>
+      3. Daily pressure log check<br>
+      4. Weekly defect review meeting<br>
+      <b>Target OCC:</b> ≤ 2%<br>
+      <b>Current OCC:</b> ${stDefects.length > 0 ? ((highCount/Math.max(stDefects.length,1))*100).toFixed(2) : '0'}%`
+    },
+    {
+      num: 'D7', title: 'Prevent Recurrence', icon: '🔒', color: '#ffaa00',
+      content: `<b>Systemic Prevention:</b><br>
+      1. Update FMEA — add Hemming Pressure as Critical Control Point<br>
+      2. Control Plan update — add pressure check<br>
+      3. Poka-yoke — pressure alarm if < 170 Bar<br>
+      4. HemmTrack Pro V2 — automatic alert at 3 HIGH defects<br>
+      5. Monthly OCC review in Quality meeting<br>
+      <b>Horizontal Deployment:</b> Apply to all hemming stations`
+    },
+    {
+      num: 'D8', title: 'Recognize the Team', icon: '🏆', color: '#a855f7',
+      content: `<b>Team Recognition:</b><br>
+      The team successfully identified and resolved the Open Hem defect issue at ${station}.<br><br>
+      <b>Key Achievements:</b><br>
+      ✅ Root cause identified within 24 hours<br>
+      ✅ Containment action implemented immediately<br>
+      ✅ Permanent fix in place<br>
+      ✅ OCC reduction achieved<br><br>
+      <b>Report Closed By:</b> ${lead}<br>
+      <b>Closure Date:</b> ${date}`
+    }
+  ];
+
+  let html = `
+  <div id="8d-printable" style="font-family:Arial,sans-serif;">
+    <!-- Report Header -->
+    <div style="background:linear-gradient(135deg,#1a0a3a,#3a1a6a);border-radius:12px;padding:16px;margin-bottom:16px;text-align:center;">
+      <div style="font-size:20px;font-weight:900;color:#fff;letter-spacing:2px;">8D PROBLEM SOLVING REPORT</div>
+      <div style="font-size:12px;color:#c090ff;margin-top:4px;">HemmTrack Pro V2 · Rear Door Hemming · ${station}</div>
+      <div style="font-size:11px;color:#4a6fa5;margin-top:4px;">Date: ${date} | Lead: ${lead}</div>
+    </div>`;
+
+  disciplines.forEach(d => {
+    html += `
+    <div style="background:rgba(255,255,255,0.03);border:1px solid ${d.color}44;border-radius:10px;padding:14px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <div style="background:${d.color}22;border:2px solid ${d.color};border-radius:8px;padding:6px 12px;font-size:14px;font-weight:900;color:${d.color};">${d.num}</div>
+        <div style="font-size:14px;font-weight:800;color:#fff;">${d.icon} ${d.title}</div>
+      </div>
+      <div style="font-size:12px;color:#d4e8ff;line-height:1.8;">${d.content}</div>
+    </div>`;
+  });
+
+  html += `
+    <!-- Footer -->
+    <div style="background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.2);border-radius:10px;padding:12px;text-align:center;margin-top:8px;">
+      <div style="font-size:11px;color:#4a6fa5;">Generated by HemmTrack Pro V2 · Sanket Kukade · M.Tech Manufacturing Engineering · DYPIU Pune</div>
+    </div>
+  </div>`;
+
+  el.innerHTML = html;
+  showToast('✅ 8D Report generated!');
+}
+
+function print8DReport() {
+  const content = document.getElementById('8d-printable');
+  if (!content) { showToast('⚠ पहिले Report Generate करा!'); return; }
+
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`
+    <html><head><title>8D Report — HemmTrack Pro</title>
+    <style>
+      body { font-family: Arial, sans-serif; padding: 20px; color: #000; }
+      * { box-sizing: border-box; }
+    </style></head>
+    <body>${content.innerHTML.replace(/color:#[a-fA-F0-9]+/g, 'color:#000').replace(/background:[^;]+/g, 'background:#f9f9f9')}</body>
+    </html>`);
+  printWindow.document.close();
+  printWindow.print();
+}
+
+
+
+
+
+// ============ INSPECTOR MASTER LIST ============
+const INSPECTORS = [
+  {id:'1001',name:'Ganesh Patil',shift:'A'},
+  {id:'1002',name:'Nilesh Shinde',shift:'A'},
+  {id:'1003',name:'Sanket Kukade',shift:'A'},
+  {id:'1004',name:'Rahul More',shift:'A'},
+  {id:'1005',name:'Amit Jadhav',shift:'A'},
+  {id:'1006',name:'Suresh Kamble',shift:'A'},
+  {id:'1007',name:'Vikram Salve',shift:'A'},
+  {id:'1008',name:'Pradeep Pawar',shift:'A'},
+  {id:'1009',name:'Mahesh Gaikwad',shift:'A'},
+  {id:'1010',name:'Ravi Bhosale',shift:'A'},
+  {id:'1011',name:'Santosh Mane',shift:'B'},
+  {id:'1012',name:'Dinesh Kale',shift:'B'},
+  {id:'1013',name:'Yogesh Dhole',shift:'B'},
+  {id:'1014',name:'Ajay Waghmare',shift:'B'},
+  {id:'1015',name:'Nitin Chavan',shift:'B'},
+  {id:'1016',name:'Sachin Lokhande',shift:'B'},
+  {id:'1017',name:'Anil Nagare',shift:'B'},
+  {id:'1018',name:'Deepak Aware',shift:'B'},
+  {id:'1019',name:'Kishor Pansare',shift:'B'},
+  {id:'1020',name:'Tushar Bandgar',shift:'B'},
+  {id:'1021',name:'Pravin Deshmukh',shift:'C'},
+  {id:'1022',name:'Sanjay Thakare',shift:'C'},
+  {id:'1023',name:'Rakesh Sonawane',shift:'C'},
+  {id:'1024',name:'Vijay Kadam',shift:'C'},
+  {id:'1025',name:'Umesh Ghuge',shift:'C'},
+  {id:'1026',name:'Manoj Jagtap',shift:'C'},
+  {id:'1027',name:'Ramesh Nikam',shift:'C'},
+  {id:'1028',name:'Sunil Deshpande',shift:'C'},
+  {id:'1029',name:'Hemant Fulpagare',shift:'C'},
+  {id:'1030',name:'Pramod Ingale',shift:'C'},
+];
+
+// ============ INSPECTOR WISE TRACKING ============
+function showInspectorData(shiftFilter) {
+  // Update buttons
+  ['all','A','B','C'].forEach(s => {
+    const btn = document.getElementById('ins-btn-'+s);
+    if (!btn) return;
+    if (s === shiftFilter) {
+      btn.style.border = '2px solid #00e5ff';
+      btn.style.background = 'rgba(0,229,255,0.15)';
+      btn.style.color = '#00e5ff';
+    } else {
+      btn.style.border = '1px solid #4a6fa5';
+      btn.style.background = 'transparent';
+      btn.style.color = '#90caf9';
+    }
+  });
+
+  const el = document.getElementById('inspector-content');
+  if (!el) return;
+
+  // Filter inspectors by shift
+  const filteredInspectors = shiftFilter === 'all' ? INSPECTORS : INSPECTORS.filter(i => i.shift === shiftFilter);
+
+  // Count defects per inspector
+  const insData = filteredInspectors.map(ins => {
+    const insDefects = defects.filter(d => d.op === ins.id);
+    const high = insDefects.filter(d => d.sev === 'HIGH').length;
+    const med = insDefects.filter(d => d.sev === 'MED').length;
+    const low = insDefects.filter(d => d.sev === 'LOW').length;
+    const total = insDefects.length;
+    // Missed points = HIGH × 3 + MED × 1
+    const missed = high * 3 + med * 1;
+    return {...ins, total, high, med, low, missed};
+  }).sort((a,b) => b.missed - a.missed);
+
+  const maxMissed = Math.max(...insData.map(i => i.missed), 1);
+
+  let html = '';
+
+  // Top 3 alert
+  const top3 = insData.slice(0,3).filter(i => i.missed > 0);
+  if (top3.length > 0) {
+    html += `<div style="background:rgba(255,61,90,0.08);border:1px solid rgba(255,61,90,0.3);border-radius:10px;padding:12px;margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:800;color:#ff3d5a;margin-bottom:8px;">🚨 Top Missed Points</div>
+      ${top3.map((i,idx) => `<div style="font-size:12px;color:#ffaa00;padding:3px 0;">
+        ${idx===0?'🥇':idx===1?'🥈':'🥉'} ${i.name} (${i.id}) — ${i.missed} missed pts | HIGH: ${i.high}
+      </div>`).join('')}
+    </div>`;
+  }
+
+  // Table
+  html += `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;">
+    <tr>
+      <th style="background:#1a3a6e;color:#fff;padding:8px;border:1px solid #2a4a8e;text-align:left;">Inspector</th>
+      <th style="background:#1a3a6e;color:#fff;padding:8px;border:1px solid #2a4a8e;">ID</th>
+      <th style="background:#1a3a6e;color:#fff;padding:8px;border:1px solid #2a4a8e;">Shift</th>
+      <th style="background:#1a3a6e;color:#fff;padding:8px;border:1px solid #2a4a8e;">Total</th>
+      <th style="background:#1a3a6e;color:#ff3d5a;padding:8px;border:1px solid #2a4a8e;">HIGH</th>
+      <th style="background:#1a3a6e;color:#ffaa00;padding:8px;border:1px solid #2a4a8e;">MED</th>
+      <th style="background:#1a3a6e;color:#fff;padding:8px;border:1px solid #2a4a8e;">Missed Pts</th>
+      <th style="background:#1a3a6e;color:#fff;padding:8px;border:1px solid #2a4a8e;min-width:100px;">Graph</th>
+    </tr>`;
+
+  insData.forEach((ins, idx) => {
+    const barW = maxMissed > 0 ? (ins.missed/maxMissed)*100 : 0;
+    const rowColor = ins.high >= 3 ? 'rgba(255,61,90,0.08)' : ins.high >= 1 ? 'rgba(255,170,0,0.06)' : 'transparent';
+    const missedColor = ins.high >= 3 ? '#ff3d5a' : ins.high >= 1 ? '#ffaa00' : '#00ff88';
+    html += `<tr style="background:${rowColor}">
+      <td style="padding:8px;border:1px solid #1e3050;color:#d4e8ff;font-weight:700;">${ins.name}</td>
+      <td style="padding:8px;border:1px solid #1e3050;text-align:center;color:#90caf9;">${ins.id}</td>
+      <td style="padding:8px;border:1px solid #1e3050;text-align:center;color:#00e5ff;">${ins.shift}</td>
+      <td style="padding:8px;border:1px solid #1e3050;text-align:center;font-weight:700;">${ins.total}</td>
+      <td style="padding:8px;border:1px solid #1e3050;text-align:center;color:#ff3d5a;font-weight:800;">${ins.high}</td>
+      <td style="padding:8px;border:1px solid #1e3050;text-align:center;color:#ffaa00;">${ins.med}</td>
+      <td style="padding:8px;border:1px solid #1e3050;text-align:center;color:${missedColor};font-weight:800;">${ins.missed}</td>
+      <td style="padding:8px;border:1px solid #1e3050;">
+        <div style="background:rgba(255,255,255,0.06);border-radius:4px;height:12px;overflow:hidden;">
+          <div style="width:${barW}%;height:100%;background:${missedColor};border-radius:4px;"></div>
+        </div>
+      </td>
+    </tr>`;
+  });
+  html += '</table></div>';
+
+  el.innerHTML = html;
+}
+
+function sendInspectorAlert() {
+  // Get top 5 inspectors with most missed points
+  const insData = INSPECTORS.map(ins => {
+    const insDefects = defects.filter(d => d.op === ins.id);
+    const high = insDefects.filter(d => d.sev === 'HIGH').length;
+    const med = insDefects.filter(d => d.sev === 'MED').length;
+    const missed = high * 3 + med * 1;
+    return {...ins, high, med, missed};
+  }).sort((a,b) => b.missed - a.missed).slice(0,5);
+
+  const telegramToken = '8626407803:AAHaOOIK_UILf5kTpYrBPt9yVHSs8y713TE';
+  const telegramChatId = '823556812';
+
+  const msg = encodeURIComponent(
+    '👤 INSPECTOR WISE TRACKING REPORT\n\n' +
+    '🏆 Top 5 Missed Points:\n\n' +
+    insData.map((ins,i) => 
+      (i===0?'🥇':i===1?'🥈':i===2?'🥉':'▪') + ' ' + ins.name + ' (' + ins.id + ')\n' +
+      '   Shift ' + ins.shift + ' | HIGH: ' + ins.high + ' | Missed: ' + ins.missed + ' pts'
+    ).join('\n\n') +
+    '\n\n— HemmTrack Pro V2'
+  );
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', 'https://api.telegram.org/bot' + telegramToken + '/sendMessage?chat_id=' + telegramChatId + '&text=' + msg, true);
+  xhr.onload = function() { showToast('📱 Inspector Report sent to Telegram!'); };
+  xhr.send();
+}
+
+// ============ ATTENDANCE TRACKER ============
+let attendanceData = JSON.parse(localStorage.getItem('ht2_attendance') || '{}');
+
+function loadAttendance() {
+  const weekStart = document.getElementById('att-week-start').value;
+  if (!weekStart) { showToast('⚠ Week start date select करा!'); return; }
+  renderAttendance(weekStart);
+}
+
+function getWeekDays(startDate) {
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const dates = [];
+  const start = new Date(startDate);
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    dates.push({
+      label: days[i],
+      date: d.toISOString().slice(0,10)
+    });
+  }
+  return dates;
+}
+
+function toggleAttendance(inspId, date) {
+  const key = inspId + '_' + date;
+  const current = attendanceData[key] || 'A';
+  attendanceData[key] = current === 'P' ? 'A' : current === 'A' ? 'L' : 'P';
+  
+  const btn = document.getElementById('att-' + key);
+  if (btn) {
+    const val = attendanceData[key];
+    btn.textContent = val;
+    btn.style.background = val === 'P' ? 'rgba(0,255,136,0.2)' : val === 'L' ? 'rgba(255,170,0,0.2)' : 'rgba(255,61,90,0.15)';
+    btn.style.color = val === 'P' ? '#00ff88' : val === 'L' ? '#ffaa00' : '#ff3d5a';
+  }
+}
+
+function saveAttendance() {
+  localStorage.setItem('ht2_attendance', JSON.stringify(attendanceData));
+  showToast('✅ Attendance saved!');
+}
+
+function renderAttendance(weekStart) {
+  const el = document.getElementById('attendance-content');
+  if (!el) return;
+
+  const weekDays = getWeekDays(weekStart);
+  
+  // Group inspectors by shift
+  const shiftGroups = {A: [], B: [], C: []};
+  INSPECTORS.forEach(ins => shiftGroups[ins.shift].push(ins));
+
+  let html = '<table style="border-collapse:collapse;font-size:11px;min-width:100%;">';
+  
+  // Header
+  html += '<tr><th style="background:#1a3a6e;color:#fff;padding:8px;border:1px solid #2a4a8e;text-align:left;min-width:130px;">Inspector</th>';
+  html += '<th style="background:#1a3a6e;color:#fff;padding:6px;border:1px solid #2a4a8e;min-width:40px;">ID</th>';
+  weekDays.forEach(d => {
+    html += `<th style="background:#1a3a6e;color:#fff;padding:6px;border:1px solid #2a4a8e;text-align:center;min-width:50px;">${d.label}<br><span style="font-size:9px;color:#90caf9;">${d.date.slice(5)}</span></th>`;
+  });
+  html += '<th style="background:#1a3a6e;color:#fff;padding:6px;border:1px solid #2a4a8e;">P</th>';
+  html += '<th style="background:#1a3a6e;color:#ff3d5a;padding:6px;border:1px solid #2a4a8e;">A</th>';
+  html += '</tr>';
+
+  ['A','B','C'].forEach(shift => {
+    // Shift header row
+    const shiftColors = {A:'#00e5ff', B:'#ffaa00', C:'#a855f7'};
+    html += `<tr><td colspan="${weekDays.length + 4}" style="background:rgba(0,0,0,0.3);color:${shiftColors[shift]};font-weight:900;padding:6px 10px;border:1px solid #2a4a8e;font-size:12px;letter-spacing:1px;">SHIFT ${shift}</td></tr>`;
+    
+    shiftGroups[shift].forEach(ins => {
+      let presentCount = 0, absentCount = 0;
+      html += `<tr>
+        <td style="padding:6px 8px;border:1px solid #1e3050;color:#d4e8ff;white-space:nowrap;">${ins.name}</td>
+        <td style="padding:6px;border:1px solid #1e3050;text-align:center;color:#90caf9;">${ins.id}</td>`;
+      
+      weekDays.forEach(d => {
+        const key = ins.id + '_' + d.date;
+        const val = attendanceData[key] || 'P';
+        if (val === 'P') presentCount++; else absentCount++;
+        const bg = val === 'P' ? 'rgba(0,255,136,0.2)' : val === 'L' ? 'rgba(255,170,0,0.2)' : 'rgba(255,61,90,0.15)';
+        const color = val === 'P' ? '#00ff88' : val === 'L' ? '#ffaa00' : '#ff3d5a';
+        html += `<td style="padding:4px;border:1px solid #1e3050;text-align:center;">
+          <button id="att-${key}" onclick="toggleAttendance('${ins.id}','${d.date}')" 
+            style="background:${bg};color:${color};border:none;border-radius:4px;padding:3px 8px;cursor:pointer;font-weight:700;font-size:11px;width:36px;">${val}</button>
+        </td>`;
+      });
+      
+      html += `<td style="padding:6px;border:1px solid #1e3050;text-align:center;color:#00ff88;font-weight:700;">${presentCount}</td>`;
+      html += `<td style="padding:6px;border:1px solid #1e3050;text-align:center;color:#ff3d5a;font-weight:700;">${absentCount}</td>`;
+      html += '</tr>';
+    });
+  });
+
+  html += '</table>';
+  html += '<div style="font-size:11px;color:#4a6fa5;margin-top:8px;">💡 P=Present | A=Absent | L=Leave — Click to toggle</div>';
+  
+  el.innerHTML = html;
+}
+
+function sendAttendanceEmail() {
+  const weekStart = document.getElementById('att-week-start').value;
+  if (!weekStart) { showToast('⚠ Week load करा आधी!'); return; }
+  
+  const weekDays = getWeekDays(weekStart);
+  
+  // Calculate attendance summary
+  let summary = '📅 WEEKLY ATTENDANCE REPORT\n';
+  summary += 'Week: ' + weekStart + '\n\n';
+  
+  const absentees = [];
+  INSPECTORS.forEach(ins => {
+    let absent = 0;
+    weekDays.forEach(d => {
+      const key = ins.id + '_' + d.date;
+      if ((attendanceData[key] || 'P') === 'A') absent++;
+    });
+    if (absent > 0) {
+      absentees.push(ins.name + ' (' + ins.id + ') — ' + absent + ' day(s) absent');
+    }
+  });
+
+  summary += '🔴 Absentees this week:\n';
+  if (absentees.length > 0) {
+    summary += absentees.join('\n');
+  } else {
+    summary += '✅ Full attendance!';
+  }
+  summary += '\n\n— HemmTrack Pro V2';
+
+  const telegramToken = '8626407803:AAHaOOIK_UILf5kTpYrBPt9yVHSs8y713TE';
+  const telegramChatId = '823556812';
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', 'https://api.telegram.org/bot' + telegramToken + '/sendMessage?chat_id=' + telegramChatId + '&text=' + encodeURIComponent(summary), true);
+  xhr.onload = function() { showToast('📱 Attendance Report sent!'); };
+  xhr.send();
+
+  showToast('📧 Sending attendance report...');
+}
+
+// ============ DASHBOARD EMAIL REPORT ============
+function sendDashboardEmail() {
+  const total = document.getElementById('kpi-total')?.textContent || '0';
+  const occ = document.getElementById('kpi-occ')?.textContent || '0%';
+  const alerts = document.getElementById('kpi-alerts')?.textContent || '0';
+  const today = document.getElementById('kpi-today')?.textContent || '0';
+
+  const now = new Date();
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dateStr = now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+
+  // Station wise summary
+  const stations = [...new Set(defects.map(d => d.mach))].filter(Boolean);
+  const stationSummary = stations.map(s => {
+    const sd = defects.filter(d => d.mach === s);
+    const h = sd.filter(d => d.sev === 'HIGH').length;
+    return s + ': ' + sd.length + ' defects, ' + h + ' HIGH';
+  }).join('\n');
+
+  // Top root cause
+  const rcCount = {};
+  defects.forEach(d => { const r = d.rc||'Unknown'; rcCount[r]=(rcCount[r]||0)+1; });
+  const topRC = Object.entries(rcCount).sort((a,b)=>b[1]-a[1])[0];
+
+  const msg = 
+    '📊 DASHBOARD REPORT — HemmTrack Pro\n' +
+    '📅 ' + dateStr + '\n\n' +
+    '📈 KPI SUMMARY\n' +
+    'Total Defects: ' + total + '\n' +
+    'OCC Rate: ' + occ + '\n' +
+    'Alerts: ' + alerts + '\n' +
+    'Today: ' + today + '\n\n' +
+    '🏭 Station Wise:\n' + stationSummary + '\n\n' +
+    '🔧 Top Root Cause: ' + (topRC ? topRC[0] + ' (' + topRC[1] + ')' : 'N/A') + '\n\n' +
+    '— HemmTrack Pro V2';
+
+  const telegramToken = '8626407803:AAHaOOIK_UILf5kTpYrBPt9yVHSs8y713TE';
+  const telegramChatId = '823556812';
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', 'https://api.telegram.org/bot' + telegramToken + '/sendMessage?chat_id=' + telegramChatId + '&text=' + encodeURIComponent(msg), true);
+  xhr.onload = function() { showToast('📱 Dashboard Report sent!'); };
+  xhr.send();
+
+  // Also EmailJS
+  const templateParams = {
+    date: dateStr, model: 'Dashboard Report',
+    shift: 'All Shifts', station: 'All Stations',
+    occ: occ, inspector: 'Auto Report',
+    name: 'HemmTrack Pro', email: 'sanketkukade111@gmail.com',
+    to_email: 'sanketkukade111@gmail.com',
+  };
+  emailjs.send('service_fjacfqq', 'template_7cumtm8', templateParams)
+    .then(() => showToast('📧 Dashboard email sent!'))
+    .catch(e => console.error(e));
+}
+
+
+// ============ ATTENDANCE CSV EXPORT ============
+function exportAttendanceCSV() {
+  const weekStart = document.getElementById('att-week-start').value;
+  if (!weekStart) { showToast('⚠ Week select करा!'); return; }
+
+  const weekDays = getWeekDays(weekStart);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const weekEnd = weekDays[6].date;
+
+  let csv = '';
+  // Title
+  csv += 'WEEKLY ATTENDANCE SHEET — HemmTrack Pro V2\n';
+  csv += 'Week: ' + weekStart + ' to ' + weekEnd + '\n';
+  csv += 'Generated: ' + new Date().toLocaleString('en-IN') + '\n\n';
+
+  // Header row
+  csv += 'Sr,Inspector Name,ID,Shift,' + weekDays.map(d => d.label + ' ' + d.date.slice(5)).join(',') + ',Present,Absent,Leave\n';
+
+  ['A','B','C'].forEach(shift => {
+    const shiftInspectors = INSPECTORS.filter(i => i.shift === shift);
+    csv += ',,,,SHIFT ' + shift + '\n';
+    shiftInspectors.forEach((ins, idx) => {
+      let present = 0, absent = 0, leave = 0;
+      const row = [(idx+1), ins.name, ins.id, 'Shift ' + shift];
+      weekDays.forEach(d => {
+        const val = attendanceData[ins.id + '_' + d.date] || 'P';
+        row.push(val);
+        if (val === 'P') present++;
+        else if (val === 'A') absent++;
+        else leave++;
+      });
+      row.push(present, absent, leave);
+      csv += row.join(',') + '\n';
+    });
+    csv += '\n';
+  });
+
+  // Summary
+  csv += '\nSUMMARY\n';
+  csv += 'Inspector,Total Present,Total Absent,Attendance %\n';
+  INSPECTORS.forEach(ins => {
+    let present = 0, absent = 0;
+    weekDays.forEach(d => {
+      const val = attendanceData[ins.id + '_' + d.date] || 'P';
+      if (val === 'P') present++; else absent++;
+    });
+    const pct = ((present/7)*100).toFixed(1);
+    csv += ins.name + ',' + present + ',' + absent + ',' + pct + '%\n';
+  });
+
+  // Download
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'Attendance_' + weekStart + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📊 Attendance Excel downloaded!');
+}
+
+// ============ INSPECTOR TRACKING CSV EXPORT ============
+function exportInspectorCSV() {
+  const insData = INSPECTORS.map(ins => {
+    const insDefects = defects.filter(d => d.op === ins.id);
+    const high = insDefects.filter(d => d.sev === 'HIGH').length;
+    const med = insDefects.filter(d => d.sev === 'MED').length;
+    const low = insDefects.filter(d => d.sev === 'LOW').length;
+    const total = insDefects.length;
+    const missed = high * 3 + med * 1;
+
+    // Station wise breakdown
+    const stationBreakdown = {};
+    insDefects.forEach(d => {
+      const s = d.mach || 'Unknown';
+      stationBreakdown[s] = (stationBreakdown[s]||0)+1;
+    });
+
+    return {...ins, total, high, med, low, missed, stationBreakdown};
+  }).sort((a,b) => b.missed - a.missed);
+
+  let csv = '';
+  csv += 'INSPECTOR WISE TRACKING REPORT — HemmTrack Pro V2\n';
+  csv += 'Generated: ' + new Date().toLocaleString('en-IN') + '\n\n';
+
+  csv += 'Rank,Inspector Name,ID,Shift,Total Defects,HIGH,MEDIUM,LOW,Missed Points,Status\n';
+
+  insData.forEach((ins, idx) => {
+    const status = ins.high >= 3 ? 'CRITICAL' : ins.high >= 1 ? 'WARNING' : 'OK';
+    csv += (idx+1) + ',' + ins.name + ',' + ins.id + ',Shift ' + ins.shift + ',' +
+      ins.total + ',' + ins.high + ',' + ins.med + ',' + ins.low + ',' + ins.missed + ',' + status + '\n';
+  });
+
+  // Shift wise summary
+  csv += '\nSHIFT WISE SUMMARY\n';
+  csv += 'Shift,Total Defects,HIGH,MED,LOW,Total Missed Points\n';
+  ['A','B','C'].forEach(shift => {
+    const shiftIns = insData.filter(i => i.shift === shift);
+    const total = shiftIns.reduce((s,i)=>s+i.total,0);
+    const high = shiftIns.reduce((s,i)=>s+i.high,0);
+    const med = shiftIns.reduce((s,i)=>s+i.med,0);
+    const low = shiftIns.reduce((s,i)=>s+i.low,0);
+    const missed = shiftIns.reduce((s,i)=>s+i.missed,0);
+    csv += 'Shift ' + shift + ',' + total + ',' + high + ',' + med + ',' + low + ',' + missed + '\n';
+  });
+
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'Inspector_Tracking_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📊 Inspector Report Excel downloaded!');
+}
+
+
+// ============ DASHBOARD PDF EXPORT ============
+function exportDashboardPDF() {
+  const now = new Date();
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const dateStr = now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+  const timeStr = now.toLocaleTimeString('en-IN');
+
+  // Get KPI values
+  const total = document.getElementById('kpi-total')?.textContent || '0';
+  const occ = document.getElementById('kpi-occ')?.textContent || '0%';
+  const alerts = document.getElementById('kpi-alerts')?.textContent || '0';
+  const today = document.getElementById('kpi-today')?.textContent || '0';
+
+  // Calculate data
+  const high = defects.filter(d=>d.sev==='HIGH').length;
+  const med = defects.filter(d=>d.sev==='MED').length;
+  const low = defects.filter(d=>d.sev==='LOW').length;
+
+  // Station wise
+  const stations = {};
+  defects.forEach(d=>{const s=d.mach||'Unknown';stations[s]=(stations[s]||0)+1;});
+  const stationEntries = Object.entries(stations).sort((a,b)=>b[1]-a[1]);
+  const maxSt = Math.max(...stationEntries.map(e=>e[1]),1);
+
+  // Root cause wise
+  const rcs = {};
+  defects.forEach(d=>{const r=d.rc||'Unknown';rcs[r]=(rcs[r]||0)+1;});
+  const rcEntries = Object.entries(rcs).sort((a,b)=>b[1]-a[1]);
+  const maxRC = Math.max(...rcEntries.map(e=>e[1]),1);
+
+  // Shift wise
+  const shiftData = {A:0, B:0, C:0};
+  defects.forEach(d=>{
+    if(d.shift&&d.shift.includes('A')) shiftData.A++;
+    else if(d.shift&&d.shift.includes('B')) shiftData.B++;
+    else if(d.shift&&d.shift.includes('C')) shiftData.C++;
+  });
+
+  // Monthly data
+  const monthlyOCC = {};
+  defects.forEach(d=>{
+    if(!d.datetime) return;
+    const dt = new Date(d.datetime);
+    if(isNaN(dt)) return;
+    const key = months[dt.getMonth()].slice(0,3)+' '+dt.getFullYear();
+    if(!monthlyOCC[key]) monthlyOCC[key]={def:0,prod:0};
+    monthlyOCC[key].def++;
+    monthlyOCC[key].prod += parseInt(d.prod)||250;
+  });
+
+  // Defect type wise
+  const dtypes = {};
+  defects.forEach(d=>{const t=d.dtype||'Unknown';dtypes[t]=(dtypes[t]||0)+1;});
+  const dtypeEntries = Object.entries(dtypes).sort((a,b)=>b[1]-a[1]);
+
+  const occNum = parseFloat(occ) || 0;
+  const occColor = occNum <= 2 ? '#00aa44' : occNum <= 5 ? '#cc8800' : '#cc0000';
+  const occStatus = occNum <= 2 ? '✅ NORMAL' : occNum <= 5 ? '⚠ WARNING' : '🔴 CRITICAL';
+
+  // Bar chart helper
+  function barChart(entries, maxVal, colors) {
+    return entries.map((e,i) => {
+      const w = maxVal > 0 ? (e[1]/maxVal)*100 : 0;
+      const col = Array.isArray(colors) ? colors[i%colors.length] : colors;
+      return `<div style="margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+          <span style="font-size:12px;font-weight:600;color:#333;">${e[0]}</span>
+          <span style="font-size:12px;font-weight:700;color:${col};">${e[1]}</span>
+        </div>
+        <div style="background:#e0e0e0;border-radius:4px;height:14px;overflow:hidden;">
+          <div style="width:${w}%;height:100%;background:${col};border-radius:4px;"></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Donut chart for severity (SVG)
+  const totalSev = high + med + low || 1;
+  const highPct = (high/totalSev)*100;
+  const medPct = (med/totalSev)*100;
+  const lowPct = (low/totalSev)*100;
+
+  function svgDonut(h,m,l,tot) {
+    const r = 60, cx = 80, cy = 80, stroke = 22;
+    const circ = 2*Math.PI*r;
+    function slice(pct, offset, color) {
+      const dash = (pct/100)*circ;
+      return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" 
+        stroke-width="${stroke}" stroke-dasharray="${dash} ${circ}" 
+        stroke-dashoffset="${-offset*(circ/100)}" transform="rotate(-90 ${cx} ${cy})"/>`;
+    }
+    const o1=0, o2=highPct, o3=highPct+medPct;
+    return `<svg width="160" height="160" viewBox="0 0 160 160">
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#e0e0e0" stroke-width="${stroke}"/>
+      ${slice(highPct,o1,'#ff3d5a')}
+      ${slice(medPct,o2,'#ffaa00')}
+      ${slice(lowPct,o3,'#00bb66')}
+      <text x="${cx}" y="${cy-8}" text-anchor="middle" font-size="20" font-weight="bold" fill="#222">${tot}</text>
+      <text x="${cx}" y="${cy+12}" text-anchor="middle" font-size="11" fill="#666">Total</text>
+    </svg>`;
+  }
+
+  // Monthly trend bars
+  const monthKeys = Object.keys(monthlyOCC);
+  const monthBars = monthKeys.map(k => {
+    const occ = monthlyOCC[k].prod > 0 ? ((monthlyOCC[k].def/monthlyOCC[k].prod)*100).toFixed(2) : '0';
+    const col = parseFloat(occ) <= 2 ? '#00bb66' : parseFloat(occ) <= 5 ? '#cc8800' : '#cc0000';
+    const h = Math.max((parseFloat(occ)/10)*80, 4);
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:60px;">
+      <div style="font-size:11px;font-weight:700;color:${col};">${occ}%</div>
+      <div style="width:40px;height:${h}px;background:${col};border-radius:4px 4px 0 0;"></div>
+      <div style="font-size:10px;color:#666;text-align:center;">${k}</div>
+    </div>`;
+  }).join('');
+
+  const reportHTML = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>HemmTrack Pro — Dashboard Report</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:Arial,sans-serif; background:#f5f5f5; color:#333; }
+  .page { max-width:900px; margin:0 auto; background:#fff; }
+  @media print {
+    body { background:#fff; }
+    .no-print { display:none; }
+    .page { box-shadow:none; }
+    @page { margin:15mm; size:A4; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div style="background:linear-gradient(135deg,#0a1628,#1a3a6e);padding:24px 28px;color:#fff;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+      <div>
+        <div style="font-size:22px;font-weight:900;letter-spacing:2px;">🔩 HemmTrack Pro V2</div>
+        <div style="font-size:13px;color:#90caf9;margin-top:4px;">Dashboard Quality Report — Rear Door Hemming</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:13px;color:#00e5ff;font-weight:700;">${dateStr}</div>
+        <div style="font-size:11px;color:#90caf9;">Generated: ${timeStr}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:20px 28px 0;">
+    <div style="border:2px solid #00aacc;border-radius:10px;padding:14px;text-align:center;background:#f0faff;">
+      <div style="font-size:11px;color:#666;letter-spacing:1px;text-transform:uppercase;">Total Defects</div>
+      <div style="font-size:32px;font-weight:900;color:#0066aa;">${total}</div>
+    </div>
+    <div style="border:2px solid ${occColor};border-radius:10px;padding:14px;text-align:center;background:#fff9f0;">
+      <div style="font-size:11px;color:#666;letter-spacing:1px;text-transform:uppercase;">OCC Rate</div>
+      <div style="font-size:32px;font-weight:900;color:${occColor};">${occ}</div>
+      <div style="font-size:11px;color:${occColor};">${occStatus}</div>
+    </div>
+    <div style="border:2px solid #cc3344;border-radius:10px;padding:14px;text-align:center;background:#fff0f0;">
+      <div style="font-size:11px;color:#666;letter-spacing:1px;text-transform:uppercase;">HIGH Severity</div>
+      <div style="font-size:32px;font-weight:900;color:#cc3344;">${high}</div>
+    </div>
+    <div style="border:2px solid #00aa66;border-radius:10px;padding:14px;text-align:center;background:#f0fff5;">
+      <div style="font-size:11px;color:#666;letter-spacing:1px;text-transform:uppercase;">Today's Defects</div>
+      <div style="font-size:32px;font-weight:900;color:#00aa66;">${today}</div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 1 -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px 28px 0;">
+
+    <!-- Severity Donut -->
+    <div style="border:1px solid #ddd;border-radius:10px;padding:16px;">
+      <div style="font-size:14px;font-weight:700;color:#333;margin-bottom:12px;border-bottom:2px solid #0066aa;padding-bottom:6px;">📊 Severity Distribution</div>
+      <div style="display:flex;align-items:center;gap:16px;">
+        ${svgDonut(high,med,low,parseInt(total))}
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <div style="width:14px;height:14px;background:#ff3d5a;border-radius:3px;"></div>
+            <span style="font-size:13px;">HIGH: <b>${high}</b> (${totalSev>0?((high/totalSev)*100).toFixed(1):0}%)</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <div style="width:14px;height:14px;background:#ffaa00;border-radius:3px;"></div>
+            <span style="font-size:13px;">MEDIUM: <b>${med}</b> (${totalSev>0?((med/totalSev)*100).toFixed(1):0}%)</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:14px;height:14px;background:#00bb66;border-radius:3px;"></div>
+            <span style="font-size:13px;">LOW: <b>${low}</b> (${totalSev>0?((low/totalSev)*100).toFixed(1):0}%)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shift Wise -->
+    <div style="border:1px solid #ddd;border-radius:10px;padding:16px;">
+      <div style="font-size:14px;font-weight:700;color:#333;margin-bottom:12px;border-bottom:2px solid #0066aa;padding-bottom:6px;">🔄 Shift Wise Defects</div>
+      ${barChart(
+        [['Shift A',shiftData.A],['Shift B',shiftData.B],['Shift C',shiftData.C]],
+        Math.max(shiftData.A,shiftData.B,shiftData.C,1),
+        ['#00aacc','#ffaa00','#a855f7']
+      )}
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 2 -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px 28px 0;">
+
+    <!-- Station Wise -->
+    <div style="border:1px solid #ddd;border-radius:10px;padding:16px;">
+      <div style="font-size:14px;font-weight:700;color:#333;margin-bottom:12px;border-bottom:2px solid #0066aa;padding-bottom:6px;">🏭 Station Wise Defects</div>
+      ${barChart(stationEntries, maxSt, ['#0066aa','#0088cc','#00aaee','#00ccff','#33ddff'])}
+    </div>
+
+    <!-- Root Cause -->
+    <div style="border:1px solid #ddd;border-radius:10px;padding:16px;">
+      <div style="font-size:14px;font-weight:700;color:#333;margin-bottom:12px;border-bottom:2px solid #cc3344;padding-bottom:6px;">🔧 Root Cause Analysis</div>
+      ${barChart(rcEntries.slice(0,5), maxRC, ['#cc3344','#ee5533','#ff7700','#cc8800','#aa9900'])}
+    </div>
+  </div>
+
+  <!-- MONTHLY TREND -->
+  <div style="padding:16px 28px 0;">
+    <div style="border:1px solid #ddd;border-radius:10px;padding:16px;">
+      <div style="font-size:14px;font-weight:700;color:#333;margin-bottom:12px;border-bottom:2px solid #00aa66;padding-bottom:6px;">📅 Monthly OCC Trend</div>
+      <div style="display:flex;gap:16px;align-items:flex-end;overflow-x:auto;padding:8px 0;">
+        ${monthBars || '<div style="color:#999;font-size:13px;">Data नाही</div>'}
+      </div>
+      <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap;">
+        <div style="font-size:11px;color:#666;">🟢 ≤2% Normal &nbsp; 🟡 2-5% Warning &nbsp; 🔴 >5% Critical</div>
+        <div style="font-size:11px;color:#333;font-weight:700;">Target: ≤ 2%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEFECT TYPE TABLE -->
+  <div style="padding:16px 28px 0;">
+    <div style="border:1px solid #ddd;border-radius:10px;padding:16px;">
+      <div style="font-size:14px;font-weight:700;color:#333;margin-bottom:12px;border-bottom:2px solid #aa5500;padding-bottom:6px;">🔍 Defect Type Summary</div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <tr style="background:#0a1628;color:#fff;">
+          <th style="padding:8px 10px;text-align:left;border:1px solid #ddd;">Defect Type</th>
+          <th style="padding:8px 10px;border:1px solid #ddd;">Count</th>
+          <th style="padding:8px 10px;border:1px solid #ddd;">% Share</th>
+          <th style="padding:8px 10px;border:1px solid #ddd;">HIGH</th>
+          <th style="padding:8px 10px;border:1px solid #ddd;">Trend</th>
+        </tr>
+        ${dtypeEntries.map((e,i)=>{
+          const pct = parseInt(total)>0 ? ((e[1]/parseInt(total))*100).toFixed(1) : '0';
+          const dHigh = defects.filter(d=>d.dtype===e[0]&&d.sev==='HIGH').length;
+          const barW = (e[1]/maxSt)*100;
+          const rowBg = i%2===0 ? '#f9f9f9' : '#fff';
+          return `<tr style="background:${rowBg};">
+            <td style="padding:8px 10px;border:1px solid #eee;font-weight:600;">${e[0]}</td>
+            <td style="padding:8px 10px;border:1px solid #eee;text-align:center;font-weight:700;">${e[1]}</td>
+            <td style="padding:8px 10px;border:1px solid #eee;text-align:center;">${pct}%</td>
+            <td style="padding:8px 10px;border:1px solid #eee;text-align:center;color:#cc3344;font-weight:700;">${dHigh}</td>
+            <td style="padding:8px 10px;border:1px solid #eee;">
+              <div style="background:#e0e0e0;border-radius:4px;height:8px;width:100%;overflow:hidden;">
+                <div style="width:${pct}%;height:100%;background:#0066aa;border-radius:4px;"></div>
+              </div>
+            </td>
+          </tr>`;
+        }).join('')}
+      </table>
+    </div>
+  </div>
+
+  <!-- BEFORE VS AFTER -->
+  <div style="padding:16px 28px 0;">
+    <div style="border:1px solid #ddd;border-radius:10px;padding:16px;">
+      <div style="font-size:14px;font-weight:700;color:#333;margin-bottom:12px;border-bottom:2px solid #00aa66;padding-bottom:6px;">📈 Before vs After Improvement</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div style="background:#fff0f0;border:2px solid #cc3344;border-radius:8px;padding:14px;text-align:center;">
+          <div style="font-size:12px;color:#cc3344;font-weight:700;margin-bottom:6px;">⚠ BEFORE IMPROVEMENT</div>
+          <div style="font-size:36px;font-weight:900;color:#cc3344;">8.2%</div>
+          <div style="font-size:11px;color:#999;margin-top:4px;">OCC Rate (Feb 2025)</div>
+        </div>
+        <div style="background:#f0fff5;border:2px solid #00aa66;border-radius:8px;padding:14px;text-align:center;">
+          <div style="font-size:12px;color:#00aa66;font-weight:700;margin-bottom:6px;">✅ AFTER IMPROVEMENT</div>
+          <div style="font-size:36px;font-weight:900;color:#00aa66;">1.4%</div>
+          <div style="font-size:11px;color:#999;margin-top:4px;">OCC Rate (Mar 2026)</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:12px;font-size:20px;font-weight:900;color:#0066aa;">83% ↓ Improvement Achieved</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div style="padding:16px 28px 20px;margin-top:16px;border-top:2px solid #e0e0e0;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:#0066aa;">Sanket Kukade</div>
+        <div style="font-size:11px;color:#666;">M.Tech — Manufacturing Engineering | DYPIU Pune</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:11px;color:#666;">Project: Reduction of Open Hem Defects</div>
+        <div style="font-size:11px;color:#666;">Rear Door Hemming Process — Tata Motors PVBU</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:13px;font-weight:700;color:#0066aa;">HemmTrack Pro V2</div>
+        <div style="font-size:11px;color:#666;">HTML5 · CSS3 · JavaScript</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Print button (hidden in print) -->
+<div class="no-print" style="text-align:center;padding:20px;background:#f5f5f5;">
+  <button onclick="window.print()" style="padding:12px 32px;background:#0066aa;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;margin-right:10px;">🖨️ Print / Save as PDF</button>
+  <button onclick="window.close()" style="padding:12px 24px;background:#666;color:#fff;border:none;border-radius:8px;font-size:15px;cursor:pointer;">✕ Close</button>
+</div>
+
+</body>
+</html>`;
+
+  // Open in new tab
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(reportHTML);
+  printWindow.document.close();
+  showToast('📄 PDF Report opened! Print करा → Save as PDF');
+}
+
+
+// ============ ATTENDANCE DATE RANGE ============
+function loadAttendanceRange() {
+  const from = document.getElementById('att-from').value;
+  const to = document.getElementById('att-to').value;
+  if (!from || !to) { showToast('⚠ From आणि To date select करा!'); return; }
+  if (from > to) { showToast('⚠ From date To पेक्षा आधी असायला हवी!'); return; }
+  
+  const days = getDateRange(from, to);
+  if (days.length > 14) { showToast('⚠ जास्तीत जास्त 14 दिवस select करा!'); return; }
+  
+  renderAttendanceRange(from, to, days);
+  checkContinuousAbsent();
+}
+
+function getDateRange(from, to) {
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const days = [];
+  const start = new Date(from);
+  const end = new Date(to);
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate()+1)) {
+    days.push({
+      label: dayNames[d.getDay()],
+      date: d.toISOString().slice(0,10)
+    });
+  }
+  return days;
+}
+
+function renderAttendanceRange(from, to, days) {
+  const el = document.getElementById('attendance-content');
+  if (!el) return;
+  
+  // Also update hidden input for compatibility
+  document.getElementById('att-week-start').value = from;
+
+  let html = '<table style="border-collapse:collapse;font-size:11px;min-width:100%;">';
+  
+  // Header
+  html += '<tr>';
+  html += '<th style="background:#1a3a6e;color:#fff;padding:8px;border:1px solid #2a4a8e;text-align:left;min-width:130px;position:sticky;left:0;z-index:1;">Inspector</th>';
+  html += '<th style="background:#1a3a6e;color:#fff;padding:6px;border:1px solid #2a4a8e;min-width:40px;">ID</th>';
+  html += '<th style="background:#1a3a6e;color:#fff;padding:6px;border:1px solid #2a4a8e;min-width:40px;">Shift</th>';
+  days.forEach(d => {
+    const isWeekend = d.label === 'Sun' || d.label === 'Sat';
+    const bg = isWeekend ? '#2a1a4e' : '#1a3a6e';
+    html += `<th style="background:${bg};color:#fff;padding:6px;border:1px solid #2a4a8e;text-align:center;min-width:52px;">
+      ${d.label}<br><span style="font-size:9px;color:#90caf9;">${d.date.slice(5)}</span>
+    </th>`;
+  });
+  html += '<th style="background:#1a3a6e;color:#00ff88;padding:6px;border:1px solid #2a4a8e;">P</th>';
+  html += '<th style="background:#1a3a6e;color:#ff3d5a;padding:6px;border:1px solid #2a4a8e;">A</th>';
+  html += '<th style="background:#1a3a6e;color:#ffaa00;padding:6px;border:1px solid #2a4a8e;">L</th>';
+  html += '<th style="background:#1a3a6e;color:#ff3d5a;padding:6px;border:1px solid #2a4a8e;min-width:60px;">Status</th>';
+  html += '</tr>';
+
+  ['A','B','C'].forEach(shift => {
+    const shiftColors = {A:'#00e5ff',B:'#ffaa00',C:'#a855f7'};
+    html += `<tr><td colspan="${days.length + 7}" style="background:rgba(0,0,0,0.4);color:${shiftColors[shift]};font-weight:900;padding:6px 10px;border:1px solid #2a4a8e;font-size:12px;letter-spacing:1px;">SHIFT ${shift}</td></tr>`;
+    
+    INSPECTORS.filter(i=>i.shift===shift).forEach(ins => {
+      let present=0, absent=0, leave=0;
+      let continuousAbsent = 0, maxContinuous = 0;
+      
+      html += `<tr>
+        <td style="padding:6px 8px;border:1px solid #1e3050;color:#d4e8ff;white-space:nowrap;position:sticky;left:0;background:#0f1928;z-index:1;">${ins.name}</td>
+        <td style="padding:6px;border:1px solid #1e3050;text-align:center;color:#90caf9;">${ins.id}</td>
+        <td style="padding:6px;border:1px solid #1e3050;text-align:center;color:${shiftColors[shift]};">${shift}</td>`;
+      
+      days.forEach(d => {
+        const key = ins.id + '_' + d.date;
+        const val = attendanceData[key] || 'P';
+        if (val==='P'){present++;continuousAbsent=0;}
+        else if (val==='A'){absent++;continuousAbsent++;maxContinuous=Math.max(maxContinuous,continuousAbsent);}
+        else {leave++;continuousAbsent=0;}
+        
+        const bg = val==='P' ? 'rgba(0,255,136,0.15)' : val==='L' ? 'rgba(255,170,0,0.15)' : 'rgba(255,61,90,0.15)';
+        const color = val==='P' ? '#00ff88' : val==='L' ? '#ffaa00' : '#ff3d5a';
+        html += `<td style="padding:3px;border:1px solid #1e3050;text-align:center;">
+          <button id="att-${key}" onclick="toggleAttendance('${ins.id}','${d.date}')" 
+            style="background:${bg};color:${color};border:none;border-radius:4px;padding:3px 6px;cursor:pointer;font-weight:700;font-size:11px;width:36px;">${val}</button>
+        </td>`;
+      });
+      
+      // Status badge
+      let statusBadge = '';
+      if (maxContinuous >= 6) {
+        statusBadge = '<span style="background:rgba(255,0,0,0.3);color:#ff3d5a;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;">🚨 TERMINATE</span>';
+      } else if (maxContinuous >= 3) {
+        statusBadge = '<span style="background:rgba(255,170,0,0.2);color:#ffaa00;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;">⚠ WARNING</span>';
+      } else if (absent > 0) {
+        statusBadge = '<span style="background:rgba(255,61,90,0.1);color:#ff6666;padding:2px 6px;border-radius:4px;font-size:10px;">● Absent</span>';
+      } else {
+        statusBadge = '<span style="background:rgba(0,255,136,0.1);color:#00ff88;padding:2px 6px;border-radius:4px;font-size:10px;">✓ OK</span>';
+      }
+      
+      html += `<td style="padding:6px;border:1px solid #1e3050;text-align:center;color:#00ff88;font-weight:700;">${present}</td>`;
+      html += `<td style="padding:6px;border:1px solid #1e3050;text-align:center;color:#ff3d5a;font-weight:700;">${absent}</td>`;
+      html += `<td style="padding:6px;border:1px solid #1e3050;text-align:center;color:#ffaa00;font-weight:700;">${leave}</td>`;
+      html += `<td style="padding:6px;border:1px solid #1e3050;text-align:center;">${statusBadge}</td>`;
+      html += '</tr>';
+    });
+  });
+
+  html += '</table>';
+  html += '<div style="font-size:11px;color:#4a6fa5;margin-top:8px;">💡 P=Present | A=Absent | L=Leave — Click to toggle | 🚨 6+ continuous absent = Termination alert</div>';
+  
+  el.innerHTML = html;
+
+  // Check and show termination alerts
+  checkContinuousAbsent(days);
+}
+
+// Check for continuous absent - send termination mail
+function checkContinuousAbsent(days) {
+  if (!days || days.length === 0) return;
+  
+  const terminationList = [];
+  
+  INSPECTORS.forEach(ins => {
+    let continuousAbsent = 0, maxContinuous = 0;
+    let absentStartDate = '';
+    
+    days.forEach(d => {
+      const key = ins.id + '_' + d.date;
+      const val = attendanceData[key] || 'P';
+      if (val === 'A') {
+        if (continuousAbsent === 0) absentStartDate = d.date;
+        continuousAbsent++;
+        maxContinuous = Math.max(maxContinuous, continuousAbsent);
+      } else {
+        continuousAbsent = 0;
+      }
+    });
+    
+    if (maxContinuous >= 6) {
+      terminationList.push({...ins, absentDays: maxContinuous, from: absentStartDate});
+    }
+  });
+
+  // Update summary
+  const sumEl = document.getElementById('att-summary');
+  if (sumEl) {
+    if (terminationList.length > 0) {
+      sumEl.innerHTML = '<span style="color:#ff3d5a;font-weight:700;">🚨 ' + terminationList.length + ' inspector(s) have 6+ continuous absent days — Termination alert required!</span>';
+    } else {
+      sumEl.innerHTML = '<span style="color:#00ff88;">✅ No termination alerts</span>';
+    }
+  }
+
+  // Show termination warning in UI only - don't auto-send on page load
+  if (terminationList.length > 0) {
+    const sumEl2 = document.getElementById('att-summary');
+    if (sumEl2) {
+      sumEl2.innerHTML += '<br><button onclick="sendTerminationAlert(window._terminationList)" style="margin-top:8px;padding:6px 14px;border-radius:6px;border:none;background:#cc0000;color:#fff;font-weight:700;cursor:pointer;font-size:12px;">🚨 Send Termination Alert</button>';
+    }
+    window._terminationList = terminationList;
+  }
+}
+
+function sendTerminationAlert(terminationList) {
+  const today = new Date().toLocaleDateString('en-IN', {day:'2-digit', month:'long', year:'numeric'});
+  
+  terminationList.forEach(ins => {
+    // EmailJS termination mail
+    const subject = 'Termination Notice — ' + ins.name + ' (' + ins.id + ')';
+    const body = `Dear Sir/Madam,
+
+This is to formally inform you that the services of Mr./Ms. ${ins.name} (Inspector ID: ${ins.id}), who was working as an Inspector in Rear Door Hemming Department, Tata Motors PVBU Pune, have been terminated with effect from ${today}.
+
+This action has been taken after due consideration and in accordance with the applicable organizational policies and administrative procedures. Mr./Ms. ${ins.name} has been absent continuously for ${ins.absentDays} working days without prior intimation or approval, which is in violation of organizational attendance policies.
+
+Mr./Ms. ${ins.name} has been instructed to hand over all official documents, responsibilities, and any organizational property in their possession to the concerned authority.
+
+You are kindly requested to update the relevant records and take necessary administrative action as required.
+
+Thank you for your cooperation.
+
+Yours sincerely,
+Sanket Kukade
+Quality Engineer — Hemming Department
+Tata Motors PVBU, Pune
+Contact: 7378356368
+Email: sanketkukade111@gmail.com`;
+
+    // Send Termination via EmailJS
+    const templateParams = {
+      date: today,
+      model: 'TERMINATION NOTICE — ' + ins.name,
+      shift: 'Shift ' + ins.shift + ' | ID: ' + ins.id,
+      station: 'Rear Door Hemming Dept.',
+      occ: ins.absentDays + ' continuous days absent',
+      inspector: ins.name + ' (' + ins.id + ')',
+      name: 'HemmTrack Pro',
+      email: 'sanketkukade111@gmail.com',
+      to_email: 'sanketkukade111@gmail.com',
+    };
+
+    emailjs.send('service_fjacfqq', 'template_7cumtm8', templateParams)
+      .then(() => {
+        showToast('🚨 Termination mail sent for ' + ins.name + '!');
+        showTerminationLetter(ins, today);
+      })
+      .catch(e => {
+        showToast('⚠ Email failed — check internet');
+        showTerminationLetter(ins, today);
+      });
+
+    // Telegram alert
+    const telegramToken = '8626407803:AAHaOOIK_UILf5kTpYrBPt9yVHSs8y713TE';
+    const telegramChatId = '823556812';
+    const tgMsg = encodeURIComponent(
+      '🚨 TERMINATION ALERT\n\n' +
+      'Inspector: ' + ins.name + ' (' + ins.id + ')\n' +
+      'Shift: ' + ins.shift + '\n' +
+      'Continuous Absent: ' + ins.absentDays + ' days\n' +
+      'From: ' + ins.from + '\n\n' +
+      'Immediate HR action required!\n' +
+      '— HemmTrack Pro V2'
+    );
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', 'https://api.telegram.org/bot' + telegramToken + '/sendMessage?chat_id=' + telegramChatId + '&text=' + tgMsg, true);
+    xhr.send();
+  });
+}
+
+
+// Pre-load continuous absent sample data
+(function() {
+  const stored = localStorage.getItem('ht2_attendance');
+  const existingData = stored ? JSON.parse(stored) : {};
+  
+  // Ganesh Patil (1001) - continuous absent March 9-14 (6 days)
+  ['2026-03-09','2026-03-10','2026-03-11','2026-03-12','2026-03-13','2026-03-14'].forEach(d => {
+    existingData['1001_' + d] = 'A';
+  });
+  
+  // Nilesh Shinde (1002) - continuous absent March 9-14 (6 days)
+  ['2026-03-09','2026-03-10','2026-03-11','2026-03-12','2026-03-13','2026-03-14'].forEach(d => {
+    existingData['1002_' + d] = 'A';
+  });
+  
+  localStorage.setItem('ht2_attendance', JSON.stringify(existingData));
+  attendanceData = existingData;
+})();
+
+
+// ============ TERMINATION LETTER POPUP ============
+function showTerminationLetter(ins, today) {
+  const letterHTML = `
+  <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;" id="term-popup">
+    <div style="background:#fff;border-radius:12px;padding:0;max-width:600px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 0 40px rgba(255,0,0,0.3);">
+      
+      <!-- Letter Header -->
+      <div style="background:linear-gradient(135deg,#8b0000,#cc0000);padding:16px 24px;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center;">
+        <div style="color:#fff;font-weight:900;font-size:16px;">🚨 TERMINATION NOTICE</div>
+        <button onclick="document.getElementById('term-popup').remove()" style="background:transparent;border:1px solid rgba(255,255,255,0.5);color:#fff;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:13px;">✕ Close</button>
+      </div>
+      
+      <!-- Letter Body -->
+      <div style="padding:28px 32px;font-family:'Times New Roman',serif;color:#000;line-height:1.8;font-size:14px;">
+        
+        <div style="text-align:right;margin-bottom:20px;">
+          <div style="font-weight:700;">Date: ${today}</div>
+          <div>Ref: HTP/TERM/${ins.id}/${new Date().getFullYear()}</div>
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <div style="font-weight:700;">To,</div>
+          <div>Mr./Ms. ${ins.name}</div>
+          <div>Inspector ID: ${ins.id}</div>
+          <div>Shift ${ins.shift} — Rear Door Hemming</div>
+          <div>Tata Motors PVBU, Pune</div>
+        </div>
+
+        <div style="text-align:center;font-weight:900;font-size:16px;text-decoration:underline;margin-bottom:16px;">
+          SUBJECT: TERMINATION OF SERVICES
+        </div>
+
+        <p style="margin-bottom:14px;">Dear Sir/Madam,</p>
+
+        <p style="margin-bottom:14px;">This is to formally inform you that the services of <strong>Mr./Ms. ${ins.name}</strong>, who was working as an Inspector in <strong>Rear Door Hemming Department, Tata Motors PVBU, Pune</strong>, have been terminated with effect from <strong>${today}</strong>.</p>
+
+        <p style="margin-bottom:14px;">This action has been taken after due consideration and in accordance with the applicable organizational policies and administrative procedures. <strong>Mr./Ms. ${ins.name}</strong> has been absent continuously for <strong>${ins.absentDays} working days</strong> without prior intimation or approval, which is in violation of organizational attendance policies.</p>
+
+        <p style="margin-bottom:14px;"><strong>Mr./Ms. ${ins.name}</strong> has been instructed to hand over all official documents, responsibilities, and any organizational property in their possession to the concerned authority.</p>
+
+        <p style="margin-bottom:20px;">You are kindly requested to update the relevant records and take necessary administrative action as required.</p>
+
+        <p style="margin-bottom:4px;">Thank you for your cooperation.</p>
+
+        <div style="margin-top:28px;">
+          <div>Yours sincerely,</div>
+          <div style="margin-top:40px;">
+            <div style="font-weight:700;font-size:15px;">Sanket</div>
+            <div>Weld Shop Quality Engineer</div>
+          </div>
+        </div>
+
+        <div style="margin-top:24px;padding:12px;background:#fff0f0;border:1px solid #cc0000;border-radius:8px;font-size:12px;color:#cc0000;">
+          <strong>⚠ Note:</strong> This letter has been auto-generated by HemmTrack Pro V2 based on attendance records showing ${ins.absentDays} continuous absent days.
+        </div>
+      </div>
+
+      <!-- Print Button -->
+      <div style="padding:16px 24px;border-top:1px solid #eee;display:flex;gap:10px;justify-content:center;">
+        <button onclick="printTerminationLetter()" style="padding:10px 24px;background:#cc0000;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px;">🖨️ Print Letter</button>
+        <button onclick="document.getElementById('term-popup').remove()" style="padding:10px 20px;background:#666;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;">✕ Close</button>
+      </div>
+    </div>
+  </div>`;
+
+  document.body.insertAdjacentHTML('beforeend', letterHTML);
+}
+
+function printTerminationLetter() {
+  const content = document.querySelector('#term-popup .padding\:28px');
+  window.print();
 }
 
 </script>
