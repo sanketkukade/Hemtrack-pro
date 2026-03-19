@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HemmTrack Pro — Live Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  /* ══════════════════════════════════════════
+     CSS VARIABLES & RESET
+  ══════════════════════════════════════════ */
+  :root {
+    --bg-base:       #050c14;
+    --bg-panel:      #0a1628;
+    --bg-card:       #0d1e36;
+    --bg-card-hover: #112240;
+    --border:        #1a3a5c;
+    --border-bright: #1e4d7b;
+    --accent-blue:   #00b4ff;
+    --accent-amber:  #ffaa00;
+    --accent-green:  #00e676;
+    --accent-red:    #ff3d57;
+    --accent-violet: #7c4dff;
+    --text-primary:  #e0f0ff;
+    --text-secondary:#7aa8cc;
+    --text-muted:    #3a6688;
+    --glow-blue:     0 0 12px rgba(0,180,255,0.4);
+    --glow-amber:    0 0 12px rgba(255,170,0,0.4);
+    --glow-red:      0 0 12px rgba(255,61,87,0.4);
+    --glow-green:    0 0 12px rgba(0,230,118,0.4);
+    --font-display:  'Orbitron', monospace;
+    --font-data:     'Share Tech Mono', monospace;
+    --font-body:     'Rajdhani', sans-serif;
+    --radius:        6px;
+    --transition:    all 0.25s ease;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { font-size: 14px; scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0,90,180,0.12) 0%, transparent 60%),
+      linear-gradient(180deg, rgba(0,30,60,0.5) 0%, transparent 100%);
+  }
+
+  /* ══════════════════════════════════════════
+     SCANLINE OVERLAY
+  ══════════════════════════════════════════ */
+  body::before {
+    content: '';
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.06) 2px,
+      rgba(0,0,0,0.06) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ══════════════════════════════════════════
+     LAYOUT
+  ══════════════════════════════════════════ */
+  .app-wrapper {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0 20px 40px;
+  }
+
+  /* ══════════════════════════════════════════
+     HEADER
+  ══════════════════════════════════════════ */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 0 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo-block {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .logo-title {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 900;
+    color: var(--accent-blue);
+    text-shadow: var(--glow-blue);
+    letter-spacing: 0.08em;
+    line-height: 1;
+  }
+
+  .logo-sub {
+    font-family: var(--font-data);
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .divider-v {
+    width: 1px;
+    height: 40px;
+    background: var(--border-bright);
+    opacity: 0.5;
+  }
+
+  .plant-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .plant-name {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    letter-spacing: 0.05em;
+  }
+
+  .plant-loc {
+    font-family: var(--font-data);
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    letter-spacing: 0.12em;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(0,230,118,0.08);
+    border: 1px solid rgba(0,230,118,0.25);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-family: var(--font-data);
+    font-size: 0.72rem;
+    color: var(--accent-green);
+    letter-spacing: 0.1em;
+  }
+
+  .live-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    animation: pulse-green 1.8s ease-in-out infinite;
+  }
+
+  @keyframes pulse-green {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,230,118,0.6); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 5px rgba(0,230,118,0); }
+  }
+
+  .clock-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .clock-time {
+    font-family: var(--font-data);
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    letter-spacing: 0.08em;
+  }
+
+  .clock-date {
+    font-family: var(--font-data);
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+  }
+
+  .refresh-info {
+    font-family: var(--font-data);
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-align: right;
+  }
+
+  #refresh-countdown {
+    color: var(--accent-amber);
+    font-size: 0.75rem;
+  }
+
+  /* ══════════════════════════════════════════
+     STATUS BAR
+  ══════════════════════════════════════════ */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 22px;
+    font-family: var(--font-data);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .status-bar-label {
+    color: var(--accent-amber);
+    flex-shrink: 0;
+  }
+
+  #status-msg {
+    color: var(--text-secondary);
+    animation: fadeIn 0.4s ease;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ══════════════════════════════════════════
+     KPI CARDS
+  ══════════════════════════════════════════ */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .kpi-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition);
+    cursor: default;
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .kpi-card.blue::before  { background: linear-gradient(90deg, transparent, var(--accent-blue), transparent); }
+  .kpi-card.red::before   { background: linear-gradient(90deg, transparent, var(--accent-red), transparent); }
+  .kpi-card.green::before { background: linear-gradient(90deg, transparent, var(--accent-green), transparent); }
+  .kpi-card.amber::before { background: linear-gradient(90deg, transparent, var(--accent-amber), transparent); }
+
+  .kpi-card:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-bright);
+    transform: translateY(-2px);
+  }
+
+  .kpi-card::after {
+    content: '';
+    position: absolute;
+    bottom: -30px; right: -20px;
+    width: 90px; height: 90px;
+    border-radius: 50%;
+    opacity: 0.04;
+  }
+
+  .kpi-card.blue::after  { background: var(--accent-blue); }
+  .kpi-card.red::after   { background: var(--accent-red); }
+  .kpi-card.green::after { background: var(--accent-green); }
+  .kpi-card.amber::after { background: var(--accent-amber); }
+
+  .kpi-label {
+    font-family: var(--font-data);
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .kpi-value {
+    font-family: var(--font-display);
+    font-size: 2.4rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 8px;
+    transition: var(--transition);
+  }
+
+  .kpi-card.blue  .kpi-value { color: var(--accent-blue);  text-shadow: var(--glow-blue); }
+  .kpi-card.red   .kpi-value { color: var(--accent-red);   text-shadow: var(--glow-red); }
+  .kpi-card.green .kpi-value { color: var(--accent-green); text-shadow: var(--glow-green); }
+  .kpi-card.amber .kpi-value { color: var(--accent-amber); text-shadow: var(--glow-amber); }
+
+  .kpi-delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-data);
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  .kpi-delta.up   { background: rgba(255,61,87,0.12);  color: var(--accent-red); }
+  .kpi-delta.down { background: rgba(0,230,118,0.12);  color: var(--accent-green); }
+  .kpi-delta.flat { background: rgba(0,180,255,0.10);  color: var(--accent-blue); }
+
+  .kpi-icon {
+    position: absolute;
+    top: 18px; right: 18px;
+    font-size: 1.4rem;
+    opacity: 0.18;
+  }
+
+  /* ══════════════════════════════════════════
+     CHARTS ROW
+  ══════════════════════════════════════════ */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .chart-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .chart-panel.wide {
+    grid-column: span 2;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+
+  .panel-title {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-title-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+  }
+
+  .dot-blue  { background: var(--accent-blue);  box-shadow: var(--glow-blue); }
+  .dot-amber { background: var(--accent-amber); box-shadow: var(--glow-amber); }
+  .dot-green { background: var(--accent-green); box-shadow: var(--glow-green); }
+  .dot-red   { background: var(--accent-red);   box-shadow: var(--glow-red); }
+
+  .panel-badge {
+    font-family: var(--font-data);
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 8px;
+    letter-spacing: 0.1em;
+  }
+
+  .chart-container {
+    position: relative;
+    width: 100%;
+  }
+
+  .chart-container canvas {
+    display: block !important;
+  }
+
+  /* ══════════════════════════════════════════
+     DEFECT TABLE
+  ══════════════════════════════════════════ */
+  .table-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-data);
+  }
+
+  thead tr {
+    border-bottom: 1px solid var(--border-bright);
+  }
+
+  thead th {
+    text-align: left;
+    padding: 8px 14px;
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(26, 58, 92, 0.4);
+    transition: background 0.18s ease;
+  }
+
+  tbody tr:hover {
+    background: rgba(0,180,255,0.04);
+  }
+
+  tbody tr.new-row {
+    animation: rowFade 1.2s ease;
+  }
+
+  @keyframes rowFade {
+    from { background: rgba(0,180,255,0.12); }
+    to   { background: transparent; }
+  }
+
+  tbody td {
+    padding: 10px 14px;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+
+  .td-station {
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    color: var(--accent-blue);
+    letter-spacing: 0.06em;
+  }
+
+  .td-defect {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.82rem;
+    color: var(--text-primary);
+  }
+
+  .td-time {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+  }
+
+  /* Status badges */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-family: var(--font-data);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .badge-ok      { background: rgba(0,230,118,0.1);  color: var(--accent-green); border: 1px solid rgba(0,230,118,0.2); }
+  .badge-nok     { background: rgba(255,61,87,0.12); color: var(--accent-red);   border: 1px solid rgba(255,61,87,0.25); }
+  .badge-rework  { background: rgba(255,170,0,0.1);  color: var(--accent-amber); border: 1px solid rgba(255,170,0,0.22); }
+  .badge-open    { background: rgba(0,180,255,0.1);  color: var(--accent-blue);  border: 1px solid rgba(0,180,255,0.2); }
+
+  .shift-badge {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 3px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+
+  .shift-A { background: rgba(0,180,255,0.15); color: var(--accent-blue); }
+  .shift-B { background: rgba(255,170,0,0.15); color: var(--accent-amber); }
+  .shift-C { background: rgba(124,77,255,0.15); color: #a980ff; }
+
+  /* ══════════════════════════════════════════
+     BOTTOM ROW: STATION STATUS + ALERTS
+  ══════════════════════════════════════════ */
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .station-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  .station-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 10px;
+    text-align: center;
+    transition: var(--transition);
+    cursor: default;
+  }
+
+  .station-card.active {
+    border-color: rgba(0,230,118,0.35);
+    background: rgba(0,230,118,0.04);
+  }
+
+  .station-card.alert {
+    border-color: rgba(255,61,87,0.45);
+    background: rgba(255,61,87,0.06);
+    animation: borderPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes borderPulse {
+    0%, 100% { box-shadow: none; }
+    50% { box-shadow: 0 0 10px rgba(255,61,87,0.25); }
+  }
+
+  .station-id {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  .station-count {
+    font-family: var(--font-data);
+    font-size: 1.3rem;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .station-label {
+    font-family: var(--font-data);
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .station-card.active .station-id    { color: var(--accent-green); }
+  .station-card.active .station-count { color: var(--text-primary); }
+  .station-card.active .station-label { color: var(--accent-green); opacity: 0.6; }
+
+  .station-card.alert .station-id    { color: var(--accent-red); }
+  .station-card.alert .station-count { color: var(--accent-red); text-shadow: var(--glow-red); }
+  .station-card.alert .station-label { color: var(--accent-red); opacity: 0.7; }
+
+  .station-card:not(.active):not(.alert) .station-id    { color: var(--text-muted); }
+  .station-card:not(.active):not(.alert) .station-count { color: var(--text-muted); }
+  .station-card:not(.active):not(.alert) .station-label { color: var(--text-muted); opacity: 0.5; }
+
+  /* Alerts feed */
+  .alerts-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+    max-height: 240px;
+    overflow-y: auto;
+  }
+
+  .alerts-feed::-webkit-scrollbar { width: 4px; }
+  .alerts-feed::-webkit-scrollbar-track { background: transparent; }
+  .alerts-feed::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .alert-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    border: 1px solid;
+    font-family: var(--font-body);
+    animation: slideIn 0.4s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .alert-item.critical {
+    background: rgba(255,61,87,0.07);
+    border-color: rgba(255,61,87,0.2);
+  }
+
+  .alert-item.warning {
+    background: rgba(255,170,0,0.07);
+    border-color: rgba(255,170,0,0.2);
+  }
+
+  .alert-item.info {
+    background: rgba(0,180,255,0.06);
+    border-color: rgba(0,180,255,0.18);
+  }
+
+  .alert-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .alert-body { flex: 1; }
+
+  .alert-title {
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: var(--text-primary);
+    line-height: 1.3;
+    margin-bottom: 2px;
+  }
+
+  .alert-meta {
+    font-family: var(--font-data);
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+  }
+
+  /* ══════════════════════════════════════════
+     FOOTER
+  ══════════════════════════════════════════ */
+  .footer {
+    margin-top: 28px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--font-data);
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .footer-left { display: flex; gap: 20px; }
+  .footer a    { color: var(--accent-blue); text-decoration: none; }
+  .footer a:hover { text-shadow: var(--glow-blue); }
+
+  /* ══════════════════════════════════════════
+     LOADING OVERLAY
+  ══════════════════════════════════════════ */
+  #loading-overlay {
+    position: fixed; inset: 0;
+    background: var(--bg-base);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    z-index: 9998;
+    transition: opacity 0.5s ease;
+  }
+
+  #loading-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .loader-title {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--accent-blue);
+    text-shadow: var(--glow-blue);
+    letter-spacing: 0.12em;
+  }
+
+  .loader-bar-track {
+    width: 240px;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .loader-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+    border-radius: 2px;
+    animation: loadFill 1.2s ease forwards;
+  }
+
+  @keyframes loadFill {
+    from { width: 0; }
+    to   { width: 100%; }
+  }
+
+  .loader-msg {
+    font-family: var(--font-data);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.12em;
+  }
+
+  /* ══════════════════════════════════════════
+     RESPONSIVE
+  ══════════════════════════════════════════ */
+  @media (max-width: 1100px) {
+    .charts-grid { grid-template-columns: 1fr 1fr; }
+    .chart-panel.wide { grid-column: span 2; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .station-grid { grid-template-columns: repeat(5, 1fr); }
+  }
+
+  @media (max-width: 768px) {
+    .charts-grid { grid-template-columns: 1fr; }
+    .chart-panel.wide { grid-column: span 1; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .bottom-grid { grid-template-columns: 1fr; }
+    .station-grid { grid-template-columns: repeat(5, 1fr); }
+    .header { flex-direction: column; align-items: flex-start; }
+  }
+
+  @media (max-width: 480px) {
+    .kpi-grid { grid-template-columns: 1fr; }
+    .station-grid { grid-template-columns: repeat(3, 1fr); }
+    .logo-title { font-size: 1rem; }
+  }
+
+  /* ══════════════════════════════════════════
+     VALUE FLASH ANIMATION
+  ══════════════════════════════════════════ */
+  .flash {
+    animation: valueFlash 0.6s ease;
+  }
+
+  @keyframes valueFlash {
+    0%   { opacity: 1; }
+    30%  { opacity: 0.3; }
+    60%  { opacity: 1; }
+    80%  { opacity: 0.5; }
+    100% { opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay">
+  <div class="loader-title">HEMMTRACK PRO</div>
+  <div class="loader-bar-track"><div class="loader-bar-fill"></div></div>
+  <div class="loader-msg">INITIALIZING LIVE DASHBOARD...</div>
+</div>
+
+<div class="app-wrapper">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo-block">
+        <div class="logo-title">HEMMTRACK PRO</div>
+        <div class="logo-sub">Live Quality Dashboard · v2.0</div>
+      </div>
+      <div class="divider-v"></div>
+      <div class="plant-info">
+        <div class="plant-name">TATA MOTORS — PVBU</div>
+        <div class="plant-loc">WELD SHOP · REAR DOOR HEMMING · PUNE</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="live-badge">
+        <div class="live-dot"></div>
+        LIVE
+      </div>
+      <div class="clock-block">
+        <div class="clock-time" id="clock-time">--:--:--</div>
+        <div class="clock-date" id="clock-date">----</div>
+      </div>
+      <div class="refresh-info">
+        NEXT REFRESH IN<br>
+        <span id="refresh-countdown">10s</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <span class="status-bar-label">▸ SYS &nbsp;</span>
+    <span id="status-msg">Connecting to HemmTrack backend...</span>
+  </div>
+
+  <!-- KPI CARDS -->
+  <section class="kpi-grid">
+    <div class="kpi-card blue">
+      <div class="kpi-icon">📋</div>
+      <div class="kpi-label">Total Defects · Today</div>
+      <div class="kpi-value" id="kpi-total">—</div>
+      <span class="kpi-delta flat" id="kpi-total-delta">— vs yesterday</span>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-icon">🔴</div>
+      <div class="kpi-label">High Severity</div>
+      <div class="kpi-value" id="kpi-high">—</div>
+      <span class="kpi-delta" id="kpi-high-delta">— critical</span>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-icon">🏭</div>
+      <div class="kpi-label">Stations Active</div>
+      <div class="kpi-value" id="kpi-stations">—</div>
+      <span class="kpi-delta flat" id="kpi-stations-delta">of 5 total</span>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-icon">🔔</div>
+      <div class="kpi-label">Alerts Triggered</div>
+      <div class="kpi-value" id="kpi-alerts">—</div>
+      <span class="kpi-delta" id="kpi-alerts-delta">— OCC + PPT</span>
+    </div>
+  </section>
+
+  <!-- CHARTS -->
+  <section class="charts-grid">
+
+    <!-- Defects by Station (Bar) -->
+    <div class="chart-panel wide">
+      <div class="panel-header">
+        <div class="panel-title">
+          <div class="panel-title-dot dot-blue"></div>
+          Defects by Station
+        </div>
+        <span class="panel-badge">LIVE · BAR</span>
+      </div>
+      <div class="chart-container" style="height:220px;">
+        <canvas id="chart-bar"></canvas>
+      </div>
+    </div>
+
+    <!-- Defect Type Distribution (Pie) -->
+    <div class="chart-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <div class="panel-title-dot dot-amber"></div>
+          Type Distribution
+        </div>
+        <span class="panel-badge">LIVE · PIE</span>
+      </div>
+      <div class="chart-container" style="height:220px;">
+        <canvas id="chart-pie"></canvas>
+      </div>
+    </div>
+
+    <!-- Defect Trend over Time (Line) -->
+    <div class="chart-panel" style="grid-column: span 3;">
+      <div class="panel-header">
+        <div class="panel-title">
+          <div class="panel-title-dot dot-green"></div>
+          Defect Trend — Hourly (Today)
+        </div>
+        <span class="panel-badge">LIVE · LINE</span>
+      </div>
+      <div class="chart-container" style="height:180px;">
+        <canvas id="chart-line"></canvas>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- RECENT DEFECTS TABLE -->
+  <section class="table-panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="panel-title-dot dot-red"></div>
+        Recent Defects — Last 10 Entries
+      </div>
+      <span class="panel-badge" id="table-updated">UPDATED —</span>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Station</th>
+            <th>Defect Type</th>
+            <th>Shift</th>
+            <th>Time</th>
+            <th>Severity</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="defect-table-body">
+          <tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:24px; font-family:var(--font-data); font-size:0.7rem; letter-spacing:0.1em;">LOADING DATA...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- BOTTOM: STATION STATUS + ALERTS -->
+  <section class="bottom-grid">
+
+    <!-- Station Status -->
+    <div class="chart-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <div class="panel-title-dot dot-green"></div>
+          Station-wise Count
+        </div>
+        <span class="panel-badge">LIVE</span>
+      </div>
+      <div class="station-grid" id="station-grid">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- Alerts Feed -->
+    <div class="chart-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <div class="panel-title-dot dot-red"></div>
+          Alerts Feed
+        </div>
+        <span class="panel-badge" id="alerts-count-badge">0 ACTIVE</span>
+      </div>
+      <div class="alerts-feed" id="alerts-feed">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-left">
+      <span>HEMMTRACK PRO v2.0</span>
+      <span>TATA MOTORS PVBU · WELD SHOP</span>
+      <span>API: <span id="footer-api-status" style="color:var(--accent-amber)">CONNECTING...</span></span>
+    </div>
+    <div>
+      <a href="https://sanketkukade.github.io/Hemtrack-pro" target="_blank">← BACK TO MAIN APP</a>
+    </div>
+  </footer>
+
+</div><!-- end app-wrapper -->
+
+<script>
+/* ════════════════════════════════════════════════════
+   HEMMTRACK PRO — LIVE DASHBOARD ENGINE
+   Backend: https://hemmtrack-flask-backend-production.up.railway.app
+   Fallback: Rich mock data if API unavailable
+════════════════════════════════════════════════════ */
+
+const API_BASE = 'https://hemmtrack-flask-backend-production.up.railway.app';
+const REFRESH_INTERVAL = 10; // seconds
+
+// ── MOCK DATA (used when API not ready) ─────────────
+const DEFECT_TYPES = ['Open Hem', 'Split', 'Crack', 'Roll-In', 'Die Mark', 'Wrinkle', 'Gauge Deviation'];
+const STATIONS     = ['ST-100', 'ST-120', 'ST-150', 'ST-200', 'ST-220'];
+const SHIFTS       = ['A', 'B', 'C'];
+const SEVERITIES   = ['Critical', 'High', 'Medium', 'Low'];
+const STATUSES     = ['Open', 'Rework', 'OK', 'NOK'];
+
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function randomItem(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function generateMockStats() {
+  const total     = randomInt(18, 52);
+  const highSev   = randomInt(3, 12);
+  const stActive  = randomInt(3, 5);
+  const alerts    = randomInt(2, 9);
+  return { total, highSev, stActive, alerts };
+}
+
+function generateMockDefects(count = 10) {
+  const defects = [];
+  for (let i = 0; i < count; i++) {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - i * randomInt(3, 12));
+    defects.push({
+      id:       1000 + i,
+      station:  randomItem(STATIONS),
+      defect:   randomItem(DEFECT_TYPES),
+      shift:    randomItem(SHIFTS),
+      time:     now.toTimeString().slice(0,8),
+      severity: randomItem(SEVERITIES),
+      status:   randomItem(STATUSES)
+    });
+  }
+  return defects;
+}
+
+function generateMockStationCounts() {
+  return STATIONS.map(st => ({
+    station: st,
+    count:   randomInt(0, 14),
+    active:  Math.random() > 0.2
+  }));
+}
+
+function generateMockTrend() {
+  const hours = [];
+  const counts = [];
+  for (let h = 6; h <= new Date().getHours(); h++) {
+    hours.push(`${String(h).padStart(2,'0')}:00`);
+    counts.push(randomInt(0, 8));
+  }
+  return { hours, counts };
+}
+
+function generateMockPieData() {
+  return DEFECT_TYPES.map(t => ({ type: t, count: randomInt(1, 18) }));
+}
+
+function generateMockBarData() {
+  return STATIONS.map(st => ({ station: st, count: randomInt(2, 20) }));
+}
+
+function generateMockAlerts() {
+  const types = [
+    { level: 'critical', icon: '🔴', msg: 'OCC Alert: ST-150 exceeded 3 consecutive defects', age: '2m ago' },
+    { level: 'critical', icon: '🔴', msg: 'PPT Alert: Shift A — 5 defects in 30min window', age: '8m ago' },
+    { level: 'warning',  icon: '🟡', msg: 'High severity defect logged: ST-200 Open Hem', age: '14m ago' },
+    { level: 'warning',  icon: '🟡', msg: 'SPC Out-of-control: ST-120 gauge deviation spike', age: '21m ago' },
+    { level: 'info',     icon: '🔵', msg: 'Shift B started. Handover report generated.', age: '1h ago' },
+    { level: 'info',     icon: '🔵', msg: 'Email alert sent to QE team for ST-150', age: '1h 4m ago' },
+  ];
+  return types.slice(0, randomInt(3, 6));
+}
+
+// ── CHART INSTANCES ──────────────────────────────
+let chartBar, chartPie, chartLine;
+
+const CHART_DEFAULTS = {
+  responsive: true,
+  maintainAspectRatio: false,
+  animation: { duration: 600, easing: 'easeInOutQuart' },
+};
+
+function buildCharts() {
+  const font = "'Share Tech Mono', monospace";
+  const gridColor  = 'rgba(26,58,92,0.5)';
+  const tickColor  = '#3a6688';
+  const labelColor = '#7aa8cc';
+
+  // ── BAR CHART ──
+  const ctxBar = document.getElementById('chart-bar').getContext('2d');
+  chartBar = new Chart(ctxBar, {
+    type: 'bar',
+    data: {
+      labels: STATIONS,
+      datasets: [{
+        label: 'Defect Count',
+        data: [0,0,0,0,0],
+        backgroundColor: [
+          'rgba(0,180,255,0.25)',
+          'rgba(0,180,255,0.25)',
+          'rgba(255,61,87,0.35)',
+          'rgba(0,180,255,0.25)',
+          'rgba(0,180,255,0.25)',
+        ],
+        borderColor: [
+          'rgba(0,180,255,0.8)',
+          'rgba(0,180,255,0.8)',
+          'rgba(255,61,87,0.9)',
+          'rgba(0,180,255,0.8)',
+          'rgba(0,180,255,0.8)',
+        ],
+        borderWidth: 1.5,
+        borderRadius: 3,
+        hoverBackgroundColor: 'rgba(0,180,255,0.45)',
+      }]
+    },
+    options: {
+      ...CHART_DEFAULTS,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0a1628',
+          borderColor: '#1a3a5c',
+          borderWidth: 1,
+          titleColor: '#00b4ff',
+          bodyColor: '#7aa8cc',
+          titleFont: { family: font, size: 11 },
+          bodyFont: { family: font, size: 11 },
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: gridColor },
+          ticks: { color: tickColor, font: { family: font, size: 10 }, letterSpacing: 1 }
+        },
+        y: {
+          grid: { color: gridColor },
+          ticks: { color: tickColor, font: { family: font, size: 10 }, stepSize: 2 },
+          beginAtZero: true
+        }
+      }
+    }
+  });
+
+  // ── PIE CHART ──
+  const ctxPie = document.getElementById('chart-pie').getContext('2d');
+  chartPie = new Chart(ctxPie, {
+    type: 'doughnut',
+    data: {
+      labels: DEFECT_TYPES,
+      datasets: [{
+        data: DEFECT_TYPES.map(() => 1),
+        backgroundColor: [
+          'rgba(255,61,87,0.75)',
+          'rgba(255,170,0,0.75)',
+          'rgba(0,180,255,0.75)',
+          'rgba(0,230,118,0.75)',
+          'rgba(124,77,255,0.75)',
+          'rgba(255,100,100,0.6)',
+          'rgba(0,220,180,0.65)',
+        ],
+        borderColor: '#050c14',
+        borderWidth: 2,
+        hoverOffset: 6,
+      }]
+    },
+    options: {
+      ...CHART_DEFAULTS,
+      cutout: '62%',
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: {
+            color: labelColor,
+            font: { family: font, size: 9 },
+            boxWidth: 10,
+            padding: 8
+          }
+        },
+        tooltip: {
+          backgroundColor: '#0a1628',
+          borderColor: '#1a3a5c',
+          borderWidth: 1,
+          titleColor: '#00b4ff',
+          bodyColor: '#7aa8cc',
+          titleFont: { family: font, size: 10 },
+          bodyFont: { family: font, size: 10 },
+        }
+      }
+    }
+  });
+
+  // ── LINE CHART ──
+  const ctxLine = document.getElementById('chart-line').getContext('2d');
+
+  // Gradient fill
+  const gradLine = ctxLine.createLinearGradient(0, 0, 0, 180);
+  gradLine.addColorStop(0, 'rgba(0,230,118,0.25)');
+  gradLine.addColorStop(1, 'rgba(0,230,118,0.01)');
+
+  chartLine = new Chart(ctxLine, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Defects/Hour',
+        data: [],
+        borderColor: 'rgba(0,230,118,0.9)',
+        backgroundColor: gradLine,
+        borderWidth: 2,
+        pointBackgroundColor: 'rgba(0,230,118,1)',
+        pointBorderColor: '#050c14',
+        pointBorderWidth: 1.5,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        tension: 0.4,
+        fill: true,
+      }]
+    },
+    options: {
+      ...CHART_DEFAULTS,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0a1628',
+          borderColor: '#1a3a5c',
+          borderWidth: 1,
+          titleColor: '#00e676',
+          bodyColor: '#7aa8cc',
+          titleFont: { family: font, size: 10 },
+          bodyFont: { family: font, size: 10 },
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: gridColor },
+          ticks: { color: tickColor, font: { family: font, size: 10 } }
+        },
+        y: {
+          grid: { color: gridColor },
+          ticks: { color: tickColor, font: { family: font, size: 10 }, stepSize: 2 },
+          beginAtZero: true
+        }
+      }
+    }
+  });
+}
+
+// ── UPDATE FUNCTIONS ──────────────────────────────
+
+function updateKPIs(stats) {
+  const animate = (id, val) => {
+    const el = document.getElementById(id);
+    el.classList.remove('flash');
+    void el.offsetWidth;
+    el.textContent = val;
+    el.classList.add('flash');
+  };
+
+  animate('kpi-total',    stats.total);
+  animate('kpi-high',     stats.highSev);
+  animate('kpi-stations', stats.stActive);
+  animate('kpi-alerts',   stats.alerts);
+
+  const totalDelta = document.getElementById('kpi-total-delta');
+  totalDelta.textContent = stats.total > 30 ? '▲ Above avg' : '▼ Below avg';
+  totalDelta.className   = 'kpi-delta ' + (stats.total > 30 ? 'up' : 'down');
+
+  document.getElementById('kpi-high-delta').textContent  = stats.highSev + ' critical today';
+  document.getElementById('kpi-stations-delta').textContent = stats.stActive + ' of 5 active';
+  document.getElementById('kpi-alerts-delta').textContent   = stats.alerts + ' total today';
+}
+
+function updateBarChart(barData) {
+  chartBar.data.datasets[0].data = barData.map(d => d.count);
+  // Highlight highest bar in red
+  const maxIdx = barData.reduce((mi, d, i, a) => d.count > a[mi].count ? i : mi, 0);
+  chartBar.data.datasets[0].backgroundColor = barData.map((_, i) =>
+    i === maxIdx ? 'rgba(255,61,87,0.4)' : 'rgba(0,180,255,0.22)'
+  );
+  chartBar.data.datasets[0].borderColor = barData.map((_, i) =>
+    i === maxIdx ? 'rgba(255,61,87,0.9)' : 'rgba(0,180,255,0.7)'
+  );
+  chartBar.update();
+}
+
+function updatePieChart(pieData) {
+  chartPie.data.labels = pieData.map(d => d.type);
+  chartPie.data.datasets[0].data = pieData.map(d => d.count);
+  chartPie.update();
+}
+
+function updateLineChart(trend) {
+  chartLine.data.labels = trend.hours;
+  chartLine.data.datasets[0].data = trend.counts;
+  chartLine.update();
+}
+
+function updateTable(defects) {
+  const tbody = document.getElementById('defect-table-body');
+  tbody.innerHTML = '';
+
+  defects.forEach((d, i) => {
+    const sevClass = d.severity === 'Critical' ? 'color:var(--accent-red);font-weight:700;' :
+                     d.severity === 'High'     ? 'color:var(--accent-amber);font-weight:600;' :
+                     d.severity === 'Medium'   ? 'color:var(--text-secondary);' :
+                                                 'color:var(--text-muted);';
+    const statusBadge = d.status === 'OK'     ? 'badge-ok' :
+                        d.status === 'NOK'    ? 'badge-nok' :
+                        d.status === 'Rework' ? 'badge-rework' : 'badge-open';
+
+    const tr = document.createElement('tr');
+    if (i === 0) tr.classList.add('new-row');
+    tr.innerHTML = `
+      <td class="td-time" style="opacity:0.5">${String(i+1).padStart(2,'0')}</td>
+      <td><span class="td-station">${d.station}</span></td>
+      <td><span class="td-defect">${d.defect}</span></td>
+      <td><span class="shift-badge shift-${d.shift}">SHF-${d.shift}</span></td>
+      <td class="td-time">${d.time}</td>
+      <td style="font-family:var(--font-data);font-size:0.72rem;${sevClass}">${d.severity}</td>
+      <td><span class="badge ${statusBadge}">${d.status}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const now = new Date().toTimeString().slice(0,8);
+  document.getElementById('table-updated').textContent = `UPDATED ${now}`;
+}
+
+function updateStationGrid(stationData) {
+  const grid = document.getElementById('station-grid');
+  grid.innerHTML = '';
+
+  stationData.forEach(s => {
+    const isAlert = s.count >= 3;
+    const cls = isAlert ? 'alert' : s.active ? 'active' : '';
+    const div = document.createElement('div');
+    div.className = `station-card ${cls}`;
+    div.innerHTML = `
+      <div class="station-id">${s.station.replace('ST-', 'ST')}</div>
+      <div class="station-count">${s.count}</div>
+      <div class="station-label">${isAlert ? '⚠ ALERT' : s.active ? 'ACTIVE' : 'IDLE'}</div>
+    `;
+    grid.appendChild(div);
+  });
+}
+
+function updateAlertsFeed(alerts) {
+  const feed = document.getElementById('alerts-feed');
+  feed.innerHTML = '';
+
+  if (!alerts.length) {
+    feed.innerHTML = '<div style="font-family:var(--font-data);font-size:0.7rem;color:var(--text-muted);padding:16px 0;text-align:center;letter-spacing:0.1em;">NO ACTIVE ALERTS</div>';
+    document.getElementById('alerts-count-badge').textContent = '0 ACTIVE';
+    return;
+  }
+
+  alerts.forEach(a => {
+    const div = document.createElement('div');
+    div.className = `alert-item ${a.level}`;
+    div.innerHTML = `
+      <div class="alert-icon">${a.icon}</div>
+      <div class="alert-body">
+        <div class="alert-title">${a.msg}</div>
+        <div class="alert-meta">${a.age}</div>
+      </div>
+    `;
+    feed.appendChild(div);
+  });
+
+  const critical = alerts.filter(a => a.level === 'critical').length;
+  document.getElementById('alerts-count-badge').textContent =
+    `${alerts.length} ACTIVE · ${critical} CRITICAL`;
+}
+
+function setStatus(msg, isError = false) {
+  const el = document.getElementById('status-msg');
+  el.textContent = msg;
+  el.style.color = isError ? 'var(--accent-amber)' : 'var(--text-secondary)';
+}
+
+// ── API FETCH (with mock fallback) ────────────────
+
+let usingMock = false;
+
+async function fetchData() {
+  try {
+    // Try real API first
+    const [statsRes, defectsRes, trendsRes] = await Promise.all([
+      fetch(`${API_BASE}/get_stats`,   { signal: AbortSignal.timeout(4000) }),
+      fetch(`${API_BASE}/get_defects`, { signal: AbortSignal.timeout(4000) }),
+      fetch(`${API_BASE}/get_trends`,  { signal: AbortSignal.timeout(4000) }),
+    ]);
+
+    if (!statsRes.ok || !defectsRes.ok || !trendsRes.ok) {
+      throw new Error('API returned non-OK status');
+    }
+
+    const stats   = await statsRes.json();
+    const defects = await defectsRes.json();
+    const trends  = await trendsRes.json();
+
+    usingMock = false;
+    setStatus(`Live data from backend — Last sync: ${new Date().toTimeString().slice(0,8)}`);
+    document.getElementById('footer-api-status').textContent = 'LIVE';
+    document.getElementById('footer-api-status').style.color = 'var(--accent-green)';
+
+    return { stats, defects, trends };
+
+  } catch (err) {
+    // Fallback to mock
+    if (!usingMock) {
+      setStatus(`Backend unreachable — showing mock data (${err.message})`, true);
+      document.getElementById('footer-api-status').textContent = 'MOCK DATA';
+      document.getElementById('footer-api-status').style.color = 'var(--accent-amber)';
+      usingMock = true;
+    } else {
+      setStatus(`Mock data mode — API offline — ${new Date().toTimeString().slice(0,8)}`, true);
+    }
+
+    return {
+      stats:   { ...generateMockStats(), raw: null },
+      defects: generateMockDefects(10),
+      trends:  {
+        bar:  generateMockBarData(),
+        pie:  generateMockPieData(),
+        line: generateMockTrend(),
+        stations: generateMockStationCounts(),
+        alerts:   generateMockAlerts(),
+      }
+    };
+  }
+}
+
+async function refresh() {
+  const data = await fetchData();
+
+  // Handle both real API shape and mock shape
+  let stats, defects, bar, pie, line, stations, alerts;
+
+  if (data.stats.raw === null || usingMock) {
+    // Mock data
+    stats    = data.stats;
+    defects  = data.defects;
+    bar      = data.trends.bar;
+    pie      = data.trends.pie;
+    line     = data.trends.line;
+    stations = data.trends.stations;
+    alerts   = data.trends.alerts;
+  } else {
+    // Real API - adapt to your actual response shape here
+    const s = data.stats;
+    stats    = { total: s.total_today ?? 0, highSev: s.high_severity ?? 0, stActive: s.stations_active ?? 0, alerts: s.alerts_triggered ?? 0 };
+    defects  = Array.isArray(data.defects) ? data.defects : data.defects.defects ?? [];
+    const t  = data.trends;
+    bar      = t.by_station ?? generateMockBarData();
+    pie      = t.by_type    ?? generateMockPieData();
+    line     = t.hourly     ?? generateMockTrend();
+    stations = t.station_counts ?? generateMockStationCounts();
+    alerts   = t.alerts         ?? generateMockAlerts();
+  }
+
+  updateKPIs(stats);
+  updateBarChart(bar);
+  updatePieChart(pie);
+  updateLineChart(line);
+  updateTable(defects);
+  updateStationGrid(stations);
+  updateAlertsFeed(alerts);
+}
+
+// ── CLOCK ─────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock-time').textContent = now.toTimeString().slice(0,8);
+  document.getElementById('clock-date').textContent =
+    now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+}
+
+// ── COUNTDOWN ─────────────────────────────────────
+let countdown = REFRESH_INTERVAL;
+function tickCountdown() {
+  countdown--;
+  if (countdown <= 0) {
+    countdown = REFRESH_INTERVAL;
+    refresh();
+  }
+  document.getElementById('refresh-countdown').textContent = countdown + 's';
+}
+
+// ── INIT ──────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  buildCharts();
+  updateClock();
+  setInterval(updateClock,    1000);
+  setInterval(tickCountdown,  1000);
+
+  // Initial data load
+  await refresh();
+
+  // Hide loading overlay
+  setTimeout(() => {
+    document.getElementById('loading-overlay').classList.add('hidden');
+  }, 800);
+});
+</script>
+</body>
+</html>
