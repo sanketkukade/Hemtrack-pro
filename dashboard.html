@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HemmTrack Pro — Live Dashboard</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   /* ══════════════════════════════════════════
@@ -30,9 +28,9 @@
     --glow-amber:    0 0 12px rgba(255,170,0,0.4);
     --glow-red:      0 0 12px rgba(255,61,87,0.4);
     --glow-green:    0 0 12px rgba(0,230,118,0.4);
-    --font-display:  'Orbitron', monospace;
-    --font-data:     'Share Tech Mono', monospace;
-    --font-body:     'Rajdhani', sans-serif;
+    --font-display:  'Courier New', Courier, monospace;
+    --font-data:     'Courier New', Courier, monospace;
+    --font-body:     system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
     --radius:        6px;
     --transition:    all 0.25s ease;
   }
@@ -1089,7 +1087,7 @@ const CHART_DEFAULTS = {
 };
 
 function buildCharts() {
-  const font = "'Share Tech Mono', monospace";
+  const font = "'Courier New', Courier, monospace";
   const gridColor  = 'rgba(26,58,92,0.5)';
   const tickColor  = '#3a6688';
   const labelColor = '#7aa8cc';
@@ -1511,6 +1509,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('loading-overlay').classList.add('hidden');
   }, 800);
 });
-  
+</script>
 </body>
 </html>
