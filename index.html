@@ -535,21 +535,6 @@ textarea{resize:vertical;min-height:70px}
 .spc-ooc{background:rgba(255,61,90,.1);color:var(--red);border:1px solid var(--red)}
 
 /* ══════════ VOICE PANEL CSS ══════════ */
-/* ══════════ AI VOICE ASSISTANT ══════════ */
-@keyframes ai-ring{0%{transform:translate(-50%,-50%) scale(1);opacity:.6}100%{transform:translate(-50%,-50%) scale(2.2);opacity:0}}
-@keyframes ai-glow{0%,100%{box-shadow:0 0 15px rgba(0,229,255,0.3),0 0 40px rgba(0,229,255,0.1)}50%{box-shadow:0 0 25px rgba(168,85,247,0.4),0 0 60px rgba(168,85,247,0.15)}}
-.ai-mic-active{border-color:var(--red) !important;background:radial-gradient(circle,rgba(255,61,90,0.15),rgba(255,61,90,0.05)) !important;animation:ai-glow 1.5s ease-in-out infinite !important;color:var(--red) !important}
-.ai-mic-speaking{border-color:var(--purple) !important;background:radial-gradient(circle,rgba(168,85,247,0.12),rgba(168,85,247,0.04)) !important;color:var(--purple) !important}
-
-/* Floating AI Orb */
-#ai-float-orb{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;
-  background:radial-gradient(circle at 35% 35%,rgba(0,229,255,0.25),rgba(168,85,247,0.2),rgba(0,229,255,0.1));
-  border:2px solid rgba(0,229,255,0.3);display:flex;align-items:center;justify-content:center;
-  font-size:24px;cursor:pointer;z-index:300;box-shadow:0 4px 20px rgba(0,229,255,0.2);
-  transition:all .3s;backdrop-filter:blur(8px)}
-#ai-float-orb:hover{transform:scale(1.1);box-shadow:0 6px 30px rgba(0,229,255,0.35)}
-#ai-float-orb.listening{animation:ai-glow 0.8s ease-in-out infinite;border-color:var(--red)}
-
 @keyframes vp-shimmer{0%{background-position:0% 50%}100%{background-position:200% 50%}}
 @keyframes vp-blink{0%,100%{opacity:1}50%{opacity:0}}
 @keyframes vp-pulse-ring{
@@ -1600,6 +1585,79 @@ body.light-mode .rec-table tr:hover td { background:#ebf8ff !important; }
     <div id="blink-count"></div>
     <div id="alert-sent-badge"></div>
   </div>
+
+  <!-- 💾 BACKUP & RESTORE BUTTONS -->
+  <div style="display:flex;gap:6px;align-items:center;margin-left:8px;">
+    <button id="backup-btn" onclick="downloadBackup()" title="Download all data as JSON backup file" style="
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:8px 14px;
+      background:linear-gradient(135deg,rgba(0,229,255,0.12),rgba(0,180,255,0.08));
+      border:1px solid rgba(0,229,255,0.4);
+      border-radius:10px;
+      color:#00e5ff;
+      font-family:Consolas,monospace;
+      font-size:11px;
+      font-weight:700;
+      letter-spacing:1px;
+      cursor:pointer;
+      transition:all 0.2s;
+      box-shadow:0 0 12px rgba(0,229,255,0.1);
+    "
+    onmouseover="this.style.background='linear-gradient(135deg,rgba(0,229,255,0.2),rgba(0,180,255,0.15))';this.style.boxShadow='0 0 16px rgba(0,229,255,0.3)';this.style.transform='translateY(-1px)';"
+    onmouseout="this.style.background='linear-gradient(135deg,rgba(0,229,255,0.12),rgba(0,180,255,0.08))';this.style.boxShadow='0 0 12px rgba(0,229,255,0.1)';this.style.transform='translateY(0)';">
+      <span style="font-size:14px;">💾</span>
+      <span>BACKUP</span>
+    </button>
+    <button id="restore-btn" onclick="document.getElementById('restore-file').click()" title="Restore data from backup JSON file" style="
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:8px 14px;
+      background:linear-gradient(135deg,rgba(168,85,247,0.12),rgba(120,60,200,0.08));
+      border:1px solid rgba(168,85,247,0.4);
+      border-radius:10px;
+      color:#a855f7;
+      font-family:Consolas,monospace;
+      font-size:11px;
+      font-weight:700;
+      letter-spacing:1px;
+      cursor:pointer;
+      transition:all 0.2s;
+    "
+    onmouseover="this.style.background='linear-gradient(135deg,rgba(168,85,247,0.2),rgba(120,60,200,0.15))';this.style.transform='translateY(-1px)';"
+    onmouseout="this.style.background='linear-gradient(135deg,rgba(168,85,247,0.12),rgba(120,60,200,0.08))';this.style.transform='translateY(0)';">
+      <span style="font-size:14px;">📥</span>
+      <span>RESTORE</span>
+    </button>
+    <input type="file" id="restore-file" accept=".json,application/json" style="display:none;" onchange="restoreBackup(event)">
+
+    <!-- 📊 VIEW DEFECTS BUTTON -->
+    <button id="view-defects-btn" onclick="openDefectsViewer()" title="View, download & share all defect data" style="
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:8px 14px;
+      background:linear-gradient(135deg,rgba(0,255,136,0.12),rgba(0,200,100,0.08));
+      border:1px solid rgba(0,255,136,0.4);
+      border-radius:10px;
+      color:#00ff88;
+      font-family:Consolas,monospace;
+      font-size:11px;
+      font-weight:700;
+      letter-spacing:1px;
+      cursor:pointer;
+      transition:all 0.2s;
+      box-shadow:0 0 12px rgba(0,255,136,0.1);
+    "
+    onmouseover="this.style.background='linear-gradient(135deg,rgba(0,255,136,0.2),rgba(0,200,100,0.15))';this.style.boxShadow='0 0 16px rgba(0,255,136,0.3)';this.style.transform='translateY(-1px)';"
+    onmouseout="this.style.background='linear-gradient(135deg,rgba(0,255,136,0.12),rgba(0,200,100,0.08))';this.style.boxShadow='0 0 12px rgba(0,255,136,0.1)';this.style.transform='translateY(0)';">
+      <span style="font-size:14px;">📊</span>
+      <span>VIEW DATA</span>
+      <span id="view-defects-count" style="background:#00ff88;color:#04080f;padding:1px 7px;border-radius:8px;font-size:10px;font-weight:900;">0</span>
+    </button>
+  </div>
 </header>
 
 <div class="nav">
@@ -1620,6 +1678,7 @@ body.light-mode .rec-table tr:hover td { background:#ebf8ff !important; }
     <button class="tab" onclick="showTab('stmon',this)">🏭 Station Monitor</button>
     <button class="tab" onclick="showTab('rcpredict',this)">🧠 RC Predict</button>
     <button class="tab" onclick="showTab('dtwin',this)">🏗️ Digital Twin</button>
+    <button class="tab" onclick="showTab('aiconsole',this)">🧠 AI Console</button>
 </div>
 
 <div class="main">
@@ -1712,84 +1771,195 @@ body.light-mode .rec-table tr:hover td { background:#ebf8ff !important; }
 
       <button class="btn btn-c btn-full" onclick="addDefect()" style="margin-top:4px">⚡ LOG DEFECT</button>
 
-      <!-- ══════════ AI VOICE ASSISTANT — "Hey Sanket" ══════════ -->
-      <div id="ai-voice-panel" style="
+      <!-- ══════════════════════════════════════════════════════════════ -->
+      <!-- 🤖 GEMINI AI PANEL — Standalone Feature (Non-Destructive)     -->
+      <!-- ══════════════════════════════════════════════════════════════ -->
+      <div id="gemini-panel" style="
         margin-top:18px;
-        background:linear-gradient(135deg,rgba(0,229,255,0.04),rgba(168,85,247,0.03));
-        border:1.5px solid rgba(0,229,255,0.2);
-        border-radius:16px;padding:0;overflow:hidden;position:relative;
+        background:linear-gradient(135deg,rgba(168,85,247,0.08),rgba(99,102,241,0.06));
+        border:1.5px solid rgba(168,85,247,0.3);
+        border-radius:14px;
+        padding:16px;
+        position:relative;
+        overflow:hidden;
       ">
-        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--cyan),var(--purple),var(--cyan));background-size:200%;animation:vp-shimmer 2.5s linear infinite;"></div>
+        <!-- Animated top accent -->
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#a855f7,#6366f1,#a855f7);background-size:200%;animation:vp-shimmer 3s linear infinite;"></div>
 
-        <!-- Header -->
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid rgba(0,229,255,0.08);">
+        <!-- Panel Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
           <div style="display:flex;align-items:center;gap:10px;">
-            <div id="ai-orb-mini" style="width:32px;height:32px;border-radius:50%;background:radial-gradient(circle,rgba(0,229,255,0.3),rgba(168,85,247,0.2));border:1.5px solid rgba(0,229,255,0.3);display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .3s;">🧠</div>
+            <div style="font-size:22px;">🤖</div>
             <div>
-              <div style="font-family:var(--font-h);font-size:10px;color:var(--cyan);letter-spacing:2px;">HemmTrack AI ASSISTANT</div>
-              <div style="font-size:10px;color:var(--muted);">Say <strong style="color:var(--cyan);">"Hey Sanket"</strong> or click mic</div>
+              <div style="font-family:Orbitron,sans-serif;font-size:12px;font-weight:900;color:#a855f7;letter-spacing:2px;">GEMINI AI ASSISTANT</div>
+              <div style="font-size:10px;color:#4a6fa5;letter-spacing:0.5px;">Powered by Google Gemini · Quality Engineering Expert</div>
             </div>
           </div>
-          <div id="ai-badge" style="font-family:var(--font-m);font-size:9px;color:var(--muted);background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:20px;padding:3px 12px;">STANDBY</div>
+          <div id="gemini-status-badge" style="font-family:Consolas,monospace;font-size:9px;padding:3px 10px;border-radius:10px;background:rgba(168,85,247,0.12);color:#a855f7;border:1px solid rgba(168,85,247,0.3);letter-spacing:1px;">READY</div>
         </div>
 
-        <!-- Body -->
-        <div style="padding:16px 18px;">
-          <!-- Mic + Waveform -->
-          <div style="text-align:center;margin-bottom:14px;position:relative;">
-            <button id="ai-mic-btn" onclick="aiToggleMic()" style="
-              width:68px;height:68px;border-radius:50%;border:2px solid rgba(0,229,255,0.3);
-              background:linear-gradient(145deg,rgba(8,14,26,0.9),rgba(15,25,40,0.9));
-              color:var(--cyan);font-size:28px;cursor:pointer;
-              box-shadow:0 4px 20px rgba(0,229,255,0.1);
-              transition:all .3s;display:inline-flex;align-items:center;justify-content:center;position:relative;z-index:2;
-            ">🎤</button>
-            <!-- Pulse rings (hidden by default) -->
-            <div id="ai-pulse-1" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:68px;height:68px;border-radius:50%;border:2px solid rgba(0,229,255,0.3);animation:ai-ring 1.5s ease-out infinite;pointer-events:none;z-index:1;"></div>
-            <div id="ai-pulse-2" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:68px;height:68px;border-radius:50%;border:2px solid rgba(168,85,247,0.3);animation:ai-ring 1.5s ease-out 0.5s infinite;pointer-events:none;z-index:1;"></div>
-          </div>
+        <!-- AI Action Buttons -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+          <button onclick="geminiSuggestRootCause()" style="
+            flex:1;min-width:160px;
+            display:inline-flex;align-items:center;justify-content:center;gap:6px;
+            padding:10px 14px;
+            background:linear-gradient(135deg,rgba(168,85,247,0.15),rgba(124,58,237,0.1));
+            border:1px solid rgba(168,85,247,0.4);
+            border-radius:10px;
+            color:#a855f7;
+            font-family:Consolas,monospace;
+            font-size:11px;
+            font-weight:700;
+            letter-spacing:1px;
+            cursor:pointer;
+            transition:all 0.2s;
+          "
+          onmouseover="this.style.background='linear-gradient(135deg,rgba(168,85,247,0.25),rgba(124,58,237,0.18))';this.style.transform='translateY(-1px)';this.style.boxShadow='0 0 16px rgba(168,85,247,0.3)';"
+          onmouseout="this.style.background='linear-gradient(135deg,rgba(168,85,247,0.15),rgba(124,58,237,0.1))';this.style.transform='translateY(0)';this.style.boxShadow='none';">
+            <span style="font-size:14px;">🔍</span>
+            <span>AI ROOT CAUSE</span>
+          </button>
+          <button onclick="geminiGenerate8D()" style="
+            flex:1;min-width:160px;
+            display:inline-flex;align-items:center;justify-content:center;gap:6px;
+            padding:10px 14px;
+            background:linear-gradient(135deg,rgba(0,255,136,0.12),rgba(0,200,100,0.08));
+            border:1px solid rgba(0,255,136,0.4);
+            border-radius:10px;
+            color:#00ff88;
+            font-family:Consolas,monospace;
+            font-size:11px;
+            font-weight:700;
+            letter-spacing:1px;
+            cursor:pointer;
+            transition:all 0.2s;
+          "
+          onmouseover="this.style.background='linear-gradient(135deg,rgba(0,255,136,0.22),rgba(0,200,100,0.15))';this.style.transform='translateY(-1px)';this.style.boxShadow='0 0 16px rgba(0,255,136,0.3)';"
+          onmouseout="this.style.background='linear-gradient(135deg,rgba(0,255,136,0.12),rgba(0,200,100,0.08))';this.style.transform='translateY(0)';this.style.boxShadow='none';">
+            <span style="font-size:14px;">📋</span>
+            <span>GENERATE 8D DRAFT</span>
+          </button>
+          <button onclick="geminiClearOutput()" style="
+            display:inline-flex;align-items:center;gap:4px;
+            padding:10px 12px;
+            background:rgba(255,61,90,0.08);
+            border:1px solid rgba(255,61,90,0.3);
+            border-radius:10px;
+            color:#ff3d5a;
+            font-family:Consolas,monospace;
+            font-size:11px;
+            font-weight:700;
+            cursor:pointer;
+            transition:all 0.2s;
+          ">⟲</button>
+        </div>
 
-          <!-- Status Text -->
-          <div id="ai-status" style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:12px;min-height:18px;transition:all .3s;">
-            Say <strong style="color:var(--cyan);">"Hey Sanket"</strong> to activate, or click 🎤
+        <!-- API Key Input (collapsible) -->
+        <details id="gemini-key-details" style="margin-bottom:10px;">
+          <summary style="cursor:pointer;font-family:Consolas,monospace;font-size:10px;color:#4a6fa5;letter-spacing:1px;padding:6px 0;">⚙️ GEMINI API KEY (click to configure)</summary>
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            <input type="password" id="gemini-api-key" placeholder="Paste your Gemini API key here..."
+              style="flex:1;padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.2);border-radius:6px;color:#d4e8ff;font-family:Consolas,monospace;font-size:11px;outline:none;">
+            <button onclick="geminiSaveKey()" style="padding:8px 14px;background:rgba(0,229,255,0.12);border:1px solid rgba(0,229,255,0.4);border-radius:6px;color:#00e5ff;font-family:Consolas,monospace;font-size:10px;font-weight:700;cursor:pointer;letter-spacing:1px;">SAVE</button>
           </div>
-
-          <!-- Live Transcript -->
-          <div id="ai-transcript-box" style="
-            display:none;background:var(--s1);border:1px solid var(--border);border-radius:10px;
-            padding:10px 14px;margin-bottom:12px;font-family:var(--font-m);font-size:12px;
-            color:var(--text);min-height:36px;position:relative;
-          ">
-            <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">LIVE TRANSCRIPT</div>
-            <span id="ai-transcript-text"></span><span id="ai-cursor" style="color:var(--cyan);animation:vp-blink 1s step-end infinite;">|</span>
+          <div style="font-size:9px;color:#4a6fa5;margin-top:6px;letter-spacing:0.3px;">
+            🔗 Get free key: <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#00e5ff;text-decoration:none;">aistudio.google.com/app/apikey</a> · Stored locally in browser only
           </div>
+        </details>
 
-          <!-- Parsed Preview Grid -->
-          <div id="ai-parsed-grid" style="display:none;margin-bottom:12px;">
-            <div style="font-size:9px;color:var(--green);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;font-family:var(--font-m);">✅ EXTRACTED DATA</div>
-            <div id="ai-grid-inner" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"></div>
+        <!-- AI Output Display -->
+        <div id="gemini-output" style="
+          background:rgba(6,10,18,0.6);
+          border:1px solid rgba(168,85,247,0.2);
+          border-radius:10px;
+          padding:14px;
+          min-height:80px;
+          font-family:Consolas,monospace;
+          font-size:12px;
+          line-height:1.7;
+          color:#d4e8ff;
+          white-space:pre-wrap;
+          word-wrap:break-word;
+        ">
+          <span style="color:#4a6fa5;font-style:italic;">💡 Click "AI ROOT CAUSE" or "GENERATE 8D DRAFT" to get AI-powered insights based on your current defect entry...</span>
+        </div>
+      </div>
+      <!-- ══════════════════════════════════════════════════════════════ -->
+      <!-- END GEMINI AI PANEL                                            -->
+      <!-- ══════════════════════════════════════════════════════════════ -->
+
+      <!-- ══════════ VOICE DEFECT ENTRY PANEL ══════════ -->
+      <div id="voice-panel" style="
+        margin-top:18px;
+        background:linear-gradient(135deg,rgba(0,229,255,0.06),rgba(168,85,247,0.04));
+        border:1.5px solid rgba(0,229,255,0.25);
+        border-radius:14px;
+        padding:18px;
+        position:relative;
+        overflow:hidden;
+      ">
+        <!-- Animated top bar -->
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--cyan),var(--purple),var(--cyan));background-size:200%;animation:vp-shimmer 2.5s linear infinite;"></div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+          <div style="font-family:var(--font-h);font-size:11px;font-weight:700;color:var(--cyan);letter-spacing:2px;display:flex;align-items:center;gap:8px;">
+            <span style="width:8px;height:8px;background:var(--cyan);border-radius:50%;box-shadow:0 0 8px var(--cyan);display:inline-block;"></span>
+            🎤 VOICE DEFECT ENTRY
           </div>
-
-          <!-- AI Speaking indicator -->
-          <div id="ai-speaking-box" style="display:none;text-align:center;padding:10px;margin-bottom:10px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:10px;">
-            <div style="font-size:9px;color:var(--purple);text-transform:uppercase;letter-spacing:1.5px;font-family:var(--font-m);margin-bottom:4px;">🔊 AI SPEAKING</div>
-            <div id="ai-speaking-text" style="font-size:12px;color:var(--text);font-style:italic;"></div>
-          </div>
-
-          <!-- Confirm Row -->
-          <div id="ai-confirm-row" style="display:none;gap:10px;margin-bottom:10px;">
-            <button onclick="aiConfirm(true)" style="flex:1;padding:10px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--green),#00aa55);color:#000;font-family:var(--font-h);font-size:10px;font-weight:700;letter-spacing:1px;cursor:pointer;">✅ YES — LOG IT</button>
-            <button onclick="aiConfirm(false)" style="flex:1;padding:10px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--red),#990022);color:#fff;font-family:var(--font-h);font-size:10px;font-weight:700;letter-spacing:1px;cursor:pointer;">❌ NO — CLEAR</button>
-          </div>
-
-          <!-- Quick Commands -->
-          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
-            <button onclick="aiCommand('reset')" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:10px;cursor:pointer;">🗑 Reset</button>
-            <button onclick="aiCommand('dashboard')" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:10px;cursor:pointer;">📊 Dashboard</button>
-            <button onclick="aiCommand('repeat')" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:10px;cursor:pointer;">🔁 Repeat</button>
-            <button onclick="aiCommand('alert')" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:10px;cursor:pointer;">🚨 Alert</button>
+          <div id="vp-status-badge" style="font-family:var(--font-m);font-size:10px;color:var(--muted);background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:20px;padding:3px 12px;">
+            READY
           </div>
         </div>
+
+        <!-- Mic Button -->
+        <div style="text-align:center;margin-bottom:14px;">
+          <button id="vp-mic-btn" onclick="vpToggleMic()" style="
+            width:72px;height:72px;border-radius:50%;border:2px solid var(--cyan);
+            background:linear-gradient(135deg,rgba(0,229,255,0.12),rgba(168,85,247,0.08));
+            color:var(--cyan);font-size:30px;cursor:pointer;
+            box-shadow:0 0 20px rgba(0,229,255,0.2);
+            transition:all 0.3s;position:relative;display:inline-flex;align-items:center;justify-content:center;
+          ">🎤</button>
+          <div id="vp-pulse-ring" style="display:none;position:absolute;"></div>
+          <div style="margin-top:8px;font-size:11px;color:var(--muted);">Click mic → bola → "Station ST-200, Open Hem, Shift A..."</div>
+        </div>
+
+        <!-- Live Transcript -->
+        <div id="vp-transcript-box" style="
+          display:none;
+          background:var(--s1);border:1px solid var(--border);border-radius:8px;
+          padding:10px 14px;margin-bottom:12px;
+          font-family:var(--font-m);font-size:12px;color:var(--text);min-height:36px;
+          position:relative;
+        ">
+          <span id="vp-transcript-text"></span><span id="vp-cursor" style="color:var(--cyan);animation:vp-blink 1s step-end infinite;">|</span>
+        </div>
+
+        <!-- Parsed Preview Grid -->
+        <div id="vp-parsed-grid" style="display:none;margin-bottom:12px;">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Parsed Fields</div>
+          <div id="vp-grid-inner" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"></div>
+        </div>
+
+        <!-- Confirmation Buttons -->
+        <div id="vp-confirm-row" style="display:none;gap:10px;margin-bottom:10px;">
+          <button onclick="vpConfirm(true)" style="
+            flex:1;padding:10px;border:none;border-radius:8px;
+            background:linear-gradient(135deg,var(--green),#00aa55);
+            color:#000;font-family:var(--font-h);font-size:10px;font-weight:700;
+            letter-spacing:1px;cursor:pointer;
+          ">✅ YES — LOG IT</button>
+          <button onclick="vpConfirm(false)" style="
+            flex:1;padding:10px;border:none;border-radius:8px;
+            background:linear-gradient(135deg,var(--red),#990022);
+            color:#fff;font-family:var(--font-h);font-size:10px;font-weight:700;
+            letter-spacing:1px;cursor:pointer;
+          ">❌ NO — CLEAR</button>
+        </div>
+
+        <!-- Error / Info Message -->
+        <div id="vp-msg" style="font-size:11px;color:var(--muted);text-align:center;min-height:16px;"></div>
       </div>
 
       <!-- ONE-PAGER GENERATOR -->
@@ -2960,7 +3130,59 @@ body.light-mode .rec-table tr:hover td { background:#ebf8ff !important; }
 </div>
 
 
+</div><!-- end stmon -->
+
+
+<!-- ===== TAB: AI CONSOLE ===== -->
+<div class="panel" id="tab-aiconsole">
+
+<!-- Console Header -->
+<div style="background:linear-gradient(135deg,#0d1828,#112138);border:1px solid var(--border);border-radius:12px 12px 0 0;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;position:relative;overflow:hidden;">
+  <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),var(--green),var(--cyan),transparent);background-size:200% 100%;animation:aic-scan 3s linear infinite;"></div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div style="display:flex;gap:6px;">
+      <span style="width:11px;height:11px;border-radius:50%;background:#ff5f57;box-shadow:0 0 4px #ff5f57;display:inline-block;"></span>
+      <span style="width:11px;height:11px;border-radius:50%;background:#ffbd2e;box-shadow:0 0 4px #ffbd2e;display:inline-block;"></span>
+      <span style="width:11px;height:11px;border-radius:50%;background:#28ca41;box-shadow:0 0 4px #28ca41;display:inline-block;"></span>
+    </div>
+    <div>
+      <span style="font-family:var(--font-h);font-size:13px;font-weight:700;color:var(--cyan);letter-spacing:2px;">AI CONSOLE STREAM</span>
+      <span style="color:var(--muted);font-size:11px;margin-left:8px;">v2.0</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <div style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.3);font-family:var(--font-m);font-size:10px;font-weight:700;color:var(--green);letter-spacing:1px;">
+      <span style="width:6px;height:6px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green);animation:aic-pulse 1.5s ease-in-out infinite;display:inline-block;"></span>
+      CONNECTED
+    </div>
+    <span id="aic-clock" style="font-family:var(--font-m);font-size:11px;color:var(--muted);letter-spacing:1px;">00:00:00</span>
+  </div>
+</div>
+
+<!-- Console Body -->
+<div id="aic-body" style="background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;padding:28px 24px;min-height:420px;max-height:520px;overflow-y:auto;position:relative;">
+  <!-- Scanline overlay -->
+  <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,229,255,0.012) 3px,rgba(0,229,255,0.012) 4px);pointer-events:none;z-index:1;"></div>
+  <div id="aic-output" style="font-family:var(--font-m);font-size:13px;line-height:1.9;position:relative;z-index:2;"></div>
+</div>
+
+<!-- Controls -->
+<div style="display:flex;align-items:center;gap:10px;margin-top:14px;padding:12px 18px;background:linear-gradient(135deg,#0d1828,#112138);border:1px solid var(--border);border-radius:10px;flex-wrap:wrap;">
+  <button onclick="aicRun('high')" style="padding:8px 16px;background:rgba(255,61,90,0.1);border:1px solid rgba(255,61,90,0.3);border-radius:8px;color:var(--red);font-family:var(--font-m);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1px;">🔴 HIGH RISK</button>
+  <button onclick="aicRun('medium')" style="padding:8px 16px;background:rgba(255,170,0,0.1);border:1px solid rgba(255,170,0,0.3);border-radius:8px;color:var(--amber);font-family:var(--font-m);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1px;">🟡 MEDIUM</button>
+  <button onclick="aicRun('low')" style="padding:8px 16px;background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.3);border-radius:8px;color:var(--green);font-family:var(--font-m);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1px;">🟢 LOW RISK</button>
+  <button onclick="aicRun('live')" style="padding:8px 16px;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);border-radius:8px;color:var(--purple);font-family:var(--font-m);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1px;">⚡ LIVE DATA</button>
+  <button onclick="document.getElementById('aic-output').innerHTML=''" style="padding:8px 16px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.2);border-radius:8px;color:var(--cyan);font-family:var(--font-m);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1px;">⟲ CLEAR</button>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:8px;font-family:var(--font-m);font-size:10px;color:var(--muted);">
+    SPEED <input type="range" id="aic-speed" min="8" max="55" value="22" style="width:90px;accent-color:var(--cyan);"> <span id="aic-speed-val">22ms</span>
+  </div>
+</div>
+
+</div>
+
+
 </div><!-- end main -->
+
 
 <div class="toast" id="toast"></div>
 
@@ -3124,16 +3346,61 @@ const sampleDefects = [
   {id:1083,datetime:'2026-03-09T08:30:00',shift:'Shift C (23:30–6:30)',op:'1028',mach:'ST-100',door:'Tailgate',dtype:'Roll-in Defect',sev:'LOW',rc:'Operator Error',press:179,prod:250,rem:'',imgs:[]}
 ];
 
-// Smart load — sample data फक्त पहिल्यांदाच load होईल
-// जर आधीच data असेल तर तो ठेवतो
+// ════════════════════════════════════════════════════════════════
+// SAFE DATA LOADING — Never lose existing data!
+// ════════════════════════════════════════════════════════════════
+function safeLoadDefects() {
+  const raw = localStorage.getItem('ht2_defects');
+  console.log('[DataLoad] Raw size:', raw ? raw.length : 0, 'bytes');
+
+  // Case 1: No data at all — first ever load → seed sample
+  if (raw === null || raw === '') {
+    console.log('[DataLoad] No existing data, seeding sample defects');
+    try {
+      localStorage.setItem('ht2_defects', JSON.stringify(sampleDefects));
+      localStorage.setItem('ht2_initialized', 'true');
+      return sampleDefects.slice();
+    } catch(e) {
+      console.error('[DataLoad] Failed to seed sample:', e);
+      return [];
+    }
+  }
+
+  // Case 2: Try to parse existing data — KEEP user's data even if corrupt
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      console.log('[DataLoad] ✅ Loaded', parsed.length, 'defects from localStorage');
+      return parsed;
+    } else {
+      console.error('[DataLoad] Data is not an array! Backing up...');
+      localStorage.setItem('ht2_defects_corrupt_' + Date.now(), raw);
+      return [];
+    }
+  } catch(e) {
+    // CRITICAL: Don't destroy data on parse error — back it up first!
+    console.error('[DataLoad] ⚠️ JSON parse FAILED:', e.message);
+    console.error('[DataLoad] Creating emergency backup...');
+    try {
+      localStorage.setItem('ht2_defects_corrupt_' + Date.now(), raw);
+      console.error('[DataLoad] ✅ Backup created. Returning empty array but DATA NOT LOST.');
+    } catch(backupErr) {
+      console.error('[DataLoad] Backup failed:', backupErr);
+    }
+    return [];
+  }
+}
+
 const existingData = localStorage.getItem('ht2_defects');
 const isFirstLoad = !existingData || existingData === '[]';
 if (isFirstLoad) {
-  localStorage.setItem('ht2_defects', JSON.stringify(sampleDefects));
-  localStorage.setItem('ht2_initialized', 'true');
+  try {
+    localStorage.setItem('ht2_defects', JSON.stringify(sampleDefects));
+    localStorage.setItem('ht2_initialized', 'true');
+  } catch(e) { console.error('[Init] Seed failed:', e); }
 }
 
-let defects = JSON.parse(localStorage.getItem('ht2_defects')||'[]');
+let defects = safeLoadDefects();
 let whyReps = JSON.parse(localStorage.getItem('ht2_whys')||'[]');
 let alertLog = JSON.parse(localStorage.getItem('ht2_alerts')||'[]');
 let alertCfg = JSON.parse(localStorage.getItem('ht2_alertcfg')||'{"occ":5,"high":3,"consec":3}');
@@ -3160,20 +3427,13 @@ document.getElementById('ai-tip').textContent = TIPS[Math.floor(Math.random()*TI
 
 buildWhyInputs();
 
-// Load sample data
-if(!defects.length){
-  defects=[
-    {id:1,datetime:'2026-02-17T08:30',shift:'Shift A (6:30–15:00)',op:'TKT-1001',mach:'HM-01 (Station 1)',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Tooling Wear',press:165,prod:120,rem:'Corner radius worn',imgs:[]},
-    {id:2,datetime:'2026-02-17T10:15',shift:'Shift A (6:30–15:00)',op:'TKT-1002',mach:'HM-02 (Station 2)',door:'RH Rear',dtype:'Wrinkle / Pucker',sev:'MED',rc:'Material Issue',press:180,prod:0,rem:'Blank variation',imgs:[]},
-    {id:3,datetime:'2026-02-17T15:45',shift:'Shift B (15:00–23:30)',op:'TKT-1003',mach:'HM-01 (Station 1)',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Tooling Wear',press:158,prod:95,rem:'Recurring station 1',imgs:[]},
-    {id:4,datetime:'2026-02-18T09:00',shift:'Shift A (6:30–15:00)',op:'TKT-1001',mach:'HM-03 (Station 3)',door:'RH Rear',dtype:'Hem Crack',sev:'HIGH',rc:'Material Issue',press:182,prod:110,rem:'Crack at bend',imgs:[]},
-    {id:5,datetime:'2026-02-18T11:30',shift:'Shift A (6:30–15:00)',op:'TKT-1004',mach:'HM-02 (Station 2)',door:'LH Rear',dtype:'Panel Mismatch',sev:'LOW',rc:'Operator Error',press:180,prod:0,rem:'Loading position',imgs:[]},
-    {id:6,datetime:'2026-02-19T07:00',shift:'Shift A (6:30–15:00)',op:'TKT-1002',mach:'HM-01 (Station 1)',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Incorrect Setup',press:170,prod:80,rem:'Setup not followed',imgs:[]},
-    {id:7,datetime:'2026-02-20T16:30',shift:'Shift B (15:00–23:30)',op:'TKT-1003',mach:'HM-04 (Station 4)',door:'RH Rear',dtype:'Roll-in Defect',sev:'MED',rc:'Fixture Problem',press:178,prod:100,rem:'Fixture worn',imgs:[]},
-    {id:8,datetime:'2026-02-21T08:00',shift:'Shift A (6:30–15:00)',op:'TKT-1001',mach:'HM-01 (Station 1)',door:'LH Rear',dtype:'Open Hem',sev:'HIGH',rc:'Tooling Wear',press:160,prod:130,rem:'Tool life exceeded',imgs:[]},
-  ];
-  save();
-}
+// ════════════════════════════════════════════════════════════════
+// REMOVED THE DANGEROUS BLOCK that was here:
+//   if(!defects.length){ defects = [...8 hardcoded entries...]; save(); }
+// This block could OVERWRITE user data if defects array was empty for any reason.
+// Sample data seeding is now handled exclusively by safeLoadDefects() above,
+// which only seeds on FIRST load (when localStorage is null/empty).
+// ════════════════════════════════════════════════════════════════
 
 // ============ IMAGE HANDLING ============
 function handleFiles(files){
@@ -3323,7 +3583,43 @@ function addDefect(){
     rem:g('f-rem'),
     imgs:[...pendingImgs]
   };
+
+  // ════════════════════════════════════════════════
+  // SAFETY CHECKS BEFORE PUSH
+  // ════════════════════════════════════════════════
+  // 1. Validate required fields
+  if (!d.dtype || !d.sev || !d.mach) {
+    console.error('[AddDefect] ❌ Missing required fields:', d);
+    showToast('❌ Missing required fields (defect type, severity, station)');
+    return;
+  }
+
+  // 2. Ensure defects is an array (paranoid check)
+  if (!Array.isArray(defects)) {
+    console.error('[AddDefect] ❌ defects is not an array! Reloading from storage...');
+    defects = safeLoadDefects();
+  }
+
+  // 3. Generate unique ID if collision (very unlikely but safe)
+  if (defects.some(x => x.id === d.id)) {
+    d.id = Date.now() + Math.floor(Math.random() * 1000);
+    console.warn('[AddDefect] ID collision detected, using:', d.id);
+  }
+
+  // 4. Debug log: count BEFORE push
+  const countBefore = defects.length;
+  console.log('[AddDefect] 📊 BEFORE: ' + countBefore + ' defects');
+
   defects.push(d);
+
+  // 5. Debug log: count AFTER push
+  const countAfter = defects.length;
+  console.log('[AddDefect] 📊 AFTER:  ' + countAfter + ' defects (added id: ' + d.id + ')');
+
+  if (countAfter !== countBefore + 1) {
+    console.error('[AddDefect] ❌ COUNT MISMATCH! Expected ' + (countBefore+1) + ', got ' + countAfter);
+  }
+
   pendingImgs=[];
   renderPreviews();
   
@@ -3373,13 +3669,101 @@ function addDefect(){
   document.getElementById('f-prod').value='';
   document.getElementById('f-press').value='';
   document.getElementById('f-dt').value=new Date().toISOString().slice(0,10);
-  save();
+
+  // ════════════════════════════════════════════════
+  // SAFE SAVE WITH VERIFICATION
+  // ════════════════════════════════════════════════
+  const saveOK = save();
+  if (!saveOK) {
+    console.error('[AddDefect] ❌ Save failed! Defect added to memory only.');
+    showToast('⚠️ Defect added but SAVE FAILED — check console!');
+    return;
+  }
+
+  // Verify localStorage actually persisted (paranoid check)
+  try {
+    const verifyRaw = localStorage.getItem('ht2_defects');
+    const verifyArr = JSON.parse(verifyRaw);
+    if (!Array.isArray(verifyArr) || verifyArr.length !== countAfter) {
+      console.error('[AddDefect] ❌ VERIFICATION FAILED! In-memory: ' + countAfter + ', localStorage: ' + (verifyArr ? verifyArr.length : 'invalid'));
+      showToast('⚠️ Save verification failed — check console!');
+    } else {
+      console.log('[AddDefect] ✅ Verified: ' + verifyArr.length + ' defects persisted');
+    }
+  } catch(e) {
+    console.error('[AddDefect] Verification error:', e);
+  }
+
   checkAlerts(d);
   updateAll();
-  showToast('✅ Defect logged!');
+  showToast('✅ Defect logged! (' + countAfter + ' total)');
 }
 
-function save(){localStorage.setItem('ht2_defects',JSON.stringify(defects));}
+function save(){
+  // ════════════════════════════════════════════════
+  // SAFE SAVE — Validates + Backs up + Verifies write
+  // ════════════════════════════════════════════════
+  try {
+    // Validation 1: Must be an array
+    if (!Array.isArray(defects)) {
+      console.error('[Save] ❌ defects is not an array! Type:', typeof defects);
+      return false;
+    }
+
+    // Validation 2: Don't allow saving empty when we had data before
+    const prevRaw = localStorage.getItem('ht2_defects');
+    let prevCount = 0;
+    if (prevRaw) {
+      try {
+        const prev = JSON.parse(prevRaw);
+        if (Array.isArray(prev)) prevCount = prev.length;
+      } catch(e) {}
+    }
+
+    // SAFETY: Block accidental wipe (defects went from many → 0)
+    if (defects.length === 0 && prevCount > 5) {
+      console.error('[Save] ⚠️ BLOCKED: Attempted to save empty array when ' + prevCount + ' records existed!');
+      console.error('[Save] If you really want to clear, use clearAll() function which has confirmation.');
+      return false;
+    }
+
+    // SAFETY: Warn if count drops significantly (>20% loss without explicit delete)
+    if (prevCount > 0 && defects.length < prevCount * 0.8 && defects.length > 0) {
+      console.warn('[Save] ⚠️ Count dropping: ' + prevCount + ' → ' + defects.length + ' (-' + (prevCount - defects.length) + ')');
+    }
+
+    // Create rolling backup BEFORE overwrite (last 3 backups kept)
+    if (prevRaw && prevCount > 0) {
+      try {
+        localStorage.setItem('ht2_defects_bk1', prevRaw);
+      } catch(e) {
+        // Backup failed — likely quota. Skip backup, but still try main save.
+        console.warn('[Save] Backup skipped (quota?):', e.message);
+      }
+    }
+
+    // Atomic write
+    const json = JSON.stringify(defects);
+    localStorage.setItem('ht2_defects', json);
+
+    // Verify write succeeded
+    const verify = localStorage.getItem('ht2_defects');
+    if (!verify || verify.length !== json.length) {
+      console.error('[Save] ❌ Write verification FAILED!');
+      return false;
+    }
+
+    console.log('[Save] ✅ Saved ' + defects.length + ' defects (' + (json.length / 1024).toFixed(1) + ' KB)');
+    return true;
+
+  } catch(e) {
+    console.error('[Save] ❌ Exception:', e);
+    if (e.name === 'QuotaExceededError') {
+      alert('⚠️ Browser storage full! Please export backup and clear some data.');
+    }
+    return false;
+  }
+}
 
 // ============ ALERTS ============
 function checkAlerts(d){
@@ -8432,258 +8816,334 @@ function generateOnePagerHTML(model, failure, station, rc, press, occ, raybg, ac
 
 </script>
 
-<!-- ══════════ AI VOICE ASSISTANT ENGINE — "Hey Sanket" ══════════ -->
-<!-- FLOATING AI ORB -->
-<div id="ai-float-orb" onclick="aiToggleMic()" title="Hey Sanket — AI Voice Assistant" style="position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(0,229,255,0.25),rgba(168,85,247,0.2));border:2px solid rgba(0,229,255,0.3);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;z-index:300;box-shadow:0 4px 20px rgba(0,229,255,0.2);transition:all .3s;backdrop-filter:blur(8px);">🧠</div>
-
+<!-- ══════════ VOICE DEFECT ENTRY ENGINE ══════════ -->
 <script>
 (function(){
   'use strict';
-  var AI={wakeListening:false,activeListening:false,confirmMode:false,speaking:false,wakeRecog:null,mainRecog:null,confirmRecog:null,parsedData:{},lastSpoken:'',wakeTimeout:null};
-  function $(id){return document.getElementById(id);}
 
-  function aiSetStatus(t,c){var e=$('ai-status');if(e){e.innerHTML=t;e.style.color=c||'var(--muted)';}}
-  function aiSetBadge(t,c){var b=$('ai-badge');if(b){b.textContent=t;b.style.color=c||'var(--muted)';b.style.borderColor=c||'var(--border)';}}
-  function aiShowTranscript(t){var b=$('ai-transcript-box'),s=$('ai-transcript-text');if(b)b.style.display='block';if(s)s.textContent=t;}
-  function aiHideTranscript(){var b=$('ai-transcript-box');if(b)b.style.display='none';}
-  function aiShowParsed(){var g=$('ai-parsed-grid');if(g)g.style.display='block';}
-  function aiHideParsed(){var g=$('ai-parsed-grid');if(g)g.style.display='none';}
-  function aiShowConfirm(){var c=$('ai-confirm-row');if(c)c.style.display='flex';}
-  function aiHideConfirm(){var c=$('ai-confirm-row');if(c)c.style.display='none';}
-  function aiShowSpeaking(t){var b=$('ai-speaking-box'),s=$('ai-speaking-text');if(b)b.style.display='block';if(s)s.textContent=t;}
-  function aiHideSpeaking(){var b=$('ai-speaking-box');if(b)b.style.display='none';}
+  var vpRecognition = null;
+  var vpListening   = false;
+  var vpParsedData  = {};
+  var vpConfirmMode = false;
+  var vpConfirmRecog= null;
 
-  function aiSetMic(state){
-    var btn=$('ai-mic-btn'),orb=$('ai-float-orb'),p1=$('ai-pulse-1'),p2=$('ai-pulse-2');
-    if(btn){btn.classList.remove('ai-mic-active','ai-mic-speaking');btn.textContent='🎤';}
-    if(orb)orb.classList.remove('listening');
-    if(p1)p1.style.display='none';if(p2)p2.style.display='none';
-    if(state==='listening'){if(btn){btn.classList.add('ai-mic-active');btn.textContent='🔴';}if(orb)orb.classList.add('listening');if(p1)p1.style.display='block';if(p2)p2.style.display='block';}
-    else if(state==='speaking'){if(btn){btn.classList.add('ai-mic-speaking');btn.textContent='🔊';}}
+  function vpEl(id){ return document.getElementById(id); }
+  function vpMsg(txt,color){
+    var el=vpEl('vp-msg');
+    if(el){ el.textContent=txt; el.style.color=color||'var(--muted)'; }
+  }
+  function vpSetBadge(txt,color){
+    var b=vpEl('vp-status-badge');
+    if(!b) return;
+    b.textContent=txt;
+    b.style.color=color||'var(--muted)';
+    b.style.borderColor=color||'var(--border)';
   }
 
-  // TTS — Natural voice with sentence pauses
-  function aiSpeak(text,onEnd){
-    if(!window.speechSynthesis){if(onEnd)onEnd();return;}
-    AI.speaking=true;window.speechSynthesis.cancel();aiSetMic('speaking');aiShowSpeaking(text);AI.lastSpoken=text;
-    var sentences=text.split(/(?<=[.!?])\s+/).filter(function(s){return s.trim();});
-    if(!sentences.length)sentences=[text];
-    var idx=0;
-    function next(){
-      if(idx>=sentences.length){AI.speaking=false;aiSetMic('idle');aiHideSpeaking();if(onEnd)onEnd();return;}
-      var u=new SpeechSynthesisUtterance(sentences[idx]);u.lang='en-IN';u.rate=0.95;u.pitch=1.05;u.volume=1;
-      var voices=window.speechSynthesis.getVoices();
-      var pref=voices.find(function(v){return v.lang==='en-IN'&&v.name.indexOf('Google')!==-1;})||voices.find(function(v){return v.lang==='en-IN';})||voices.find(function(v){return v.lang.indexOf('en')===0;});
-      if(pref)u.voice=pref;
-      u.onend=function(){idx++;if(idx<sentences.length)setTimeout(next,300);else next();};
-      u.onerror=function(){idx=sentences.length;next();};
-      window.speechSynthesis.speak(u);
+  function vpSpeak(text, onEnd){
+    if(!window.speechSynthesis) return onEnd&&onEnd();
+    window.speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang='en-IN'; u.rate=0.92; u.pitch=1.05; u.volume=1;
+    if(onEnd) u.onend=onEnd;
+    window.speechSynthesis.speak(u);
+  }
+
+  var VP_STATIONS  =['ST-100','ST-120','ST-150','ST-200','ST-220'];
+  var VP_DTYPES    =['Open Hem','Hem Crack','Wrinkle / Pucker','Roll-in Defect','Burr / Sharp Edge','Panel Mismatch','Other'];
+  var VP_SHIFTS    ={'a':0,'shift a':0,'shift-a':0,'b':1,'shift b':1,'shift-b':1,'c':2,'shift c':2,'shift-c':2};
+  var VP_SIDES     ={'lh front':0,'left front':0,'lh rear':1,'left rear':1,'rh front':2,'right front':2,'rh rear':3,'right rear':3,'bonnet':4,'hood':4,'tailgate':5,'boot':5};
+  var VP_RC_NAMES  =['Tooling Wear','Incorrect Setup','Material Issue','Operator Error','Machine Malfunction','Fixture Problem','Unknown'];
+  var VP_SIDE_NAMES=['LH Front','LH Rear','RH Front','RH Rear','Bonnet','Tailgate'];
+  var VP_SHIFT_NAMES=['Shift A','Shift B','Shift C'];
+
+  function vpParse(transcript){
+    var t=transcript.toLowerCase().trim();
+    var r={};
+
+    // Station
+    VP_STATIONS.forEach(function(s){
+      if(t.indexOf(s.toLowerCase())!==-1||t.indexOf(s.toLowerCase().replace('-',' '))!==-1) r.station=s;
+    });
+    if(!r.station){
+      var sm=t.match(/(?:station\s*)?(?:st[-\s]?)?(\d{3})/);
+      if(sm){ var c='ST-'+sm[1]; if(VP_STATIONS.indexOf(c)!==-1) r.station=c; }
     }
-    next();
-  }
-  if(window.speechSynthesis)window.speechSynthesis.getVoices();
 
-  // NLP Parser
-  var STATIONS=['ST-100','ST-120','ST-150','ST-200','ST-220'];
-  var DTYPES=['Open Hem','Hem Crack','Wrinkle / Pucker','Roll-in Defect','Burr / Sharp Edge','Panel Mismatch','Other'];
-  var RC_NAMES=['Tooling Wear','Incorrect Setup','Material Issue','Operator Error','Machine Malfunction','Fixture Problem','Unknown'];
-  var SIDE_NAMES=['LH Front','LH Rear','RH Front','RH Rear','Bonnet','Tailgate'];
-  var SHIFT_NAMES=['Shift A (6:30-15:00)','Shift B (15:00-23:30)','Shift C (23:30-6:30)'];
-  var FIELD_LABELS={station:'Station',shift:'Shift',defectType:'Defect',severity:'Severity',rootCause:'Root Cause',pressure:'Pressure',production:'Production',inspector:'Inspector',side:'Side',remarks:'Action/Remark'};
+    // Defect Type
+    var dtMap={'open hem':0,'open':0,'hem crack':1,'crack':1,'wrinkle':2,'pucker':2,'wrinkling':2,'roll in':3,'roll-in':3,'burr':4,'sharp':4,'mismatch':5,'panel mismatch':5,'other':6};
+    Object.keys(dtMap).forEach(function(k){ if(t.indexOf(k)!==-1) r.defectType=VP_DTYPES[dtMap[k]]; });
 
-  function aiParse(transcript){
-    var t=transcript.toLowerCase().trim(),r={};
-    STATIONS.forEach(function(s){if(t.indexOf(s.toLowerCase())!==-1||t.indexOf(s.toLowerCase().replace('-',' '))!==-1)r.station=s;});
-    if(!r.station){var sm=t.match(/(?:station\s*)?(?:st[-\s]?)(\d{3})/);if(sm){var c='ST-'+sm[1];if(STATIONS.indexOf(c)!==-1)r.station=c;}}
-    var dtMap={'open hem':0,'open':0,'hem crack':1,'crack':1,'wrinkle':2,'pucker':2,'roll in':3,'roll-in':3,'burr':4,'sharp':4,'mismatch':5,'panel mismatch':5,'other':6};
-    Object.keys(dtMap).forEach(function(k){if(t.indexOf(k)!==-1&&r.defectType===undefined)r.defectType=DTYPES[dtMap[k]];});
-    if(t.match(/shift\s*a|morning/i))r.shift=0;else if(t.match(/shift\s*b|afternoon|evening/i))r.shift=1;else if(t.match(/shift\s*c|night/i))r.shift=2;
-    if(t.match(/\bhigh\b|critical/i))r.severity='HIGH';else if(t.match(/\blow\b|minor/i))r.severity='LOW';else if(t.match(/medium|med\b/i))r.severity='MED';
-    var rcMap={'tooling wear':0,'tooling':0,'tool wear':0,'incorrect setup':1,'setup':1,'material':2,'operator':3,'operator error':3,'machine':4,'malfunction':4,'fixture':5,'unknown':6};
-    Object.keys(rcMap).forEach(function(k){if(t.indexOf(k)!==-1&&r.rootCause===undefined)r.rootCause=rcMap[k];});
-    var pm=t.match(/(?:pressure|press)\s*(\d{2,3}(?:\.\d{1,2})?)/i)||t.match(/(\d{3})\s*(?:bar|psi)/i);
-    if(pm&&parseFloat(pm[1])>=50&&parseFloat(pm[1])<=400)r.pressure=pm[1];
-    var prcm=t.match(/(?:production|prod|count|pcs)\s*[\s:]*(\d{2,4})/i);if(prcm)r.production=prcm[1];
+    // Shift
+    Object.keys(VP_SHIFTS).forEach(function(k){ if(t.indexOf(k)!==-1) r.shift=VP_SHIFTS[k]; });
+
+    // Severity
+    if(t.indexOf('high')!==-1) r.severity='HIGH';
+    else if(t.indexOf('medium')!==-1||t.indexOf('med ')!==-1) r.severity='MED';
+    else if(t.indexOf('low')!==-1) r.severity='LOW';
+
+    // Root Cause
+    var rcMap={'tooling wear':0,'tooling':0,'tool wear':0,'incorrect setup':1,'setup':1,'material':2,'material issue':2,'operator':3,'operator error':3,'machine':4,'malfunction':4,'fixture':5,'unknown':6};
+    Object.keys(rcMap).forEach(function(k){ if(t.indexOf(k)!==-1) r.rootCause=rcMap[k]; });
+
+    // Pressure
+    var pm=t.match(/(?:pressure\s*)?(\d{2,3})\s*(?:bar|psi)?/);
+    if(pm && parseInt(pm[1])>=50 && parseInt(pm[1])<=400) r.pressure=pm[1];
+
+    // Production
+    var prcm=t.match(/(?:production|prod|count|pcs|pieces?)\s*[\s:]*(\d{2,4})/);
+    if(prcm) r.production=prcm[1];
+
+    // Inspector — handles: "inspector ticket no 1005", "ticket 1005", "tkt 1005", "operator 1005", plain "1005" after ticket keyword
     var insm=t.match(/(?:inspector\s+)?(?:ticket(?:\s+no?)?|tkt|operator)\s*[:\-]?\s*([a-z]{0,4}[-]?\d{3,5})/i);
-    if(insm)r.inspector=insm[1].toUpperCase();else{var tm=t.match(/(?:ticket\s+no?|tkt)\s*[:\-]?\s*(\d{3,5})/i);if(tm)r.inspector=tm[1];}
-    var sideMap={'lh front':0,'left front':0,'lh rear':1,'left rear':1,'rh front':2,'right front':2,'rh rear':3,'right rear':3,'bonnet':4,'hood':4,'tailgate':5,'boot':5};
-    Object.keys(sideMap).forEach(function(k){if(t.indexOf(k)!==-1&&r.side===undefined)r.side=sideMap[k];});
-    var remm=t.match(/(?:remarks?|note|action|observation)[:\s]+(.+?)(?:$)/i);if(remm)r.remarks=remm[1].trim();
-    if(!r.remarks){var actm=t.match(/(?:take|do)\s+(.+?inspection)/i);if(actm)r.remarks=actm[1];}
+    if(insm) r.inspector=insm[1].toUpperCase();
+    else{
+      // Fallback: plain digits after "ticket no" or "tkt" (e.g. "put inspector ticket no 1005")
+      var tm=t.match(/(?:ticket\s+no?|tkt)\s*[:\-]?\s*(\d{3,5})/i);
+      if(tm) r.inspector=tm[1];
+    }
+
+    // Side
+    Object.keys(VP_SIDES).forEach(function(k){ if(t.indexOf(k)!==-1) r.side=VP_SIDES[k]; });
+
+    // Remarks
+    var remm=t.match(/(?:remarks?|note|comment|observation)[:\s]+(.+)/);
+    if(remm) r.remarks=remm[1].trim();
+
     return r;
   }
 
-  function aiFillForm(d){
-    function setS(id,val){var s=$(id);if(!s||val===undefined)return;for(var i=0;i<s.options.length;i++){if(s.options[i].value===val||s.options[i].text===val||s.options[i].text.toLowerCase().indexOf(String(val).toLowerCase())!==-1){s.selectedIndex=i;return;}}}
-    if(d.station!==undefined)setS('f-mach',d.station);
-    if(d.shift!==undefined){var ss=$('f-shift');if(ss&&d.shift<ss.options.length)ss.selectedIndex=d.shift;}
-    if(d.defectType!==undefined)setS('f-dtype',d.defectType);
-    if(d.severity!==undefined)setS('f-sev',d.severity);
-    if(d.rootCause!==undefined){var rc=$('f-rc');if(rc&&d.rootCause<rc.options.length)rc.selectedIndex=d.rootCause;}
-    if(d.pressure!==undefined){var pr=$('f-press');if(pr)pr.value=d.pressure;}
-    if(d.production!==undefined){var pd=$('f-prod');if(pd)pd.value=d.production;}
-    if(d.inspector!==undefined){var op=$('f-op');if(op)op.value=d.inspector;}
-    if(d.side!==undefined){var sd=$('f-door');if(sd&&d.side<sd.options.length)sd.selectedIndex=d.side;}
-    if(d.remarks!==undefined){var rm=$('f-rem');if(rm)rm.value=d.remarks;}
-    var dt=$('f-dt');if(dt&&!dt.value){var n=new Date();dt.value=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');}
+  function vpFillForm(d){
+    function setSelect(id,val){
+      var s=vpEl(id); if(!s) return;
+      for(var i=0;i<s.options.length;i++){
+        if(s.options[i].value===val||s.options[i].text===val||s.options[i].text.indexOf(val)!==-1){s.selectedIndex=i;break;}
+      }
+    }
+    if(d.station!==undefined) setSelect('f-mach',d.station);
+    if(d.shift!==undefined){ var ss=vpEl('f-shift'); if(ss&&d.shift<ss.options.length) ss.selectedIndex=d.shift; }
+    if(d.defectType!==undefined) setSelect('f-dtype',d.defectType);
+    if(d.severity!==undefined) setSelect('f-sev',d.severity);
+    if(d.rootCause!==undefined){ var rc=vpEl('f-rc'); if(rc&&d.rootCause<rc.options.length) rc.selectedIndex=d.rootCause; }
+    if(d.pressure!==undefined){ var pr=vpEl('f-press'); if(pr) pr.value=d.pressure; }
+    if(d.production!==undefined){ var pd=vpEl('f-prod'); if(pd) pd.value=d.production; }
+    if(d.inspector!==undefined){ var op=vpEl('f-op'); if(op) op.value=d.inspector; }
+    if(d.side!==undefined){ var sd=vpEl('f-door'); if(sd&&d.side<sd.options.length) sd.selectedIndex=d.side; }
+    if(d.remarks!==undefined){ var rm=vpEl('f-rem'); if(rm) rm.value=d.remarks; }
   }
-  function aiClearForm(){['f-op','f-press','f-prod','f-rem'].forEach(function(id){var e=$(id);if(e)e.value='';});['f-mach','f-shift','f-dtype','f-door'].forEach(function(id){var e=$(id);if(e)e.selectedIndex=0;});var sv=$('f-sev');if(sv)sv.selectedIndex=1;var rc=$('f-rc');if(rc)rc.selectedIndex=0;}
-  function aiDV(k,v){if(k==='shift')return SHIFT_NAMES[v]||v;if(k==='rootCause')return RC_NAMES[v]||v;if(k==='side')return SIDE_NAMES[v]||v;if(k==='pressure')return v+' bar';return v;}
 
-  function aiRenderGrid(data){
-    var c=$('ai-grid-inner');if(!c)return;c.innerHTML='';
+  function vpClearForm(){
+    ['f-op','f-press','f-prod','f-rem'].forEach(function(id){ var e=vpEl(id); if(e) e.value=''; });
+    ['f-mach','f-shift','f-dtype','f-door'].forEach(function(id){ var e=vpEl(id); if(e) e.selectedIndex=0; });
+    var sv=vpEl('f-sev'); if(sv) sv.selectedIndex=1;
+    var rc=vpEl('f-rc'); if(rc) rc.selectedIndex=0;
+  }
+
+  var VP_FIELD_LABELS={station:'Station',shift:'Shift',defectType:'Defect Type',severity:'Severity',rootCause:'Root Cause',pressure:'Pressure (bar)',production:'Production',inspector:'Inspector',side:'Side',remarks:'Remarks'};
+
+  function vpDisplayValue(key,val){
+    if(key==='shift') return VP_SHIFT_NAMES[val]||val;
+    if(key==='rootCause') return VP_RC_NAMES[val]||val;
+    if(key==='side') return VP_SIDE_NAMES[val]||val;
+    if(key==='pressure') return val+' bar';
+    return val;
+  }
+
+  function vpRenderGrid(data){
+    var c=vpEl('vp-grid-inner'); if(!c) return;
+    c.innerHTML='';
     ['station','defectType','shift','severity','rootCause','pressure','production','inspector','side','remarks'].forEach(function(key){
-      var m=data[key]!==undefined,div=document.createElement('div');
-      div.style.cssText='padding:5px 8px;border-radius:6px;border:1px solid '+(m?'rgba(0,255,136,0.2)':'rgba(255,255,255,0.05)')+';background:'+(m?'rgba(0,255,136,0.04)':'transparent');
-      div.innerHTML='<div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">'+FIELD_LABELS[key]+'</div><div style="font-size:12px;font-weight:700;color:'+(m?'var(--green)':'var(--muted)')+';">'+(m?aiDV(key,data[key]):'—')+'</div>';
+      var matched=data[key]!==undefined;
+      var div=document.createElement('div');
+      div.className=matched?'vp-field-matched':'vp-field-unmatched';
+      div.innerHTML='<div class="vp-field-label">'+VP_FIELD_LABELS[key]+'</div><div class="vp-field-value">'+(matched?vpDisplayValue(key,data[key]):'—')+'</div>';
       c.appendChild(div);
     });
   }
 
-  // Wake Word — "Hey Sanket"
-  function aiStartWake(){
-    var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;
-    if(AI.wakeRecog){try{AI.wakeRecog.abort();}catch(e){}}
-    AI.wakeRecog=new SR();AI.wakeRecog.lang='en-IN';AI.wakeRecog.continuous=true;AI.wakeRecog.interimResults=true;AI.wakeRecog.maxAlternatives=3;
-    AI.wakeRecog.onresult=function(e){
-      for(var i=e.resultIndex;i<e.results.length;i++){for(var j=0;j<e.results[i].length;j++){
-        var t=e.results[i][j].transcript.toLowerCase();
-        if(t.indexOf('hey sanket')!==-1||t.indexOf('he sanket')!==-1||t.indexOf('a sanket')!==-1||t.indexOf('hae sanket')!==-1){
-          AI.wakeRecog.stop();AI.wakeListening=false;
-          var after=t.replace(/.*(?:hey|he|hae|a)\s*sanket\s*/i,'').trim();
-          if(after&&aiCheckCmd(after))return;
-          if(after&&after.length>15){aiProcess(after);return;}
-          aiSetBadge('ACTIVATED','var(--green)');aiSetStatus('🟢 <strong>Hey Sanket!</strong> Listening...','var(--green)');
-          aiSpeak('Yes Sanket?',function(){aiStartActive();});return;
-    }}}};
-    AI.wakeRecog.onend=function(){if(!AI.activeListening&&!AI.confirmMode&&!AI.speaking){AI.wakeTimeout=setTimeout(function(){aiStartWake();},500);}};
-    AI.wakeRecog.onerror=function(){};
-    try{AI.wakeRecog.start();AI.wakeListening=true;}catch(e){}
-  }
+  window.vpToggleMic=function(){
+    if(vpListening){ vpStopListening(); return; }
+    vpStartListening();
+  };
 
-  // Smart Commands
-  function aiCheckCmd(t){
-    t=t.toLowerCase();
-    if(t.match(/reset\s*form|clear\s*form|saaf/)){aiClearForm();aiSpeak('Form cleared.');aiFullReset();return true;}
-    if(t.match(/show\s*dashboard|open\s*dashboard|dashboard/)){aiSpeak('Opening dashboard.',function(){var b=document.querySelector('.tab[onclick*="dashboard"]');if(b)b.click();});aiFullReset();return true;}
-    if(t.match(/send\s*alert|trigger\s*alert/)){aiSpeak('Opening alerts.');var b=document.querySelector('.tab[onclick*="alerts"]');if(b)setTimeout(function(){b.click();},1000);aiFullReset();return true;}
-    if(t.match(/repeat\s*data|repeat/)){if(AI.lastSpoken)aiSpeak(AI.lastSpoken);else aiSpeak('No data to repeat.');aiFullReset();return true;}
-    if(t.match(/inspector\s*report|show\s*inspector/)){aiInspectorReport();return true;}
-    if(t.match(/show\s*record|open\s*record/)){aiSpeak('Opening records.',function(){var b=document.querySelector('.tab[onclick*="records"]');if(b)b.click();});aiFullReset();return true;}
-    return false;
-  }
+  function vpStartListening(){
+    var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){ vpMsg('⚠️ Chrome browser वापरा — Speech API नाही.','var(--red)'); return; }
+    vpListening=true; vpConfirmMode=false;
 
-  // Inspector Report
-  function aiInspectorReport(){
-    var d=typeof defects!=='undefined'?defects:[],tot=d.length,hi=d.filter(function(x){return x.sev==='HIGH';}).length;
-    var med=d.filter(function(x){return x.sev==='MED';}).length,lo=d.filter(function(x){return x.sev==='LOW';}).length;
-    var prod=d.reduce(function(s,x){return s+(x.prod||0);},0),occ=prod>0?((tot/prod)*100).toFixed(2):'0';
-    var tm={};d.forEach(function(x){var t=x.dtype||'Other';tm[t]=(tm[t]||0)+1;});
-    var top=Object.entries(tm).sort(function(a,b){return b[1]-a[1];})[0];
-    var today=new Date().toISOString().slice(0,10),td=d.filter(function(x){return x.datetime&&x.datetime.slice(0,10)===today;});
-    var r='Inspector Report. Total defects: '+tot+'. High severity: '+hi+'. Medium: '+med+'. Low: '+lo+'. Production: '+prod+'. OCC rate: '+occ+' percent. '+(top?'Top defect: '+top[0]+' with '+top[1]+'. ':'')+' Today: '+td.length+' defects. '+(hi>=3?'Alert! High count crossed threshold.':'System under control.');
-    aiSetStatus('📊 Speaking report...','var(--purple)');aiSetBadge('REPORT','var(--purple)');
-    aiSpeak(r,function(){aiFullReset();});
-  }
+    var tb=vpEl('vp-transcript-box'),pg=vpEl('vp-parsed-grid'),cr=vpEl('vp-confirm-row'),mb=vpEl('vp-mic-btn');
+    if(tb) tb.style.display='block';
+    if(pg) pg.style.display='none';
+    if(cr) cr.style.display='none';
+    if(mb){ mb.classList.add('vp-mic-listening'); mb.textContent='⏹'; }
+    vpEl('vp-transcript-text').textContent='';
+    vpMsg('🎙️ ऐकतोय... बोला!','var(--cyan)');
+    vpSetBadge('LISTENING ●','var(--red)');
 
-  // Active Listening
-  function aiStartActive(){
-    var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;
-    AI.activeListening=true;AI.confirmMode=false;aiSetMic('listening');
-    aiSetBadge('LISTENING','var(--red)');aiSetStatus('🔴 <strong>Listening...</strong> Speak defect details','var(--red)');
-    aiShowTranscript('');aiHideParsed();aiHideConfirm();
-    if(AI.mainRecog){try{AI.mainRecog.abort();}catch(e){}}
-    AI.mainRecog=new SR();AI.mainRecog.lang='en-IN';AI.mainRecog.continuous=false;AI.mainRecog.interimResults=true;AI.mainRecog.maxAlternatives=1;
-    AI.mainRecog.onresult=function(e){
-      var interim='',final_='';for(var i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)final_+=e.results[i][0].transcript;else interim+=e.results[i][0].transcript;}
-      aiShowTranscript(final_||interim);if(final_){AI.activeListening=false;if(!aiCheckCmd(final_))aiProcess(final_);}
+    vpRecognition=new SR();
+    vpRecognition.lang='en-IN';
+    vpRecognition.continuous=false;
+    vpRecognition.interimResults=true;
+    vpRecognition.maxAlternatives=1;
+
+    vpRecognition.onresult=function(e){
+      var interim='',final_='';
+      for(var i=e.resultIndex;i<e.results.length;i++){
+        if(e.results[i].isFinal) final_+=e.results[i][0].transcript;
+        else interim+=e.results[i][0].transcript;
+      }
+      vpEl('vp-transcript-text').textContent=final_||interim;
+      if(final_) vpProcessTranscript(final_);
     };
-    AI.mainRecog.onerror=function(e){AI.activeListening=false;aiSetStatus('Error: '+e.error+'. Try again.','var(--red)');aiSpeak('Sorry, please try again.',function(){aiFullReset();});};
-    AI.mainRecog.onend=function(){if(AI.activeListening){AI.activeListening=false;aiSetMic('idle');}};
-    AI.mainRecog.start();
-  }
 
-  // Process + Fill + Confirm
-  function aiProcess(text){
-    AI.activeListening=false;aiSetMic('idle');aiSetStatus('⚙️ <strong>Processing...</strong>','var(--amber)');aiSetBadge('PROCESSING','var(--amber)');
-    var data=aiParse(text);AI.parsedData=data;var count=Object.keys(data).length;
-    aiFillForm(data);aiRenderGrid(data);aiShowParsed();
-    if(count===0){aiSetStatus('⚠️ Could not detect fields. Please repeat.','var(--amber)');aiSpeak('Sorry Sanket, please repeat clearly.',function(){aiFullReset();});return;}
-    aiSetStatus('✅ <strong>'+count+' fields extracted</strong>','var(--green)');aiSetBadge(count+' FIELDS','var(--green)');
-    var parts=[];
-    if(data.station)parts.push('Station '+data.station);if(data.defectType)parts.push(data.defectType);
-    if(data.shift!==undefined)parts.push(SHIFT_NAMES[data.shift].split('(')[0].trim());
-    if(data.severity)parts.push(data.severity+' severity');if(data.rootCause!==undefined)parts.push('Root cause '+RC_NAMES[data.rootCause]);
-    if(data.pressure)parts.push('Pressure '+data.pressure+' bar');if(data.inspector)parts.push('Inspector '+data.inspector);
-    var msg='Hey Sanket. Data is ready. '+parts.join(', ')+'. '+count+' fields filled. Do you want to submit?';
-    AI.lastSpoken=msg;aiShowConfirm();AI.confirmMode=true;
-    aiSpeak(msg,function(){aiStartConfirm();});
-  }
-
-  // Confirm Listening
-  function aiStartConfirm(){
-    if(!AI.confirmMode)return;var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;
-    aiSetBadge('CONFIRM?','var(--amber)');aiSetStatus('🗣️ Say <strong>Yes</strong>, <strong>No</strong>, or <strong>Edit</strong>','var(--amber)');
-    if(AI.confirmRecog){try{AI.confirmRecog.abort();}catch(e){}}
-    AI.confirmRecog=new SR();AI.confirmRecog.lang='en-IN';AI.confirmRecog.continuous=false;AI.confirmRecog.interimResults=false;AI.confirmRecog.maxAlternatives=3;
-    AI.confirmRecog.onresult=function(e){
-      var res=[];for(var i=0;i<e.results[0].length;i++)res.push(e.results[0][i].transcript.toLowerCase().trim());
-      var yW=['yes','yeah','ok','okay','haan','ha','han','confirm','log','sure','submit','proceed'];
-      var nW=['no','nope','nahi','nako','cancel','clear','wrong','stop'];
-      var eW=['edit','change','modify','correct','update','badal'];
-      var isY=res.some(function(r){return yW.some(function(w){return r.indexOf(w)!==-1;});});
-      var isN=res.some(function(r){return nW.some(function(w){return r.indexOf(w)!==-1;});});
-      var isE=res.some(function(r){return eW.some(function(w){return r.indexOf(w)!==-1;});});
-      if(isY)aiConfirm(true);else if(isN)aiConfirm(false);
-      else if(isE){AI.confirmMode=false;aiHideConfirm();aiSpeak('Okay, listening for corrections.',function(){aiStartActive();});}
-      else aiSpeak('Please say Yes, No, or Edit.',function(){aiStartConfirm();});
+    vpRecognition.onerror=function(e){
+      vpStopListening();
+      var msgs={'no-speech':'🔇 आवाज नाही. पुन्हा try करा.','not-allowed':'🚫 Mic permission द्या.','audio-capture':'🎙️ Mic सापडला नाही.','network':'🌐 Network error.'};
+      vpMsg(msgs[e.error]||'Error: '+e.error,'var(--red)');
+      vpSetBadge('ERROR','var(--red)');
     };
-    AI.confirmRecog.onerror=function(){};try{AI.confirmRecog.start();}catch(e){}
+
+    vpRecognition.onend=function(){ if(vpListening&&!vpConfirmMode) vpStopListening(); };
+    vpRecognition.start();
   }
 
-  // Confirm Action
-  window.aiConfirm=function(yes){
-    AI.confirmMode=false;if(AI.confirmRecog){try{AI.confirmRecog.abort();}catch(e){}}aiHideConfirm();
+  function vpStopListening(){
+    vpListening=false;
+    if(vpRecognition){ try{ vpRecognition.stop(); }catch(e){} vpRecognition=null; }
+    var mb=vpEl('vp-mic-btn');
+    if(mb){ mb.classList.remove('vp-mic-listening'); mb.textContent='🎤'; }
+    vpSetBadge('READY','var(--muted)');
+  }
+
+  function vpProcessTranscript(text){
+    vpStopListening();
+    var data=vpParse(text);
+    vpParsedData=data;
+    var count=Object.keys(data).length;
+
+    vpFillForm(data);
+
+    var pg=vpEl('vp-parsed-grid'); if(pg) pg.style.display='block';
+    vpRenderGrid(data);
+    var cr=vpEl('vp-confirm-row'); if(cr) cr.style.display='flex';
+    vpConfirmMode=true;
+
+    // Check which mandatory fields are still unfilled after voice fill
+    var mandatoryCheck=[];
+    var _fOp=document.getElementById('f-op'), _fPr=document.getElementById('f-press'), _fPd=document.getElementById('f-prod');
+    if(!_fOp  ||!_fOp.value.trim())  mandatoryCheck.push('Inspector Ticket');
+    if(!_fPr  ||!_fPr.value.trim())  mandatoryCheck.push('Pressure');
+    if(!_fPd  ||!_fPd.value.trim())  mandatoryCheck.push('Production Count');
+
+    var msg;
+    if(count===0){
+      msg='⚠️ कुठलाही field detect झाला नाही. पुन्हा सांग.';
+    } else if(mandatoryCheck.length>0){
+      msg='✅ '+count+' field'+(count>1?'s':'')+' filled. ⚠️ Still missing: '+mandatoryCheck.join(', ')+'. Confirm or say them now.';
+    } else {
+      msg='✅ '+count+' field'+(count>1?'s':'')+' detected — confirm करायचे का?';
+    }
+    vpMsg(msg,count>0?'var(--green)':'var(--amber)');
+    vpSetBadge(count+' FIELDS','var(--cyan)');
+
+    if(window.speechSynthesis&&count>0){
+      var ttsMsg='Hey Sanket, '+count+' field'+(count>1?'s':'')+' filled. Station '+(data.station||'unknown')+'. Confirm karu ka?';
+      vpSpeak(ttsMsg,function(){ vpStartConfirmListening(); });
+    } else if(count>0){ vpStartConfirmListening(); }
+  }
+
+  function vpStartConfirmListening(){
+    if(!vpConfirmMode) return;
+    var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR) return;
+    vpSetBadge('CONFIRM?','var(--amber)');
+    vpMsg('🗣️ "Yes/Haan" — confirm | "No/Nahi" — clear','var(--amber)');
+
+    vpConfirmRecog=new SR();
+    vpConfirmRecog.lang='en-IN';
+    vpConfirmRecog.continuous=false;
+    vpConfirmRecog.interimResults=false;
+    vpConfirmRecog.maxAlternatives=3;
+
+    vpConfirmRecog.onresult=function(e){
+      var responses=[];
+      for(var i=0;i<e.results[0].length;i++) responses.push(e.results[0][i].transcript.toLowerCase().trim());
+      var yes_words=['yes','yeah','ok','okay','haan','ha','han','confirm','log','sure','correct','right','proceed'];
+      var no_words=['no','nope','nahi','nako','cancel','clear','redo','wrong','stop'];
+      var isYes=responses.some(function(r){ return yes_words.some(function(w){ return r.indexOf(w)!==-1; }); });
+      var isNo=responses.some(function(r){ return no_words.some(function(w){ return r.indexOf(w)!==-1; }); });
+      if(isYes) vpConfirm(true);
+      else if(isNo) vpConfirm(false);
+      else vpMsg('🤔 "Yes" किंवा "No" बोला.','var(--amber)');
+    };
+
+    vpConfirmRecog.onerror=function(){};
+    try{ vpConfirmRecog.start(); }catch(e){}
+  }
+
+  window.vpConfirm=function(yes){
+    vpConfirmMode=false;
+    if(vpConfirmRecog){ try{ vpConfirmRecog.stop(); }catch(e){} vpConfirmRecog=null; }
+    var cr=vpEl('vp-confirm-row'); if(cr) cr.style.display='none';
+
     if(yes){
-      var miss=[];var fd=$('f-dt'),fo=$('f-op'),fp=$('f-press'),fpd=$('f-prod');
-      if(!fd||!fd.value.trim())miss.push('Date');if(!fo||!fo.value.trim())miss.push('Inspector');
-      if(!fp||!fp.value.trim())miss.push('Pressure');if(!fpd||!fpd.value.trim())miss.push('Production');
-      if(miss.length>0){aiSetStatus('⚠️ Missing: '+miss.join(', '),'var(--amber)');aiSpeak('Cannot submit. Missing: '+miss.join(', '));AI.confirmMode=true;aiShowConfirm();return;}
-      aiSetStatus('⚡ <strong>Submitting...</strong>','var(--green)');aiSetBadge('LOGGED ✓','var(--green)');
-      aiSpeak('Defect logged successfully. Thank you Sanket.');
-      setTimeout(function(){if(typeof window.addDefect==='function')window.addDefect();aiFullReset();},600);
-    } else {aiClearForm();aiSpeak('Cancelled. Form cleared.');aiFullReset();}
+      // ── VALIDATE mandatory fields before calling addDefect() ──
+      var missing=[];
+      var _vFDt   = document.getElementById('f-dt');
+      var _vFOp   = document.getElementById('f-op');
+      var _vFPress = document.getElementById('f-press');
+      var _vFProd  = document.getElementById('f-prod');
+      if(!_vFDt    || !_vFDt.value.trim())    missing.push('Date');
+      if(!_vFOp    || !_vFOp.value.trim())    missing.push('Inspector Ticket No');
+      if(!_vFPress || !_vFPress.value.trim()) missing.push('Pressure (bar)');
+      if(!_vFProd  || !_vFProd.value.trim())  missing.push('Production Count');
+
+      if(missing.length>0){
+        // Don't log — tell user what's still missing and keep confirm row open
+        var missingStr=missing.join(', ');
+        vpMsg('⚠️ Missing required fields: '+missingStr+'. Fill them and confirm again.','var(--amber)');
+        vpSetBadge('INCOMPLETE','var(--amber)');
+        vpSpeak('Cannot log. Missing fields: '+missingStr+'. Please fill them and confirm.');
+        // Re-show confirm row so user can fix manually and confirm
+        if(cr) cr.style.display='flex';
+        vpConfirmMode=true;
+        return;
+      }
+
+      // ── All mandatory fields present — safe to log ──
+      vpMsg('⚡ Defect logging...','var(--green)');
+      vpSetBadge('LOGGED ✓','var(--green)');
+      vpSpeak('Defect logged. Thank you Sanket.');
+      setTimeout(function(){
+        if(typeof window.addDefect==='function') window.addDefect();
+        vpResetPanel();
+      },400);
+
+    } else {
+      vpSpeak('Form cleared.');
+      vpClearForm();
+      vpResetPanel();
+      vpMsg('🗑️ Form cleared. Ready for next entry.','var(--muted)');
+      vpSetBadge('READY','var(--muted)');
+    }
   };
 
-  // Manual mic toggle
-  window.aiToggleMic=function(){
-    if(AI.activeListening){if(AI.mainRecog)try{AI.mainRecog.stop();}catch(e){}AI.activeListening=false;aiSetMic('idle');aiSetBadge('STANDBY','var(--muted)');return;}
-    if(AI.speaking){window.speechSynthesis.cancel();AI.speaking=false;aiSetMic('idle');aiHideSpeaking();return;}
-    if(AI.wakeRecog)try{AI.wakeRecog.abort();}catch(e){}AI.wakeListening=false;
-    aiStartActive();
-  };
-
-  // Button commands
-  window.aiCommand=function(cmd){
-    if(cmd==='reset'){aiClearForm();aiFullReset();aiSpeak('Form cleared.');}
-    if(cmd==='dashboard'){aiSpeak('Opening dashboard.',function(){var b=document.querySelector('.tab[onclick*="dashboard"]');if(b)b.click();});}
-    if(cmd==='repeat'){if(AI.lastSpoken)aiSpeak(AI.lastSpoken);else aiSpeak('No data to repeat.');}
-    if(cmd==='alert'){aiSpeak('Opening alerts.');var b=document.querySelector('.tab[onclick*="alerts"]');if(b)setTimeout(function(){b.click();},800);}
-  };
-
-  function aiFullReset(){
-    AI.parsedData={};AI.confirmMode=false;AI.activeListening=false;
-    setTimeout(function(){aiHideTranscript();aiHideParsed();aiHideConfirm();aiHideSpeaking();aiSetMic('idle');
-      aiSetStatus('Say <strong style="color:var(--cyan);">"Hey Sanket"</strong> to activate, or click 🎤','var(--muted)');
-      aiSetBadge('STANDBY','var(--muted)');setTimeout(function(){aiStartWake();},1000);
-    },2000);
+  function vpResetPanel(){
+    var tb=vpEl('vp-transcript-box'),pg=vpEl('vp-parsed-grid');
+    if(tb) setTimeout(function(){ tb.style.display='none'; },1800);
+    if(pg) setTimeout(function(){ pg.style.display='none'; },1800);
+    vpParsedData={};
   }
 
-  // Init
-  (function(){var dt=$('f-dt');if(dt&&!dt.value){var n=new Date();dt.value=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');}})();
-  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(SR){console.log('[AI] HemmTrack AI Assistant ready. Say "Hey Sanket".');setTimeout(function(){aiStartWake();},2000);}
-  else{console.warn('[AI] SpeechRecognition not supported');aiSetStatus('⚠️ Chrome browser required','var(--red)');}
+  // Auto-set today's date
+  (function(){
+    var dt=document.getElementById('f-dt');
+    if(dt&&!dt.value){
+      var n=new Date();
+      dt.value=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');
+    }
+  })();
+
 })();
 </script>
 
@@ -8718,6 +9178,1301 @@ function generateOnePagerHTML(model, failure, station, rc, press, occ, raybg, ac
     <div style="font-size:10px;color:#4a6fa5;margin-top:2px;">HTML5 · CSS3 · JavaScript</div>
   </div>
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- AI CONSOLE — CSS + JS ENGINE                                   -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<style>
+@keyframes aic-scan{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+@keyframes aic-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+@keyframes aic-cursor{0%,50%{opacity:1}51%,100%{opacity:0}}
+@keyframes aic-glow-cyan{0%{background:transparent;box-shadow:none}30%{background:rgba(0,229,255,0.06);box-shadow:0 0 16px rgba(0,229,255,0.2)}100%{background:transparent;box-shadow:none}}
+@keyframes aic-glow-red{0%{background:transparent}30%{background:rgba(255,61,90,0.1);box-shadow:0 0 20px rgba(255,61,90,0.25)}100%{background:transparent;box-shadow:none}}
+@keyframes aic-glow-amber{0%{background:transparent}30%{background:rgba(255,170,0,0.1);box-shadow:0 0 20px rgba(255,170,0,0.25)}100%{background:transparent;box-shadow:none}}
+@keyframes aic-glow-green{0%{background:transparent}30%{background:rgba(0,255,136,0.1);box-shadow:0 0 20px rgba(0,255,136,0.25)}100%{background:transparent;box-shadow:none}}
+@keyframes aic-tag-pop{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes aic-bar-shine{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
+
+.aic-line{display:block;opacity:0;transition:opacity .3s;padding:3px 8px;border-radius:4px;margin-bottom:2px;min-height:26px;}
+.aic-line.vis{opacity:1}
+.aic-line .aic-prompt{color:var(--cyan);font-weight:700;margin-right:10px;text-shadow:0 0 6px rgba(0,229,255,0.4)}
+.aic-line .aic-prompt::before{content:'▸';margin-right:5px;color:var(--green)}
+.aic-line .aic-ts{color:var(--muted);font-size:11px;margin-right:8px}
+.aic-cursor{display:inline-block;width:9px;height:15px;background:var(--green);margin-left:2px;vertical-align:text-bottom;box-shadow:0 0 6px var(--green);animation:aic-cursor .7s steps(2) infinite}
+
+.aic-tag{display:inline-block;padding:1px 9px;border-radius:11px;font-size:11px;font-weight:700;letter-spacing:1px;margin:0 2px;animation:aic-tag-pop .4s ease-out}
+.aic-tag.h{background:rgba(255,61,90,0.15);color:var(--red);border:1px solid rgba(255,61,90,0.5);text-shadow:0 0 6px rgba(255,61,90,0.5);box-shadow:0 0 10px rgba(255,61,90,0.15)}
+.aic-tag.m{background:rgba(255,170,0,0.15);color:var(--amber);border:1px solid rgba(255,170,0,0.5);text-shadow:0 0 6px rgba(255,170,0,0.5);box-shadow:0 0 10px rgba(255,170,0,0.15)}
+.aic-tag.l{background:rgba(0,255,136,0.15);color:var(--green);border:1px solid rgba(0,255,136,0.5);text-shadow:0 0 6px rgba(0,255,136,0.5);box-shadow:0 0 10px rgba(0,255,136,0.15)}
+
+.aic-line.glow-r{animation:aic-glow-red 1.2s ease-out}
+.aic-line.glow-a{animation:aic-glow-amber 1.2s ease-out}
+.aic-line.glow-g{animation:aic-glow-green 1.2s ease-out}
+.aic-line.glow-c{animation:aic-glow-cyan .8s ease-out}
+
+.aic-prog{display:flex;align-items:center;gap:10px;padding:5px 8px;opacity:0;transition:opacity .4s}
+.aic-prog.vis{opacity:1}
+.aic-prog .aic-plbl{color:var(--muted);font-size:11px;min-width:140px}
+.aic-prog .aic-pbar{flex:1;height:5px;background:rgba(0,229,255,0.06);border-radius:3px;overflow:hidden;position:relative}
+.aic-prog .aic-pfill{height:100%;width:0;border-radius:3px;transition:width 1.2s cubic-bezier(.22,1,.36,1);position:relative;overflow:hidden}
+.aic-prog .aic-pfill::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);animation:aic-bar-shine 2s linear infinite}
+.aic-prog .aic-pval{font-family:var(--font-m);font-size:12px;font-weight:700;min-width:45px;text-align:right}
+.aic-div{border-top:1px dashed rgba(0,229,255,0.12);margin:14px 0;position:relative}
+.aic-div::before{content:'◆';position:absolute;left:50%;top:-8px;transform:translateX(-50%);background:var(--card);padding:0 10px;color:var(--cyan);font-size:9px}
+</style>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// AI CONSOLE ENGINE — Integrated into HemmTrack Pro V2
+// ═══════════════════════════════════════════════════════════════
+(function(){
+
+const AIC_OUT=()=>document.getElementById('aic-output');
+const AIC_BODY=()=>document.getElementById('aic-body');
+let aicSpeed=22;
+
+// Speed slider
+const spd=document.getElementById('aic-speed');
+const spdV=document.getElementById('aic-speed-val');
+if(spd) spd.addEventListener('input',()=>{aicSpeed=parseInt(spd.value);spdV.textContent=aicSpeed+'ms';});
+
+// Clock
+setInterval(()=>{
+  const n=new Date(),h=String(n.getHours()).padStart(2,'0'),m=String(n.getMinutes()).padStart(2,'0'),s=String(n.getSeconds()).padStart(2,'0');
+  const el=document.getElementById('aic-clock');if(el) el.textContent=h+':'+m+':'+s+' IST';
+},1000);
+
+function aicDetectSev(t){
+  const u=t.toUpperCase();
+  if(u.includes('HIGH')||u.includes('CRITICAL')||u.includes('STOP')) return 'h';
+  if(u.includes('MEDIUM')||u.includes('CAUTION')||u.includes('WARN')) return 'm';
+  if(u.includes('LOW')||u.includes('NORMAL')||u.includes('PROCEED')||u.includes('OK')) return 'l';
+  return null;
+}
+
+function aicFormat(t){
+  let r=t;
+  r=r.replace(/\b(HIGH|CRITICAL|STOP)\b/g,'<span class="aic-tag h">$1</span>');
+  r=r.replace(/\b(MEDIUM|MED|CAUTION|WARN)\b/g,'<span class="aic-tag m">$1</span>');
+  r=r.replace(/\b(LOW|NORMAL|PROCEED|OK|SAFE)\b/g,'<span class="aic-tag l">$1</span>');
+  r=r.replace(/(\d+\.?\d*%)/g,'<span style="font-weight:700;color:var(--cyan);text-shadow:0 0 5px rgba(0,229,255,.4)">$1</span>');
+  r=r.replace(/(\d+\s?bar)/g,'<span style="font-weight:700;color:var(--cyan)">$1</span>');
+  return r;
+}
+
+function aicTypeLine(el,text,cb){
+  el.classList.add('vis');
+  const cont=el.querySelector('.aic-cont');
+  const cur=document.createElement('span');cur.className='aic-cursor';
+  cont.appendChild(cur);
+  let i=0;const chars=text.split('');
+  function go(){
+    if(i>=chars.length){
+      cur.remove();
+      cont.innerHTML=aicFormat(text);
+      const sev=aicDetectSev(text);
+      if(sev==='h') el.classList.add('glow-r');
+      else if(sev==='m') el.classList.add('glow-a');
+      else if(sev==='l') el.classList.add('glow-g');
+      else el.classList.add('glow-c');
+      setTimeout(()=>el.classList.remove('glow-r','glow-a','glow-g','glow-c'),1200);
+      if(cb) cb();return;
+    }
+    cont.insertBefore(document.createTextNode(chars[i]),cur);
+    i++;
+    setTimeout(go,aicSpeed+Math.random()*7);
+  }
+  go();
+}
+
+function aicMakeLine(prompt,ts){
+  const ln=document.createElement('div');ln.className='aic-line';
+  ln.innerHTML=`${ts?`<span class="aic-ts">[${ts}]</span>`:''}${prompt?`<span class="aic-prompt">${prompt}</span>`:''}<span class="aic-cont"></span>`;
+  AIC_OUT().appendChild(ln);return ln;
+}
+
+function aicMakeProgress(label,val,sev){
+  const p=document.createElement('div');p.className='aic-prog';
+  const bc=sev==='h'?'linear-gradient(90deg,var(--amber),var(--red))':sev==='m'?'linear-gradient(90deg,var(--green),var(--amber))':'linear-gradient(90deg,var(--cyan),var(--green))';
+  const vc=sev==='h'?'var(--red)':sev==='m'?'var(--amber)':'var(--green)';
+  p.innerHTML=`<span class="aic-plbl">${label}</span><div class="aic-pbar"><div class="aic-pfill" style="background:${bc}"></div></div><span class="aic-pval" style="color:${vc}">0%</span>`;
+  AIC_OUT().appendChild(p);
+  setTimeout(()=>{p.classList.add('vis');p.querySelector('.aic-pfill').style.width=val+'%';aicAnimVal(p.querySelector('.aic-pval'),0,val,1200);},50);
+}
+
+function aicAnimVal(el,from,to,dur){
+  const st=performance.now();
+  function step(t){const pr=Math.min((t-st)/dur,1);el.textContent=Math.round(from+(to-from)*pr)+'%';if(pr<1) requestAnimationFrame(step);}
+  requestAnimationFrame(step);
+}
+
+function aicDivider(){const d=document.createElement('div');d.className='aic-div';AIC_OUT().appendChild(d);}
+function aicWait(ms){return new Promise(r=>setTimeout(r,ms));}
+function aicScroll(){const b=AIC_BODY();if(b) b.scrollTop=b.scrollHeight;}
+
+async function aicRunSeq(items){
+  for(const it of items){
+    if(it.type==='div'){aicDivider();await aicWait(200);continue;}
+    if(it.type==='prog'){aicMakeProgress(it.label,it.value,it.sev);await aicWait(900);aicScroll();continue;}
+    const ln=aicMakeLine(it.pr,it.ts);
+    await new Promise(r=>aicTypeLine(ln,it.text,r));
+    aicScroll();await aicWait(it.pause||200);
+  }
+}
+
+// Scenarios
+const AIC_DATA={
+  high:[
+    {pr:'SYSTEM',ts:'init',text:'HemmTrack AI Engine v2.0 — Initializing prediction pipeline...',pause:400},
+    {pr:'INPUT',ts:'load',text:'Reading 7 process parameters from defect entry...',pause:300},
+    {type:'div'},
+    {pr:'PARAM',text:'Hemming Pressure = 168 bar  (target: 180 bar)',pause:120},
+    {pr:'PARAM',text:'Tool Age = 42,000 cycles  (max: 50,000)',pause:120},
+    {pr:'PARAM',text:'Material Thickness = 0.72 mm  (target: 0.70)',pause:120},
+    {pr:'PARAM',text:'Pre-Hem Angle = 43°  (target: 45°)',pause:120},
+    {pr:'PARAM',text:'Ambient Temperature = 32°C  (nominal: 25°C)',pause:120},
+    {pr:'PARAM',text:'Operator Experience = 2 months',pause:120},
+    {pr:'PARAM',text:'Previous HIGH defects this shift = 4',pause:180},
+    {type:'div'},
+    {pr:'COMPUTE',text:'Normalizing deviations from target values...',pause:250},
+    {pr:'COMPUTE',text:'Applying weighted scoring model (runML function)...',pause:250},
+    {type:'prog',label:'  Pressure Deviation',value:33,sev:'h'},
+    {type:'prog',label:'  Tool Age Factor',value:84,sev:'h'},
+    {type:'prog',label:'  Material Deviation',value:15,sev:'l'},
+    {type:'prog',label:'  Angle Deviation',value:22,sev:'m'},
+    {type:'prog',label:'  Prev Defect History',value:100,sev:'h'},
+    {type:'div'},
+    {pr:'RESULT',text:'ML Prediction Completed: Risk = 72% (HIGH)',pause:500},
+    {pr:'DECISION',text:'STOP PRODUCTION — Inspect hemming die insert immediately!',pause:400},
+    {pr:'ACTION',text:'Auto-alert dispatched: Email + Telegram sent to Supervisor',pause:300},
+    {pr:'ACTION',text:'Station ST-200 flagged CRITICAL · 8D Report auto-created',pause:200},
+    {pr:'RC',text:'Root Cause Prediction: Tooling Wear (69.8% confidence)',pause:250},
+    {pr:'STATUS',text:'System standing by for next defect entry...',pause:100},
+  ],
+  medium:[
+    {pr:'SYSTEM',ts:'init',text:'HemmTrack AI Engine v2.0 — Prediction pipeline ready',pause:350},
+    {pr:'INPUT',ts:'load',text:'Reading 7 process parameters...',pause:250},
+    {type:'div'},
+    {pr:'PARAM',text:'Hemming Pressure = 176 bar  (target: 180 bar)',pause:120},
+    {pr:'PARAM',text:'Tool Age = 25,000 cycles  (max: 50,000)',pause:120},
+    {pr:'PARAM',text:'Material Thickness = 0.71 mm  (target: 0.70)',pause:150},
+    {type:'div'},
+    {pr:'COMPUTE',text:'Applying weighted scoring algorithm...',pause:250},
+    {type:'prog',label:'  Pressure Deviation',value:12,sev:'l'},
+    {type:'prog',label:'  Tool Age Factor',value:50,sev:'m'},
+    {type:'prog',label:'  Material Deviation',value:8,sev:'l'},
+    {type:'div'},
+    {pr:'RESULT',text:'ML Prediction Completed: Risk = 45% (MEDIUM)',pause:500},
+    {pr:'DECISION',text:'CAUTION — Monitor closely, check tooling condition',pause:300},
+    {pr:'STATUS',text:'Production continues · Enhanced monitoring enabled',pause:200},
+  ],
+  low:[
+    {pr:'SYSTEM',ts:'init',text:'HemmTrack AI Engine v2.0 — Pipeline active',pause:350},
+    {pr:'INPUT',ts:'load',text:'Reading 7 process parameters...',pause:250},
+    {type:'div'},
+    {pr:'PARAM',text:'Hemming Pressure = 180 bar  (target: 180 bar)',pause:120},
+    {pr:'PARAM',text:'Tool Age = 8,000 cycles  (max: 50,000)',pause:120},
+    {pr:'PARAM',text:'Material Thickness = 0.70 mm  (target: 0.70)',pause:150},
+    {type:'div'},
+    {pr:'COMPUTE',text:'Applying weighted scoring algorithm...',pause:250},
+    {type:'prog',label:'  Pressure Deviation',value:2,sev:'l'},
+    {type:'prog',label:'  Tool Age Factor',value:16,sev:'l'},
+    {type:'prog',label:'  Material Deviation',value:0,sev:'l'},
+    {type:'div'},
+    {pr:'RESULT',text:'ML Prediction Completed: Risk = 18% (LOW)',pause:500},
+    {pr:'DECISION',text:'PROCEED — All parameters within acceptable range',pause:300},
+    {pr:'STATUS',text:'Station NORMAL · Continue production OK',pause:200},
+  ],
+};
+
+// Live data — reads actual defects[] array
+function aicBuildLive(){
+  const d=typeof defects!=='undefined'?defects:[];
+  const total=d.length;
+  const high=d.filter(x=>x.sev==='HIGH').length;
+  const prod=d.reduce((s,x)=>s+(x.prod||0),0);
+  const occ=prod>0?((total/prod)*100).toFixed(2):'0.00';
+  const topStation={};d.forEach(x=>{const m=x.mach||'?';topStation[m]=(topStation[m]||0)+1;});
+  const worst=Object.entries(topStation).sort((a,b)=>b[1]-a[1])[0];
+  const topDefect={};d.forEach(x=>{const t=x.dtype||'?';topDefect[t]=(topDefect[t]||0)+1;});
+  const wDef=Object.entries(topDefect).sort((a,b)=>b[1]-a[1])[0];
+  const sev=parseFloat(occ)>3?'h':parseFloat(occ)>1.5?'m':'l';
+  const sevWord=sev==='h'?'HIGH':sev==='m'?'MEDIUM':'LOW';
+  const riskPct=sev==='h'?Math.min(60+high*3,95):sev==='m'?Math.min(30+high*5,58):Math.min(10+total,28);
+  return [
+    {pr:'LIVE',ts:'now',text:'Scanning actual defects[] array from LocalStorage...',pause:300},
+    {pr:'DATA',text:'Total defects loaded: '+total+' records',pause:200},
+    {pr:'DATA',text:'HIGH severity count: '+high,pause:150},
+    {pr:'DATA',text:'Total production: '+prod+' units',pause:150},
+    {type:'div'},
+    {pr:'OCC',text:'Occurrence Rate = '+occ+'% '+(parseFloat(occ)>3?'(HIGH — above threshold!)':parseFloat(occ)>1.5?'(MEDIUM — monitor closely)':'(LOW — within target)'),pause:300},
+    {pr:'STATION',text:'Worst station: '+(worst?worst[0]+' ('+worst[1]+' defects)':'No data'),pause:200},
+    {pr:'DEFECT',text:'Top defect type: '+(wDef?wDef[0]+' ('+wDef[1]+' occurrences)':'No data'),pause:200},
+    {type:'div'},
+    {type:'prog',label:'  OCC Rate',value:Math.min(parseFloat(occ)*10,100),sev:sev},
+    {type:'prog',label:'  HIGH Severity',value:Math.min(high*8,100),sev:high>=3?'h':high>=1?'m':'l'},
+    {type:'prog',label:'  Risk Assessment',value:riskPct,sev:sev},
+    {type:'div'},
+    {pr:'RESULT',text:'Live Analysis Complete: Overall Risk = '+riskPct+'% ('+sevWord+')',pause:500},
+    {pr:'STATUS',text:sev==='h'?'STOP — Immediate investigation required at '+(worst?worst[0]:'shop floor')+'!':sev==='m'?'CAUTION — Enhanced monitoring recommended':'PROCEED — System operating within acceptable limits',pause:300},
+  ];
+}
+
+window.aicRun=function(key){
+  AIC_OUT().innerHTML='';
+  const data=key==='live'?aicBuildLive():AIC_DATA[key];
+  if(data) aicRunSeq(data);
+};
+
+// Auto-init on tab switch
+const origShowTab=window.showTab;
+if(origShowTab){
+  const _orig=origShowTab;
+  // We don't override — just check via interval
+  setInterval(()=>{
+    const p=document.getElementById('tab-aiconsole');
+    if(p && p.classList.contains('on') && AIC_OUT() && AIC_OUT().children.length===0){
+      aicRun('high');
+    }
+  },500);
+}
+
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- 💾 BACKUP & RESTORE ENGINE                                      -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+
+// All HemmTrack Pro V2 LocalStorage keys (defined here so backup is exhaustive)
+const HEMMTRACK_KEYS = [
+  'ht2_defects',           // All defect records
+  'ht2_alerts',            // Alert feed
+  'ht2_alertcfg',          // Alert thresholds
+  'ht2_whys',              // 5-Why reports
+  'ht2_rejections',        // Rejection parts
+  'ht2_pm_tools',          // Preventive maintenance
+  'ht2_attendance',        // 30-inspector attendance grid
+  'ht2_initialized',       // Init flag
+  'hemmtrack_8d_reports',  // 8D reports
+  'hemmtrack_8d_capas',    // CAPA actions
+  'hemmtrack_8d_seq',      // 8D sequence
+  'hemmtrack_8d_capa_seq', // CAPA sequence
+  'hemmtrack_8d_seeded',   // 8D seed flag
+];
+
+// ─── DOWNLOAD BACKUP ───
+window.downloadBackup = function() {
+  try {
+    const backup = {
+      meta: {
+        app: 'HemmTrack Pro V2',
+        version: '2.0',
+        exportedAt: new Date().toISOString(),
+        exportedAtLocal: new Date().toLocaleString('en-IN', {
+          dateStyle: 'medium',
+          timeStyle: 'medium',
+          hour12: false
+        }),
+        totalKeys: 0,
+        totalSize: 0,
+        userAgent: navigator.userAgent.substring(0, 100),
+      },
+      data: {}
+    };
+
+    // Collect all known keys + scan for any other ht2_* or hemmtrack_* keys
+    const allKeys = new Set(HEMMTRACK_KEYS);
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('ht2_') || key.startsWith('hemmtrack_'))) {
+        allKeys.add(key);
+      }
+    }
+
+    let totalBytes = 0;
+    let foundKeys = 0;
+    let emptyKeys = 0;
+
+    allKeys.forEach(key => {
+      const value = localStorage.getItem(key);
+      if (value !== null) {
+        // Try to parse as JSON, fallback to raw string
+        try {
+          backup.data[key] = JSON.parse(value);
+        } catch(e) {
+          backup.data[key] = value;
+        }
+        totalBytes += value.length;
+        foundKeys++;
+      } else {
+        emptyKeys++;
+      }
+    });
+
+    backup.meta.totalKeys = foundKeys;
+    backup.meta.totalSize = totalBytes;
+    backup.meta.totalSizeKB = (totalBytes / 1024).toFixed(2);
+
+    // Empty check
+    if (foundKeys === 0) {
+      showBackupToast('⚠️ No data found in localStorage. Backup skipped.', 'warning');
+      return;
+    }
+
+    // Create human-readable filename
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mn = String(now.getMinutes()).padStart(2, '0');
+    const filename = `hemmtrack_backup_${yyyy}-${mm}-${dd}_${hh}${mn}.json`;
+
+    // Convert to formatted JSON
+    const jsonString = JSON.stringify(backup, null, 2);
+
+    // Trigger download via Blob
+    const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Cleanup blob URL after a tick
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+
+    // Success message
+    showBackupToast(
+      `✅ Backup downloaded! ${foundKeys} keys · ${backup.meta.totalSizeKB} KB · ${filename}`,
+      'success'
+    );
+
+    console.log('[HemmTrack Backup]', {
+      filename: filename,
+      keys: foundKeys,
+      size: backup.meta.totalSizeKB + ' KB',
+      contents: Object.keys(backup.data),
+    });
+
+  } catch (err) {
+    console.error('[HemmTrack Backup] Error:', err);
+    showBackupToast('❌ Backup failed: ' + err.message, 'error');
+  }
+};
+
+// ─── RESTORE BACKUP ───
+window.restoreBackup = function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Confirmation
+  if (!confirm(
+    '⚠️ RESTORE WARNING\n\n' +
+    'This will REPLACE all current data with the backup file.\n' +
+    'Current unsaved data will be LOST.\n\n' +
+    'Recommend: Download a backup first!\n\n' +
+    'Continue with restore?'
+  )) {
+    event.target.value = ''; // Reset input
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const backup = JSON.parse(e.target.result);
+
+      // Validate backup structure
+      if (!backup.data || typeof backup.data !== 'object') {
+        throw new Error('Invalid backup format — missing "data" object');
+      }
+      if (!backup.meta || backup.meta.app !== 'HemmTrack Pro V2') {
+        if (!confirm('This file may not be a HemmTrack Pro V2 backup. Restore anyway?')) {
+          event.target.value = '';
+          return;
+        }
+      }
+
+      // Restore each key
+      let restored = 0;
+      Object.keys(backup.data).forEach(key => {
+        try {
+          const value = backup.data[key];
+          const storeValue = typeof value === 'string' ? value : JSON.stringify(value);
+          localStorage.setItem(key, storeValue);
+          restored++;
+        } catch(e) {
+          console.warn('Failed to restore key:', key, e);
+        }
+      });
+
+      showBackupToast(
+        `✅ Restore complete! ${restored} keys restored. Reloading in 2 sec...`,
+        'success'
+      );
+
+      // Auto-reload to apply changes
+      setTimeout(() => location.reload(), 2000);
+
+    } catch (err) {
+      console.error('[HemmTrack Restore] Error:', err);
+      showBackupToast('❌ Restore failed: ' + err.message, 'error');
+    }
+    event.target.value = ''; // Reset for next time
+  };
+
+  reader.onerror = function() {
+    showBackupToast('❌ Failed to read backup file', 'error');
+    event.target.value = '';
+  };
+
+  reader.readAsText(file);
+};
+
+// ─── Custom Toast (independent of app's showToast) ───
+function showBackupToast(msg, type) {
+  // Remove any existing backup toast
+  const old = document.getElementById('backup-toast');
+  if (old) old.remove();
+
+  const toast = document.createElement('div');
+  toast.id = 'backup-toast';
+  const colors = {
+    success: { bg: '#00ff88', shadow: 'rgba(0,255,136,0.4)' },
+    error:   { bg: '#ff3d5a', shadow: 'rgba(255,61,90,0.4)' },
+    warning: { bg: '#ffaa00', shadow: 'rgba(255,170,0,0.4)' },
+  };
+  const c = colors[type] || colors.success;
+
+  toast.style.cssText = `
+    position:fixed;
+    top:80px;
+    right:20px;
+    background:linear-gradient(135deg,#0a1628,#0f1928);
+    color:${c.bg};
+    padding:14px 22px;
+    border:2px solid ${c.bg};
+    border-radius:12px;
+    font-family:Consolas,monospace;
+    font-size:13px;
+    font-weight:700;
+    box-shadow:0 4px 24px ${c.shadow},0 0 16px ${c.shadow};
+    z-index:99999;
+    max-width:480px;
+    word-wrap:break-word;
+    animation:bk-toast-in 0.3s ease-out;
+  `;
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+
+  // Auto-remove after 5 seconds
+  setTimeout(() => {
+    toast.style.animation = 'bk-toast-out 0.3s ease-in forwards';
+    setTimeout(() => toast.remove(), 300);
+  }, 5000);
+}
+
+// Inject toast animations
+const bkStyle = document.createElement('style');
+bkStyle.textContent = `
+@keyframes bk-toast-in {
+  0% { transform: translateX(120%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+@keyframes bk-toast-out {
+  0% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(120%); opacity: 0; }
+}`;
+document.head.appendChild(bkStyle);
+
+// ─── Keyboard shortcut: Ctrl+Shift+B for quick backup ───
+document.addEventListener('keydown', function(e) {
+  if (e.ctrlKey && e.shiftKey && (e.key === 'B' || e.key === 'b')) {
+    e.preventDefault();
+    downloadBackup();
+  }
+});
+
+console.log('[HemmTrack Backup] Module loaded · Press Ctrl+Shift+B to backup');
+
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- 📊 DEFECT DATA VIEWER — VIEW + DOWNLOAD + SHARE                -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div id="dv-modal" style="display:none;position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);">
+  <div style="position:absolute;inset:20px;background:linear-gradient(135deg,#0a1628,#0d1d35);border:1px solid #1e3050;border-radius:16px;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,229,255,0.15);">
+
+    <!-- Modal Header -->
+    <div style="padding:16px 22px;border-bottom:1px solid #1e3050;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;background:linear-gradient(135deg,rgba(0,229,255,0.04),transparent);">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:24px;">📊</span>
+          <span style="font-family:Orbitron,sans-serif;font-size:18px;font-weight:900;color:#00e5ff;letter-spacing:2px;">DEFECT DATA VIEWER</span>
+          <span id="dv-total-pill" style="background:rgba(0,255,136,0.15);color:#00ff88;padding:3px 12px;border-radius:12px;font-family:Consolas,monospace;font-size:11px;font-weight:700;border:1px solid rgba(0,255,136,0.3);">0 records</span>
+        </div>
+        <div style="font-size:11px;color:#4a6fa5;margin-top:3px;letter-spacing:1px;">Source: localStorage["ht2_defects"] · Live data</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="dvDownload()" style="padding:8px 14px;background:linear-gradient(135deg,rgba(0,229,255,0.15),rgba(0,180,255,0.1));border:1px solid rgba(0,229,255,0.4);border-radius:8px;color:#00e5ff;font-family:Consolas,monospace;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1px;">💾 DOWNLOAD JSON</button>
+        <button onclick="dvDownloadCSV()" style="padding:8px 14px;background:linear-gradient(135deg,rgba(255,170,0,0.15),rgba(220,140,0,0.1));border:1px solid rgba(255,170,0,0.4);border-radius:8px;color:#ffaa00;font-family:Consolas,monospace;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1px;">📄 CSV</button>
+        <button onclick="dvCopy()" style="padding:8px 14px;background:linear-gradient(135deg,rgba(168,85,247,0.15),rgba(120,60,200,0.1));border:1px solid rgba(168,85,247,0.4);border-radius:8px;color:#a855f7;font-family:Consolas,monospace;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1px;">📋 COPY</button>
+        <button onclick="dvShare()" id="dv-share-btn" style="padding:8px 14px;background:linear-gradient(135deg,rgba(0,255,136,0.15),rgba(0,200,100,0.1));border:1px solid rgba(0,255,136,0.4);border-radius:8px;color:#00ff88;font-family:Consolas,monospace;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1px;">📤 SHARE</button>
+        <button onclick="dvClose()" style="padding:8px 14px;background:rgba(255,61,90,0.1);border:1px solid rgba(255,61,90,0.4);border-radius:8px;color:#ff3d5a;font-family:Consolas,monospace;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1px;">✕ CLOSE</button>
+      </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div style="padding:12px 22px;border-bottom:1px solid #1e3050;display:flex;gap:14px;flex-wrap:wrap;align-items:center;">
+      <div id="dv-stats" style="display:flex;gap:14px;flex-wrap:wrap;font-family:Consolas,monospace;font-size:11px;"></div>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+        <input type="text" id="dv-search" placeholder="🔍 Search station, defect, inspector, RC..." oninput="dvFilter()" style="padding:8px 12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.25);border-radius:8px;color:#d4e8ff;font-family:Consolas,monospace;font-size:12px;width:280px;outline:none;">
+        <select id="dv-sev-filter" onchange="dvFilter()" style="padding:8px 12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.25);border-radius:8px;color:#d4e8ff;font-family:Consolas,monospace;font-size:11px;cursor:pointer;">
+          <option value="">All Severity</option>
+          <option value="HIGH">🔴 HIGH</option>
+          <option value="MED">🟡 MEDIUM</option>
+          <option value="LOW">🟢 LOW</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Table Body -->
+    <div id="dv-table-wrap" style="flex:1;overflow:auto;padding:0;background:#0a1018;">
+      <table id="dv-table" style="width:100%;border-collapse:collapse;font-family:Consolas,monospace;font-size:11px;">
+        <thead style="position:sticky;top:0;z-index:10;">
+          <tr style="background:linear-gradient(135deg,#0a1d35,#0e2540);">
+            <th style="padding:10px 8px;text-align:left;color:#00e5ff;font-weight:700;letter-spacing:1px;border-bottom:2px solid #1e3050;">#</th>
+            <th style="padding:10px 8px;text-align:left;color:#00e5ff;font-weight:700;letter-spacing:1px;border-bottom:2px solid #1e3050;">📅 Date/Time</th>
+            <th style="padding:10px 8px;text-align:left;color:#00e5ff;font-weight:700;letter-spacing:1px;border-bottom:2px solid #1e3050;">⏰ Shift</th>
+            <th style="padding:10px 8px;text-align:left;color:#00e5ff;font-weight:700;letter-spacing:1px;border-bottom:2px solid #1e3050;">🏭 Station</th>
+            <th style="padding:10px 8px;text-align:left;color:#00e5ff;font-weight:700;letter-spacing:1px;border-bottom:2px solid #1e3050;">🚪 Side</th>
+            <th style="padding:10px 8px;text-align:left;color:#00e5ff;font-weight:700;letter-spacing:1px;border-bottom:2px solid #1e3050;">🔍 Defect Type</th>
+            <th style="padding:10px 8px;text-align:center;color:#00e5ff;font-weight:700;letter-spacing:1px;border-bottom:2px solid #1e3050;">⚠️ Severity</th>
+            <th style="padding:10px 8px;text-align:left;color:#00e5ff;font-weight:700;letter-spacing:1px;border-bottom:2px solid #1e3050;">🔧 Root Cause</th>
+            <th style="padding:10px 8px;text-align:center;color:#00e5ff;font-weight:700;letter-spacing:1px;border-bottom:2px solid #1e3050;">💨 Press</th>
+            <th style="padding:10px 8px;text-align:center;color:#00e5ff;font-weight:700;letter-spacing:1px;border-bottom:2px solid #1e3050;">📊 Prod</th>
+            <th style="padding:10px 8px;text-align:left;color:#00e5ff;font-weight:700;letter-spacing:1px;border-bottom:2px solid #1e3050;">👤 Inspector</th>
+          </tr>
+        </thead>
+        <tbody id="dv-tbody"></tbody>
+      </table>
+      <div id="dv-empty" style="display:none;padding:60px 20px;text-align:center;color:#4a6fa5;">
+        <div style="font-size:48px;margin-bottom:12px;">📭</div>
+        <div style="font-size:14px;font-weight:700;color:#ffaa00;margin-bottom:4px;">No defect data found</div>
+        <div style="font-size:11px;">localStorage["ht2_defects"] is empty or matching filter returned 0 results</div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="padding:10px 22px;border-top:1px solid #1e3050;display:flex;justify-content:space-between;align-items:center;font-family:Consolas,monospace;font-size:10px;color:#4a6fa5;flex-wrap:wrap;gap:8px;">
+      <div>HemmTrack Pro V2 · Defect Data Viewer · Sanket Kukade · DYPIU Pune</div>
+      <div id="dv-filter-info">Showing all records</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+
+let dvAllDefects = [];
+let dvFiltered = [];
+
+// Open viewer
+window.openDefectsViewer = function() {
+  // Safe parse
+  let raw = localStorage.getItem('ht2_defects');
+  try {
+    dvAllDefects = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(dvAllDefects)) dvAllDefects = [];
+  } catch(e) {
+    dvAllDefects = [];
+    console.error('[Defects Viewer] JSON parse error:', e);
+  }
+
+  dvFiltered = dvAllDefects.slice();
+  document.getElementById('dv-modal').style.display = 'block';
+  document.getElementById('dv-search').value = '';
+  document.getElementById('dv-sev-filter').value = '';
+
+  dvUpdateCountBadge();
+  dvRenderStats();
+  dvRenderTable();
+};
+
+window.dvClose = function() {
+  document.getElementById('dv-modal').style.display = 'none';
+};
+
+// Close on Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && document.getElementById('dv-modal').style.display === 'block') {
+    dvClose();
+  }
+});
+
+// Update header button count badge
+function dvUpdateCountBadge() {
+  let raw = localStorage.getItem('ht2_defects');
+  let arr = [];
+  try { arr = raw ? JSON.parse(raw) : []; } catch(e) {}
+  if (!Array.isArray(arr)) arr = [];
+  const el = document.getElementById('view-defects-count');
+  if (el) el.textContent = arr.length;
+}
+// Refresh badge every 3 seconds (in case data changes)
+setInterval(dvUpdateCountBadge, 3000);
+setTimeout(dvUpdateCountBadge, 200);
+
+// Render stats bar
+function dvRenderStats() {
+  const total = dvAllDefects.length;
+  const high = dvAllDefects.filter(d => d.sev === 'HIGH').length;
+  const med = dvAllDefects.filter(d => d.sev === 'MED').length;
+  const low = dvAllDefects.filter(d => d.sev === 'LOW').length;
+
+  // Station distribution
+  const stations = {};
+  dvAllDefects.forEach(d => { stations[d.mach || '?'] = (stations[d.mach || '?'] || 0) + 1; });
+  const topStation = Object.entries(stations).sort((a,b) => b[1] - a[1])[0];
+
+  // Defect types
+  const dtypes = {};
+  dvAllDefects.forEach(d => { dtypes[d.dtype || '?'] = (dtypes[d.dtype || '?'] || 0) + 1; });
+  const topDefect = Object.entries(dtypes).sort((a,b) => b[1] - a[1])[0];
+
+  // Total production
+  const totalProd = dvAllDefects.reduce((s, d) => s + (parseInt(d.prod) || 0), 0);
+  const occRate = totalProd > 0 ? ((total / totalProd) * 100).toFixed(2) : '0.00';
+
+  document.getElementById('dv-stats').innerHTML = `
+    <div style="background:rgba(0,229,255,0.08);padding:6px 12px;border-radius:6px;border:1px solid rgba(0,229,255,0.2);">
+      <span style="color:#4a6fa5;">TOTAL:</span> <span style="color:#00e5ff;font-weight:700;">${total}</span>
+    </div>
+    <div style="background:rgba(255,61,90,0.08);padding:6px 12px;border-radius:6px;border:1px solid rgba(255,61,90,0.2);">
+      <span style="color:#4a6fa5;">HIGH:</span> <span style="color:#ff3d5a;font-weight:700;">${high}</span>
+    </div>
+    <div style="background:rgba(255,170,0,0.08);padding:6px 12px;border-radius:6px;border:1px solid rgba(255,170,0,0.2);">
+      <span style="color:#4a6fa5;">MED:</span> <span style="color:#ffaa00;font-weight:700;">${med}</span>
+    </div>
+    <div style="background:rgba(0,255,136,0.08);padding:6px 12px;border-radius:6px;border:1px solid rgba(0,255,136,0.2);">
+      <span style="color:#4a6fa5;">LOW:</span> <span style="color:#00ff88;font-weight:700;">${low}</span>
+    </div>
+    <div style="background:rgba(168,85,247,0.08);padding:6px 12px;border-radius:6px;border:1px solid rgba(168,85,247,0.2);">
+      <span style="color:#4a6fa5;">OCC:</span> <span style="color:#a855f7;font-weight:700;">${occRate}%</span>
+    </div>
+    <div style="color:#4a6fa5;padding:6px 12px;">
+      Top Station: <span style="color:#d4e8ff;">${topStation ? topStation[0]+' ('+topStation[1]+')' : 'N/A'}</span>
+    </div>
+    <div style="color:#4a6fa5;padding:6px 12px;">
+      Top Defect: <span style="color:#d4e8ff;">${topDefect ? topDefect[0]+' ('+topDefect[1]+')' : 'N/A'}</span>
+    </div>
+  `;
+
+  document.getElementById('dv-total-pill').textContent = total + ' records';
+}
+
+// Render table rows
+function dvRenderTable() {
+  const tbody = document.getElementById('dv-tbody');
+  const empty = document.getElementById('dv-empty');
+  tbody.innerHTML = '';
+
+  if (dvFiltered.length === 0) {
+    empty.style.display = 'block';
+    document.getElementById('dv-filter-info').textContent = 'No matching records';
+    return;
+  }
+
+  empty.style.display = 'none';
+  document.getElementById('dv-filter-info').textContent =
+    `Showing ${dvFiltered.length} of ${dvAllDefects.length} records`;
+
+  // Build rows in batches for performance
+  const fragment = document.createDocumentFragment();
+  dvFiltered.forEach((d, i) => {
+    const tr = document.createElement('tr');
+    tr.style.cssText = `border-bottom:1px solid rgba(30,48,80,0.3);${i % 2 === 0 ? 'background:rgba(255,255,255,0.01);' : ''}`;
+    tr.onmouseover = function(){ this.style.background = 'rgba(0,229,255,0.04)'; };
+    tr.onmouseout = function(){ this.style.background = i % 2 === 0 ? 'rgba(255,255,255,0.01)' : 'transparent'; };
+
+    const sev = (d.sev || '').toUpperCase();
+    const sevColor = sev === 'HIGH' ? '#ff3d5a' : sev === 'MED' ? '#ffaa00' : '#00ff88';
+    const sevBg = sev === 'HIGH' ? 'rgba(255,61,90,0.15)' : sev === 'MED' ? 'rgba(255,170,0,0.15)' : 'rgba(0,255,136,0.15)';
+
+    // Format datetime nicely
+    let dt = d.datetime || '-';
+    try {
+      if (dt !== '-') {
+        const dtObj = new Date(dt);
+        if (!isNaN(dtObj)) {
+          dt = dtObj.toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) + ' ' +
+               dtObj.toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit',hour12:false});
+        }
+      }
+    } catch(e) {}
+
+    // Shift — short form
+    const shiftShort = (d.shift || '').match(/Shift [ABC]/)?.[0] || (d.shift || '-');
+
+    tr.innerHTML = `
+      <td style="padding:8px;color:#4a6fa5;text-align:center;">${i+1}</td>
+      <td style="padding:8px;color:#d4e8ff;white-space:nowrap;">${escapeHtml(dt)}</td>
+      <td style="padding:8px;color:#a855f7;font-weight:600;">${escapeHtml(shiftShort)}</td>
+      <td style="padding:8px;color:#00e5ff;font-weight:700;">${escapeHtml(d.mach || '-')}</td>
+      <td style="padding:8px;color:#d4e8ff;">${escapeHtml(d.door || '-')}</td>
+      <td style="padding:8px;color:#ffaa00;font-weight:600;">${escapeHtml(d.dtype || '-')}</td>
+      <td style="padding:8px;text-align:center;">
+        <span style="display:inline-block;padding:3px 10px;border-radius:10px;background:${sevBg};color:${sevColor};font-weight:700;font-size:10px;border:1px solid ${sevColor}66;">${escapeHtml(sev || '-')}</span>
+      </td>
+      <td style="padding:8px;color:#d4e8ff;">${escapeHtml(d.rc || '-')}</td>
+      <td style="padding:8px;text-align:center;color:#00e5ff;font-weight:600;">${escapeHtml(String(d.press || '-'))}</td>
+      <td style="padding:8px;text-align:center;color:#d4e8ff;">${escapeHtml(String(d.prod || '-'))}</td>
+      <td style="padding:8px;color:#4a6fa5;font-weight:600;">${escapeHtml(d.op || '-')}</td>
+    `;
+    fragment.appendChild(tr);
+  });
+  tbody.appendChild(fragment);
+}
+
+function escapeHtml(s) {
+  if (s === null || s === undefined) return '-';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// Filter
+window.dvFilter = function() {
+  const q = (document.getElementById('dv-search').value || '').toLowerCase().trim();
+  const sevF = document.getElementById('dv-sev-filter').value;
+
+  dvFiltered = dvAllDefects.filter(d => {
+    if (sevF && d.sev !== sevF) return false;
+    if (!q) return true;
+    return (
+      (d.mach || '').toLowerCase().includes(q) ||
+      (d.dtype || '').toLowerCase().includes(q) ||
+      (d.rc || '').toLowerCase().includes(q) ||
+      (d.op || '').toLowerCase().includes(q) ||
+      (d.door || '').toLowerCase().includes(q) ||
+      (d.shift || '').toLowerCase().includes(q) ||
+      (d.sev || '').toLowerCase().includes(q) ||
+      (d.datetime || '').toLowerCase().includes(q)
+    );
+  });
+  dvRenderTable();
+};
+
+// Download as JSON
+window.dvDownload = function() {
+  if (dvAllDefects.length === 0) {
+    dvShowToast('⚠️ No defect data to download', 'warning');
+    return;
+  }
+  try {
+    const exportData = {
+      meta: {
+        exportedAt: new Date().toISOString(),
+        exportedAtLocal: new Date().toLocaleString('en-IN'),
+        source: 'HemmTrack Pro V2 — ht2_defects',
+        totalRecords: dvAllDefects.length,
+        sevDistribution: {
+          HIGH: dvAllDefects.filter(d => d.sev === 'HIGH').length,
+          MED: dvAllDefects.filter(d => d.sev === 'MED').length,
+          LOW: dvAllDefects.filter(d => d.sev === 'LOW').length,
+        }
+      },
+      defects: dvAllDefects
+    };
+    const json = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const now = new Date();
+    const ts = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+    const filename = `defects_${ts}.json`;
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+    dvShowToast(`✅ Downloaded! ${dvAllDefects.length} records · ${filename}`, 'success');
+  } catch(err) {
+    dvShowToast('❌ Download failed: ' + err.message, 'error');
+  }
+};
+
+// Download as CSV
+window.dvDownloadCSV = function() {
+  if (dvAllDefects.length === 0) {
+    dvShowToast('⚠️ No data to export', 'warning');
+    return;
+  }
+  try {
+    const headers = ['ID','DateTime','Shift','Inspector','Station','Door','DefectType','Severity','RootCause','Pressure','Production','Remarks'];
+    const csvRows = [headers.join(',')];
+    dvAllDefects.forEach(d => {
+      const row = [
+        d.id || '',
+        `"${(d.datetime || '').replace(/"/g, '""')}"`,
+        `"${(d.shift || '').replace(/"/g, '""')}"`,
+        d.op || '',
+        d.mach || '',
+        `"${(d.door || '').replace(/"/g, '""')}"`,
+        `"${(d.dtype || '').replace(/"/g, '""')}"`,
+        d.sev || '',
+        `"${(d.rc || '').replace(/"/g, '""')}"`,
+        d.press || '',
+        d.prod || '',
+        `"${(d.rem || '').replace(/"/g, '""')}"`,
+      ];
+      csvRows.push(row.join(','));
+    });
+    const csv = csvRows.join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const now = new Date();
+    const ts = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    const filename = `defects_${ts}.csv`;
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+    dvShowToast(`✅ CSV downloaded! ${dvAllDefects.length} records · ${filename}`, 'success');
+  } catch(err) {
+    dvShowToast('❌ CSV export failed: ' + err.message, 'error');
+  }
+};
+
+// Copy to Clipboard
+window.dvCopy = async function() {
+  if (dvAllDefects.length === 0) {
+    dvShowToast('⚠️ No data to copy', 'warning');
+    return;
+  }
+  try {
+    const json = JSON.stringify(dvAllDefects, null, 2);
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(json);
+    } else {
+      // Fallback for non-HTTPS
+      const ta = document.createElement('textarea');
+      ta.value = json;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    dvShowToast(`✅ Copied to clipboard! ${dvAllDefects.length} records · ${(json.length/1024).toFixed(1)} KB`, 'success');
+  } catch(err) {
+    dvShowToast('❌ Copy failed: ' + err.message, 'error');
+  }
+};
+
+// Web Share API
+window.dvShare = async function() {
+  if (dvAllDefects.length === 0) {
+    dvShowToast('⚠️ No data to share', 'warning');
+    return;
+  }
+  try {
+    const json = JSON.stringify({
+      meta: {
+        app: 'HemmTrack Pro V2',
+        exportedAt: new Date().toISOString(),
+        records: dvAllDefects.length
+      },
+      defects: dvAllDefects
+    }, null, 2);
+
+    const file = new File([json],
+      `defects_${new Date().toISOString().slice(0,10)}.json`,
+      { type: 'application/json' }
+    );
+
+    // Try file sharing first
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        title: 'HemmTrack Pro — Defect Data',
+        text: `Defect data export: ${dvAllDefects.length} records from HemmTrack Pro V2`,
+        files: [file]
+      });
+      dvShowToast('✅ Share dialog opened', 'success');
+    } else if (navigator.share) {
+      // Fallback: share text only
+      await navigator.share({
+        title: 'HemmTrack Pro — Defect Data',
+        text: `HemmTrack Pro V2 — ${dvAllDefects.length} defect records exported on ${new Date().toLocaleString('en-IN')}`
+      });
+      dvShowToast('✅ Share dialog opened (text only)', 'success');
+    } else {
+      // Web Share not supported — fallback to copy
+      dvShowToast('⚠️ Share API not supported. Use Copy or Download instead.', 'warning');
+    }
+  } catch(err) {
+    if (err.name === 'AbortError') return;  // User cancelled
+    dvShowToast('❌ Share failed: ' + err.message, 'error');
+  }
+};
+
+// Hide Share button if API not available
+if (!navigator.share) {
+  setTimeout(() => {
+    const btn = document.getElementById('dv-share-btn');
+    if (btn) btn.style.display = 'none';
+  }, 100);
+}
+
+// Toast (independent)
+function dvShowToast(msg, type) {
+  const old = document.getElementById('dv-toast');
+  if (old) old.remove();
+  const colors = {
+    success: { bg: '#00ff88', shadow: 'rgba(0,255,136,0.4)' },
+    error:   { bg: '#ff3d5a', shadow: 'rgba(255,61,90,0.4)' },
+    warning: { bg: '#ffaa00', shadow: 'rgba(255,170,0,0.4)' },
+  };
+  const c = colors[type] || colors.success;
+  const t = document.createElement('div');
+  t.id = 'dv-toast';
+  t.style.cssText = `position:fixed;top:80px;right:20px;background:linear-gradient(135deg,#0a1628,#0f1928);color:${c.bg};padding:14px 22px;border:2px solid ${c.bg};border-radius:12px;font-family:Consolas,monospace;font-size:13px;font-weight:700;box-shadow:0 4px 24px ${c.shadow};z-index:99999;max-width:480px;animation:bk-toast-in 0.3s ease-out;`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => {
+    t.style.animation = 'bk-toast-out 0.3s ease-in forwards';
+    setTimeout(() => t.remove(), 300);
+  }, 4000);
+}
+
+console.log('[HemmTrack Defects Viewer] Loaded · Click 📊 VIEW DATA button in header');
+
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- 🤖 GEMINI AI ENGINE — Isolated, Non-Destructive                 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+
+const GEMINI_KEY_STORAGE = 'gemini_api_key';
+// Gemini 2.0 Flash — fast, free tier
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+
+// Load saved key on init
+window.addEventListener('DOMContentLoaded', function() {
+  const saved = localStorage.getItem(GEMINI_KEY_STORAGE);
+  if (saved) {
+    const inp = document.getElementById('gemini-api-key');
+    if (inp) inp.value = saved;
+    geminiSetStatus('✅ KEY LOADED', '#00ff88');
+  }
+});
+
+// Save API key locally
+window.geminiSaveKey = function() {
+  const key = (document.getElementById('gemini-api-key') || {}).value || '';
+  if (!key.trim()) {
+    geminiShowOutput('⚠️ Please enter a valid API key', 'warn');
+    return;
+  }
+  localStorage.setItem(GEMINI_KEY_STORAGE, key.trim());
+  geminiSetStatus('✅ KEY SAVED', '#00ff88');
+  geminiShowOutput('✅ API key saved locally. You can now use AI features.', 'success');
+  // Auto-collapse
+  const det = document.getElementById('gemini-key-details');
+  if (det) det.open = false;
+};
+
+function geminiGetKey() {
+  // Priority: input field → localStorage
+  const inp = (document.getElementById('gemini-api-key') || {}).value || '';
+  if (inp.trim()) return inp.trim();
+  return (localStorage.getItem(GEMINI_KEY_STORAGE) || '').trim();
+}
+
+function geminiSetStatus(text, color) {
+  const el = document.getElementById('gemini-status-badge');
+  if (el) {
+    el.textContent = text;
+    el.style.color = color;
+    el.style.borderColor = color + '66';
+    el.style.background = color + '20';
+  }
+}
+
+function geminiShowOutput(html, type) {
+  const el = document.getElementById('gemini-output');
+  if (!el) return;
+  let prefix = '';
+  if (type === 'error')   prefix = '<span style="color:#ff3d5a;">❌ </span>';
+  if (type === 'warn')    prefix = '<span style="color:#ffaa00;">⚠️ </span>';
+  if (type === 'success') prefix = '<span style="color:#00ff88;">✅ </span>';
+  el.innerHTML = prefix + html;
+}
+
+window.geminiClearOutput = function() {
+  geminiShowOutput('<span style="color:#4a6fa5;font-style:italic;">💡 Output cleared. Click an AI button to start...</span>', '');
+  geminiSetStatus('READY', '#a855f7');
+};
+
+// Helper: get current defect form values safely
+function geminiGetCurrentInputs() {
+  function val(id) {
+    const el = document.getElementById(id);
+    if (!el) return '';
+    return (el.value || '').trim();
+  }
+  return {
+    defect:      val('f-dtype'),
+    severity:    val('f-sev'),
+    station:     val('f-mach'),
+    door:        val('f-door'),
+    pressure:    val('f-press'),
+    rootCauseUI: val('f-rc'),
+    shift:       val('f-shift'),
+    inspector:   val('f-op'),
+    remarks:     val('f-rem'),
+  };
+}
+
+// Core: call Gemini API
+async function geminiCallAPI(prompt) {
+  const apiKey = geminiGetKey();
+  if (!apiKey) {
+    geminiShowOutput(
+      'No Gemini API key configured.\n\n' +
+      '👉 Click "⚙️ GEMINI API KEY" above to add one.\n' +
+      '🔗 Get a FREE key: https://aistudio.google.com/app/apikey',
+      'warn'
+    );
+    geminiSetStatus('⚠️ NO KEY', '#ffaa00');
+    return null;
+  }
+
+  geminiSetStatus('⏳ THINKING...', '#00e5ff');
+
+  try {
+    const response = await fetch(GEMINI_API_URL + '?key=' + encodeURIComponent(apiKey), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{ text: prompt }]
+        }],
+        generationConfig: {
+          temperature: 0.4,
+          maxOutputTokens: 600,
+          topP: 0.9
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      let errMsg = 'API Error ' + response.status;
+      try {
+        const errJson = JSON.parse(errText);
+        if (errJson.error && errJson.error.message) errMsg += ': ' + errJson.error.message;
+      } catch(e) {}
+      throw new Error(errMsg);
+    }
+
+    const data = await response.json();
+
+    // Extract text from response
+    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+      const parts = data.candidates[0].content.parts || [];
+      const text = parts.map(p => p.text || '').join('').trim();
+      if (text) return text;
+    }
+
+    if (data.promptFeedback && data.promptFeedback.blockReason) {
+      throw new Error('Content blocked: ' + data.promptFeedback.blockReason);
+    }
+
+    throw new Error('Empty response from Gemini API');
+
+  } catch (err) {
+    console.error('[Gemini AI] Error:', err);
+    geminiSetStatus('❌ FAILED', '#ff3d5a');
+
+    // User-friendly error messages
+    let userMsg = err.message || 'Unknown error';
+    if (userMsg.includes('Failed to fetch') || userMsg.includes('NetworkError')) {
+      userMsg = 'Network error — check your internet connection';
+    } else if (userMsg.includes('API key') || userMsg.includes('401') || userMsg.includes('403')) {
+      userMsg = 'Invalid API key. Get a new one from https://aistudio.google.com/app/apikey';
+    } else if (userMsg.includes('429')) {
+      userMsg = 'Rate limit exceeded. Please wait a moment and try again.';
+    }
+
+    geminiShowOutput(userMsg, 'error');
+    return null;
+  }
+}
+
+// Format AI response (basic markdown → HTML)
+function geminiFormatResponse(text) {
+  if (!text) return '';
+  let html = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  // Headers (### or ##)
+  html = html.replace(/^###\s+(.+)$/gm, '<div style="color:#a855f7;font-weight:700;font-size:13px;margin:10px 0 4px;letter-spacing:1px;">$1</div>');
+  html = html.replace(/^##\s+(.+)$/gm, '<div style="color:#00e5ff;font-weight:700;font-size:14px;margin:12px 0 6px;letter-spacing:1px;">$1</div>');
+
+  // Bold **text**
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong style="color:#00e5ff;">$1</strong>');
+
+  // Bullet points (lines starting with - or *)
+  html = html.replace(/^\s*[-*]\s+(.+)$/gm, '<div style="margin:3px 0;padding-left:18px;position:relative;"><span style="position:absolute;left:4px;color:#a855f7;">▸</span>$1</div>');
+
+  // Numbered lists
+  html = html.replace(/^(\d+)\.\s+(.+)$/gm, '<div style="margin:4px 0;padding-left:24px;position:relative;"><span style="position:absolute;left:0;color:#00ff88;font-weight:700;">$1.</span>$2</div>');
+
+  return html;
+}
+
+// FEATURE 1: AI Root Cause Suggestion
+window.geminiSuggestRootCause = async function() {
+  const inputs = geminiGetCurrentInputs();
+
+  // Validate — at least defect type or station should be filled
+  if (!inputs.defect && !inputs.station && !inputs.pressure) {
+    geminiShowOutput(
+      'No defect data available.\n\n' +
+      '👉 Please fill at least one field in the form above:\n' +
+      '   • Defect Type (e.g., Open Hem, Hem Crack)\n' +
+      '   • Station (e.g., ST-200)\n' +
+      '   • Hemming Pressure (e.g., 168 bar)',
+      'warn'
+    );
+    return;
+  }
+
+  const prompt = `You are an automotive quality expert specializing in sheet metal hemming process for car body panels (rear doors, hoods, tailgates).
+
+Analyze this defect and suggest the TOP 3 most likely root causes with brief, actionable corrective actions.
+
+DEFECT INPUT:
+- Defect Type: ${inputs.defect || 'Not specified'}
+- Severity: ${inputs.severity || 'Not specified'}
+- Station: ${inputs.station || 'Not specified'}
+- Door/Panel: ${inputs.door || 'Not specified'}
+- Hemming Pressure: ${inputs.pressure ? inputs.pressure + ' bar' : 'Not specified'} (target: 180 bar)
+- Shift: ${inputs.shift || 'Not specified'}
+${inputs.remarks ? '- Operator Remarks: ' + inputs.remarks : ''}
+
+REQUIREMENTS:
+1. Output ONLY 3 root causes ranked by likelihood
+2. Each root cause: 1-line title + 2 short bullet points (cause + corrective action)
+3. Use this EXACT format:
+
+### 1. [Root Cause Name] — [Likelihood %]
+- Cause: [1-line technical explanation]
+- Action: [Specific corrective action — be concrete]
+
+### 2. [Root Cause Name] — [Likelihood %]
+- Cause: [1-line technical explanation]
+- Action: [Specific corrective action]
+
+### 3. [Root Cause Name] — [Likelihood %]
+- Cause: [1-line technical explanation]
+- Action: [Specific corrective action]
+
+Keep entire response under 200 words. Be practical, not theoretical.`;
+
+  geminiShowOutput('<span style="color:#a855f7;">🤔 Gemini is analyzing your defect data...</span>', '');
+  const result = await geminiCallAPI(prompt);
+
+  if (result) {
+    geminiSetStatus('✅ ROOT CAUSE READY', '#00ff88');
+    const formatted = geminiFormatResponse(result);
+    geminiShowOutput(
+      '<div style="color:#a855f7;font-weight:700;font-size:11px;letter-spacing:1.5px;margin-bottom:10px;border-bottom:1px solid rgba(168,85,247,0.3);padding-bottom:6px;">🔍 AI ROOT CAUSE ANALYSIS</div>' +
+      formatted,
+      ''
+    );
+  }
+};
+
+// FEATURE 2: Generate 8D Draft
+window.geminiGenerate8D = async function() {
+  const inputs = geminiGetCurrentInputs();
+
+  if (!inputs.defect && !inputs.station && !inputs.pressure) {
+    geminiShowOutput(
+      'No defect data available for 8D generation.\n\n' +
+      '👉 Please fill the defect form first.',
+      'warn'
+    );
+    return;
+  }
+
+  const prompt = `You are an 8D (Eight Disciplines) problem-solving expert for automotive manufacturing.
+
+Generate a CONCISE 8D Report draft for this hemming defect:
+
+DEFECT DATA:
+- Defect Type: ${inputs.defect || 'Hemming Defect'}
+- Severity: ${inputs.severity || 'MED'}
+- Station: ${inputs.station || 'Not specified'}
+- Door/Panel: ${inputs.door || 'Not specified'}
+- Pressure: ${inputs.pressure ? inputs.pressure + ' bar' : 'Not specified'}
+- Shift: ${inputs.shift || 'Not specified'}
+
+Generate a SHORT 8D draft using EXACTLY this format (max 250 words total):
+
+### D1 — Team
+[1 line: who should be in the team — 3 roles]
+
+### D2 — Problem Description
+[1-2 lines: clear problem statement using 5W2H briefly]
+
+### D3 — Containment Action
+[2 bullet points: immediate action to stop defect from reaching customer]
+
+### D4 — Root Cause
+[2 bullet points: most likely root cause + verification method]
+
+### D5 — Corrective Action
+[2 bullet points: permanent fix]
+
+### D6 — Validation
+[1 line: how to verify fix worked]
+
+### D7 — Prevention
+[1 line: how to prevent recurrence at other stations/products]
+
+Be practical and shop-floor ready. No theory.`;
+
+  geminiShowOutput('<span style="color:#00ff88;">📋 Generating 8D draft...</span>', '');
+  const result = await geminiCallAPI(prompt);
+
+  if (result) {
+    geminiSetStatus('✅ 8D DRAFT READY', '#00ff88');
+    const formatted = geminiFormatResponse(result);
+    geminiShowOutput(
+      '<div style="color:#00ff88;font-weight:700;font-size:11px;letter-spacing:1.5px;margin-bottom:10px;border-bottom:1px solid rgba(0,255,136,0.3);padding-bottom:6px;">📋 8D REPORT DRAFT — AI GENERATED</div>' +
+      formatted +
+      '<div style="margin-top:14px;padding-top:10px;border-top:1px dashed rgba(168,85,247,0.2);font-size:10px;color:#4a6fa5;font-style:italic;">💡 This is a starting draft. Review with your team and customize based on actual investigation.</div>',
+      ''
+    );
+  }
+};
+
+console.log('[Gemini AI] Module loaded · 2 features available: Root Cause Suggestion + 8D Draft Generator');
+
+})();
+</script>
 
 </body>
 </html>
